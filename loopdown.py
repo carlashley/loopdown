@@ -14,8 +14,8 @@ options:
                         -m/--mandatory is required
   -d [path], --destination [path]
                         path to download destination, folder path will be
-                        created automatically if it does not exist; required
-                        for non dry-runs
+                        created automatically if it does not exist; defaults
+                        to '/tmp/loopdown' for non dry-runs
   -p [[file] ...], --property-list [[file] ...]
                         path to property list file/s to process, must be valid
                         file path and property list file; required
@@ -38,6 +38,7 @@ APPLE_FEED_URL = "https://audiocontentdownload.apple.com/lp10_ms3_content_2016"
 SUFFIXES = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
 VERSION = "1.0.1"
 USERAGENT = f"loopdown/{VERSION}"
+DEFAULT_DEST = "/tmp/loopdown"
 
 
 def arguments() -> argparse.Namespace:
@@ -68,10 +69,11 @@ def arguments() -> argparse.Namespace:
 
     aa("-d", "--destination",
        dest="destination",
-       default="/tmp/loops",
+       default=DEFAULT_DEST,
        metavar="[path]",
        help=("path to download destination, folder path will be created"
-             " automatically if it does not exist; required for non dry-runs"),
+             " automatically if it does not exist; defaults to"
+             f" {DEFAULT_DEST!r} for non dry-runs"),
        required=False)
 
     aa("-p", "--property-list",
