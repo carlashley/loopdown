@@ -212,6 +212,9 @@ def main():
         else:
             print(url)
 
+    if not args.dry_run:
+        print(f"Loop content downloaded to {str(args.destination)!r}")
+
 
 if __name__ == "__main__":
     main()
