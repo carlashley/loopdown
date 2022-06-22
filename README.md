@@ -1,9 +1,9 @@
 # loopdown
-Downloads loop packages for GarageBand, Logic Pro, MainStage 3
-
+Download or print out the URL to the additional content packages that Apple provides for the GarageBand, Logic Pro, and MainStage audio programs.
+Intended as a generic replacement for `appleloops` to facilitate _downloading_ content packages from the aforementioned apps.
 
 ## Requirements
-Python 3.5+
+Python 3.5+ (Python3 3.9 recommended).
 
 ## Usage
 ```
@@ -47,4 +47,5 @@ Downloading GarageBandBasicContent.pkg (1.46GB, 1 of 564):
 ...
 Downloading (298.21 MB, 564 of 564:
 #################################################################################### 100%
+Loop content downloaded to '/tmp/loopdown'
 ```
