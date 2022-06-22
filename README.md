@@ -48,4 +48,5 @@ Downloading GarageBandBasicContent.pkg (1.46GB, 1 of 564):
 Downloading (298.21 MB, 564 of 564:
 #################################################################################### 100%
 Loop content downloaded to '/tmp/loopdown'
+[jappleseed@loopback]:loopdown #
 ```
