@@ -8,8 +8,8 @@ Python 3.5+ (Python3 3.9 recommended).
 ## Usage
 ```
 [jappleseed@loopback]:loopdown # ./loopdown.py -h
-usage: loopdown.py [-h] [-n] [-m] [-o] [-d [path]] -p [[file] ...]
-                   [--retries [retry]] [-v]
+usage: loopdown.py [-h] [-n] [-m] [-o] [-d [path]] [-p [[file] ...] | -t
+                   [file]] [--retries [retry]] [-v]
 
 options:
   -h, --help            show this help message and exit
@@ -25,8 +25,13 @@ options:
   -p [[file] ...], --property-list [[file] ...]
                         path to property list file/s to process, must be valid
                         file path and property list file; required
+  -t [file], --text-file [file]
+                        download audio content packages from URLs in a text
+                        file
   --retries [retry]     maximum number of retries (default 3)
   -v, --version         show program's version number and exit
+
+[jappleseed@loopback]:loopdown #
 [jappleseed@loopback]:loopdown # ./loopdown.py -n -p ~/Downloads/ms.plist -m -o
 https://audiocontentdownload.apple.com/lp10_ms3_content_2013/GarageBandBasicContent.pkg
 https://audiocontentdownload.apple.com/lp10_ms3_content_2013/JamPack1.pkg

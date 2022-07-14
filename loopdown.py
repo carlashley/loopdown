@@ -25,6 +25,7 @@ options:
 loopdown v1.0.1 is provided 'as is'; licensed under the Apache License 2.0
 """
 import argparse
+import errno
 import plistlib
 import subprocess
 import sys
@@ -36,7 +37,7 @@ from typing import Any, Dict, List, Optional
 APPLE_BASE_URL = "https://audiocontentdownload.apple.com"
 APPLE_FEED_URL = "https://audiocontentdownload.apple.com/lp10_ms3_content_2016"
 SUFFIXES = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 USERAGENT = f"loopdown/{VERSION}"
 DEFAULT_DEST = "/tmp/loopdown"
 
@@ -45,6 +46,7 @@ def arguments() -> argparse.Namespace:
     """Create the command line arguments."""
     p = argparse.ArgumentParser()
     aa = p.add_argument
+    me = p.add_mutually_exclusive_group().add_argument
     name = Path(sys.argv[0]).name
 
     aa("-n", "--dry-run",
@@ -76,13 +78,19 @@ def arguments() -> argparse.Namespace:
              f" {DEFAULT_DEST!r} for non dry-runs"),
        required=False)
 
-    aa("-p", "--property-list",
+    me("-p", "--property-list",
        nargs="*",
        dest="plists",
        metavar="[file]",
        help=("path to property list file/s to process, must be valid file path"
              " and property list file; required"),
-       required=True)
+       required=False)
+
+    me("-t", "--text-file",
+       dest="text_file",
+       metavar="[file]",
+       help="download audio content packages from URLs in a text file",
+       required=False)
 
     aa("--retries",
        dest="retries",
@@ -98,18 +106,37 @@ def arguments() -> argparse.Namespace:
 
     args = p.parse_args()
     args.destination = Path(args.destination)
+    args.text_file = Path(args.text_file) if args.text_file else None
+    args.plists = [Path(fp) for fp in args.plists] if args.plists else None
+
+    if args.plists:
+        files = list()
+
+        for fp in args.plists:
+            if fp.is_file():
+                files.append(Path(fp))
+            elif fp.is_dir():
+                files.extend([fn for fn in fp.rglob("*.plist")])
+
+        args.plists = files
 
     if not args.dry_run and not args.destination:
         p.print_usage()
         print((f"{name}: error: the following arguments are required:"
                " -d/--destination"), file=sys.stderr)
-        sys.exit(2)
+        sys.exit(1)
+
+    if not (args.plists or args.text_file):
+        p.print_usage()
+        print((f"{name}: error: at least one of the following arguments is"
+               " required: -t/--text-file, -p/--property-list"), file=sys.stderr)
+        sys.exit(1)
 
     if not (args.mandatory or args.optional):
         p.print_usage()
         print((f"{name}: error: at least one of the following arguments is"
                " required: -m/--mandatory, -o/--optional"), file=sys.stderr)
-        sys.exit(2)
+        sys.exit(1)
 
     return args
 
@@ -183,8 +210,30 @@ def pull_urls(data: Dict[Any, Any], mandatory: bool = False,
 def readplist(fp: Path) -> Optional[Dict[Any, Any]]:
     """Read the specified property list file.
     :param fp: path to the property list file to read."""
-    with fp.open("rb") as f:
-        return plistlib.load(f)
+    try:
+        with fp.open("rb") as f:
+            data = plistlib.load(f)
+
+            if not data.get("Packages"):
+                print((f"Error: Could not find package content in {str(fp)!r}."
+                      " This file may not be a valid audio content property list."))
+                sys.exit(1)
+
+            return data
+    except FileNotFoundError as e:
+        print(f"Error: {e.strerror}: {str(fp)!r}", file=sys.stderr)
+        sys.exit(errno.ENOENT)
+
+
+def readfile(fp: Path, ext: str = ".pkg") -> Optional[List[str]]:
+    """Read a text file for URL's"""
+    try:
+        with fp.open("r") as f:
+            return {line.strip() for line in f.readlines()
+                    if APPLE_BASE_URL in line and line.strip().endswith(ext)}
+    except FileNotFoundError as e:
+        print(f"Error: {e.strerror}: {str(fp)!r}", file=sys.stderr)
+        sys.exit(errno.ENOENT)
 
 
 def main():
@@ -192,12 +241,15 @@ def main():
     package_urls = set()
     counter = 1
 
-    for plist in args.plists:
-        data = readplist(Path(plist))
-        urls = pull_urls(data, args.mandatory, args.optional)
+    if args.plists:
+        for plist in args.plists:
+            data = readplist(plist)
+            urls = pull_urls(data, args.mandatory, args.optional)
 
-        for url in urls:
-            package_urls.add(url)
+            for url in urls:
+                package_urls.add(url)
+    elif args.text_file:
+        package_urls = readfile(args.text_file)
 
     package_urls = sorted(list(package_urls))
     count = len(package_urls)
