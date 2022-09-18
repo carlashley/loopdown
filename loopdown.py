@@ -56,39 +56,40 @@ import sys
 
 from pathlib import Path
 from urllib.parse import urlparse
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Set
 
-APPLE_BASE_URL = "https://audiocontentdownload.apple.com"
-APPLE_FEED_URL = "https://audiocontentdownload.apple.com/lp10_ms3_content_2016"
-SUFFIXES = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-VERSION = "1.0.20220918"
-USERAGENT = f"loopdown/{VERSION}"
-DEFAULT_DEST = "/tmp/loopdown"
-ARGPARSE_DESC = (f"loopdown v{VERSION} is a utility to download the audio content packages\n"
-                 "from Apple so they can be deployed with third party app management tools\n"
-                 "such as 'munki' or 'JAMF'.\n \n"
-                 "Basic usage example:\n"
-                 "  loopdown -p garageband1021.plist -m -d ~/Desktop/appleaudiocontent\n \n"
-                 "If a specified property list file is not found at the specified path, then\n"
-                 "loopdown will fallback to a remote version of that property list file, if\n"
-                 "available.\n \n"
-                 "The specific property list files are usually found in the app bundle:\n"
-                 "  /Applications/[app]/Contents/Resources/[appname]NNNN.plist\n"
-                 "'NNNN' represents a 'version' number.\n \n"
-                 "For example:\n \n"
-                 "  /Applications/GarageBand.app/Contents/Resources/garageband1021.plist\n \n"
-                 "Note: The property list file does not always get updated with each audio app\n"
-                 "release.\n \n"
-                 "For the most recent version of loopdown:\n"
-                 "  git: https://github.com/carlashley/loopdown")
+APPLE_BASE_URL: str = "https://audiocontentdownload.apple.com"
+APPLE_FEED_URL: str = "https://audiocontentdownload.apple.com/lp10_ms3_content_2016"
+SUFFIXES: List[str] = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+VERSION: str = "1.0.20220918"
+USERAGENT: str = f"loopdown/{VERSION}"
+DEFAULT_DEST: str = "/tmp/loopdown"
+ARGPARSE_DESC: str = (f"loopdown v{VERSION} is a utility to download the audio content packages\n"
+                      "from Apple so they can be deployed with third party app management tools\n"
+                      "such as 'munki' or 'JAMF'.\n \n"
+                      "Basic usage example:\n"
+                      "  loopdown -p garageband1021.plist -m -d ~/Desktop/appleaudiocontent\n \n"
+                      "If a specified property list file is not found at the specified path, then\n"
+                      "loopdown will fallback to a remote version of that property list file, if\n"
+                      "available.\n \n"
+                      "The specific property list files are usually found in the app bundle:\n"
+                      "  /Applications/[app]/Contents/Resources/[appname]NNNN.plist\n"
+                      "'NNNN' represents a 'version' number.\n \n"
+                      "For example:\n \n"
+                      "  /Applications/GarageBand.app/Contents/Resources/garageband1021.plist\n \n"
+                      "Note: The property list file does not always get updated with each audio app\n"
+                      "release.\n \n"
+                      "For the most recent version of loopdown:\n"
+                      "  git: https://github.com/carlashley/loopdown")
 
 
 def arguments() -> argparse.Namespace:
     """Create the command line arguments."""
-    p = argparse.ArgumentParser(description=ARGPARSE_DESC, formatter_class=argparse.RawTextHelpFormatter)
-    aa = p.add_argument
-    me = p.add_mutually_exclusive_group().add_argument
-    name = Path(sys.argv[0]).name
+    p: argparse.ArgumentParser = argparse.ArgumentParser(description=ARGPARSE_DESC,
+                                                         formatter_class=argparse.RawTextHelpFormatter)
+    aa: Callable = p.add_argument
+    me: Callable = p.add_mutually_exclusive_group().add_argument
+    name: Path = Path(sys.argv[0]).name
 
     aa("-n", "--dry-run",
        action="store_true",
@@ -145,13 +146,13 @@ def arguments() -> argparse.Namespace:
        version=(f"loopdown v{VERSION} is provided 'as is';"
                 " licensed under the Apache License 2.0"))
 
-    args = p.parse_args()
-    args.destination = Path(args.destination)
-    args.text_file = Path(args.text_file) if args.text_file else None
-    args.plists = [Path(fp) for fp in args.plists] if args.plists else None
+    args: Callable = p.parse_args()
+    args.destination: Path = Path(args.destination)
+    args.text_file: Path = Path(args.text_file) if args.text_file else None
+    args.plists: List[Path] = [Path(fp) for fp in args.plists] if args.plists else None
 
     if args.plists:
-        files = list()
+        files: List[Path] = list()
 
         for fp in args.plists:
             if fp.is_file():
@@ -161,7 +162,7 @@ def arguments() -> argparse.Namespace:
             else:
                 files.append(Path(fp))  # Allow for fallback
 
-        args.plists = files
+        args.plists: List[Path] = files
 
     if not args.dry_run and not args.destination:
         p.print_usage()
@@ -196,7 +197,7 @@ def bytes2hr(b: str, counter: int = 0, byteblock: int = 1024) -> Optional[str]:
         counter += 1
         b /= float(byteblock)
 
-    suffix = SUFFIXES[counter]
+    suffix: str = SUFFIXES[counter]
     return f"{b:.2f}{suffix}"
 
 
@@ -208,9 +209,9 @@ def download(url: str, dest: Path, retries: str = "3", compressed: bool = False)
     :param retries: number of retries to attempt if download fails
     :param compressed: indicates if the remote resource is compressed"""
     dest = dest if dest.suffix == ".plist" else dest.joinpath(urlparse(url).path.lstrip("/"))
-    cmd = ["/usr/bin/curl", "-L", "-C", "-", "--retry", retries,
-           "--user-agent", USERAGENT, "--progress-bar", "--create-dirs", url,
-           "-o", str(dest)]
+    cmd: List[str] = ["/usr/bin/curl", "-L", "-C", "-", "--retry", retries,
+                      "--user-agent", USERAGENT, "--progress-bar", "--create-dirs", url,
+                      "-o", str(dest)]
 
     if compressed:
         cmd.append("--compressed")
@@ -226,8 +227,8 @@ def get_header(url: str, header: str) -> Optional[str]:
 
     :param url: url
     :param header: header to return value of"""
-    cmd = ["/usr/bin/curl", "-s", "-I", url]
-    p = subprocess.run(cmd, capture_output=True, encoding="utf-8")
+    cmd: List[str] = ["/usr/bin/curl", "-s", "-I", url]
+    p: subprocess.CompletedProcess = subprocess.run(cmd, capture_output=True, encoding="utf-8")
 
     if p.returncode == 0:
         return "".join([ln.replace(header, "") for ln in p.stdout.strip().splitlines()
@@ -238,7 +239,7 @@ def download_size(url: str, header: str) -> Optional[str]:
     """Get the content-length header.
 
     :param url: url to calculate size of"""
-    size = get_header(url=url, header="content-length")
+    size: int = int(get_header(url=url, header="content-length"))
     return bytes2hr(size) if size else None
 
 
@@ -246,8 +247,8 @@ def status_code(url: str) -> Optional[int]:
     """HTTP status code of remote resource.
 
     :param urul: url"""
-    cmd = ["/usr/bin/curl", "-s", "-o", "/dev/null", "-I", "-w", "%{http_code}", "https://example.org"]
-    p = subprocess.run(cmd, capture_output=True, encoding="utf-8")
+    cmd: List[str] = ["/usr/bin/curl", "-s", "-o", "/dev/null", "-I", "-w", "%{http_code}", "https://example.org"]
+    p: subprocess.CompletedProcess = subprocess.run(cmd, capture_output=True, encoding="utf-8")
 
     if p.returncode == 0:
         return int(p.stdout.strip())
@@ -270,24 +271,24 @@ def pull_urls(data: Dict[Any, Any],
     :param data: dictionary of loop objects to process
     :param mandatory: process mandatory packages
     :param optional: process optional packages"""
-    result = set()
+    result: Set[str] = set()
 
     for k, v in data["Packages"].items():
-        dn = v["DownloadName"]
+        dn: str = v["DownloadName"]
 
         if "lp10_ms3_content_2013" in dn:
-            url = f"{APPLE_BASE_URL}/{dn.replace('../', '')}"
+            url: str = f"{APPLE_BASE_URL}/{dn.replace('../', '')}"
         else:
-            url = f"{APPLE_FEED_URL}/{dn}"
+            url: str = f"{APPLE_FEED_URL}/{dn}"
 
-        mnd = v.get("IsMandatory", False)
+        mnd: bool = v.get("IsMandatory", False)
 
         if mnd and mandatory:
             result.add(url)
         elif not mnd and optional:
             result.add(url)
 
-    result = sorted(list(result))
+    result: List[str] = sorted(list(result))
     return result
 
 
@@ -297,7 +298,7 @@ def readplist(fp: Path) -> Optional[Dict[Any, Any]]:
     :param fp: path to the property list file to read."""
     try:
         with fp.open("rb") as f:
-            data = plistlib.load(f)
+            data: Dict[Any, Any] = plistlib.load(f)
 
             if not data.get("Packages"):
                 print((f"Error: Could not find package content in {str(fp)!r}."
@@ -329,18 +330,18 @@ def fallback(fp: Path) -> Optional[Dict[Any, Any]]:
     """Perform fallback download.
 
     :param fp: plist file path"""
-    url = f"{APPLE_FEED_URL}/{fp.name}"
-    sc = status_code(url)
+    url: str = f"{APPLE_FEED_URL}/{fp.name}"
+    sc: int = status_code(url)
     print(f"Falling back to {url!r}")
 
     if sc == 200:
-        tmp_dest = Path(f"/tmp/{fp.name}")
-        compressed = encoding_type(url) == "gzip"
+        tmp_dest: Path = Path(f"/tmp/{fp.name}")
+        compressed: str = encoding_type(url) == "gzip"
         download(url=url, dest=tmp_dest, compressed=compressed)
 
         if tmp_dest.exists():
             try:
-                data = readplist(tmp_dest)
+                data: Dict[Any, Any] = readplist(tmp_dest)
                 tmp_dest.unlink(missing_ok=True)
                 return data
             except plistlib.InvalidFileException:
@@ -350,9 +351,10 @@ def fallback(fp: Path) -> Optional[Dict[Any, Any]]:
 
 def main():
     """Main"""
-    args = arguments()
-    package_urls = set()
-    counter = 1
+    args: argparse.Namespace = arguments()
+    package_urls: Set[str] = set()
+    counter: int = 1
+    data: Dict[Any, Any]
 
     if args.plists:
         for plist in args.plists:
@@ -363,20 +365,20 @@ def main():
 
             # Only carry on if 'data' exists.
             if data:
-                urls = pull_urls(data, args.mandatory, args.optional)
+                urls: List[str] = pull_urls(data, args.mandatory, args.optional)
 
                 for url in urls:
                     package_urls.add(url)
     elif args.text_file:
         package_urls = readfile(args.text_file)
 
-    package_urls = sorted(list(package_urls))
-    count = len(package_urls)
+    package_urls: List[str] = sorted(list(package_urls))
+    count: int = len(package_urls)
 
     for url in package_urls:
         if not args.dry_run:
-            size = download_size(url)
-            dn = Path(urlparse(url).path).name
+            size: int = download_size(url)
+            dn: Path = Path(urlparse(url).path).name
             print(f"Downloading {dn} ({size}, {counter} of {count}):")
             download(url=url, dest=args.destination, retries=args.retries)
             counter += 1
