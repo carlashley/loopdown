@@ -7,6 +7,7 @@ Python 3.5+ (Python3 3.9 recommended).
 
 Note: Standalone versions are available in the `./dist` directory for either the `x86_64` or `arm64` platforms. A Python framework should not be required to use these versions.
  - These are built using `nuitka3` and have only had basic testing done on macOS 12, support is provided _as is_.
+ - Note: This does incur a slight penalty in time it takes to complete, but it is only a couple of seconds-ish.
 
 ## Usage
 ```
