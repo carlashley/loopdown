@@ -231,15 +231,16 @@ def get_header(url: str, header: str) -> Optional[str]:
     p: subprocess.CompletedProcess = subprocess.run(cmd, capture_output=True, encoding="utf-8")
 
     if p.returncode == 0:
-        return "".join([ln.replace(header, "") for ln in p.stdout.strip().splitlines()
-                        if header.lower() in ln.lower()])
+        value = "".join([ln.replace(header, "") for ln in p.stdout.strip().splitlines()
+                         if header.lower() in ln.lower()])
+        return "".join(value.split(": ")[1:])
 
 
-def download_size(url: str, header: str) -> Optional[str]:
+def download_size(url: str, header: Optional[str] = "content-length") -> Optional[str]:
     """Get the content-length header.
 
     :param url: url to calculate size of"""
-    size: int = int(get_header(url=url, header="content-length"))
+    size: int = int(get_header(url=url, header=header))
     return bytes2hr(size) if size else None
 
 
