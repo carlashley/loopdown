@@ -61,7 +61,7 @@ from typing import Any, Callable, Dict, List, Optional, Set
 APPLE_BASE_URL: str = "https://audiocontentdownload.apple.com"
 APPLE_FEED_URL: str = "https://audiocontentdownload.apple.com/lp10_ms3_content_2016"
 SUFFIXES: List[str] = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-VERSION: str = "1.0.20220918"
+VERSION: str = "1.0.20221005"
 USERAGENT: str = f"loopdown/{VERSION}"
 DEFAULT_DEST: str = "/tmp/loopdown"
 ARGPARSE_DESC: str = (f"loopdown v{VERSION} is a utility to download the audio content packages\n"
