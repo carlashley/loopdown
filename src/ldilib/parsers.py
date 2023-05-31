@@ -143,19 +143,22 @@ class ParsersMixin:
                        for example: 'com.apple.pkg.MAContent10_AssetPack_0718_EXS_MusicBox'
         :param pkg_vers: string representation of the package version to compare against the installed
                          version, if the package is installed"""
-        args = ["--pkg-info-plist", pkg_id]
-        kwargs = {"capture_output": True}
-        p = pkgutil(*args, **kwargs)
+        if self.force:
+            return False
+        else:
+            args = ["--pkg-info-plist", pkg_id]
+            kwargs = {"capture_output": True}
+            p = pkgutil(*args, **kwargs)
 
-        self.log.debug(f"pkgutil called with: {args}")
-        if p.returncode == 0:
-            data = plistlib.loads(p.stdout)
-            _installed_pkg_vers = data.get("pkg-version", "0.0.0")
+            self.log.debug(f"pkgutil called with: {args}")
+            if p.returncode == 0:
+                data = plistlib.loads(p.stdout)
+                _installed_pkg_vers = data.get("pkg-version", "0.0.0")
 
-            if _installed_pkg_vers == "0.0.0":
-                return False
-            else:
-                return self.local_pkg_vers_gt_remote_pkg_vers(_installed_pkg_vers, pkg_vers)
+                if _installed_pkg_vers == "0.0.0":
+                    return False
+                else:
+                    return self.local_pkg_vers_gt_remote_pkg_vers(_installed_pkg_vers, pkg_vers)
 
     def parse_application_plist_source_file(
         self, app: str, _gp: str = "*.plist", _pattern: Optional[re.Pattern] = None

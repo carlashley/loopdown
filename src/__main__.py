@@ -87,6 +87,10 @@ def main() -> None:
                 log.info(f"{prefix} {counter} - {package}")
 
                 if not ld.dry_run:
+                    # Force download, Will not resume partials!
+                    if args.force and package.download_dest.exists():
+                        package.download_dest.unlink(missing_ok=True)
+
                     pkg = ld.get_file(package.download_url, package.download_dest, args.silent)
 
                     if ld.install and pkg:
