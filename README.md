@@ -3,7 +3,7 @@
 This should run on any version of Python 3 after/including 3.9; `packaging` will need to be installed (a `requirements.txt` file is included in this repo) as `distutils` is deprecated.
 
 ## Build
-Run `./build.sh` with no additional arguments to create a compressed zipapp version of this utility; please note the default Python interpreter and shebang used is "/usr/bin/env python3", if a more specific shebang needs to be used, run `./build.sh /new/shebang/path`, for example: `./build.sh /usr/local/bin/python3`. This will generate a new "build" in `./dist/zipapp/usr/local/bin/custom/`.
+Run `./build.sh` with no additional arguments to create a compressed zipapp version of this utility; please note the default Python interpreter and shebang used is `/usr/bin/env python3`, if a more specific shebang needs to be used, run `./build.sh /new/shebang/path`, for example: `./build.sh /usr/local/bin/python3`. This will generate a new "build" in `./dist/zipapp/usr/local/bin/custom/`.
 
 ## Support
 This is provided as is. No support provided.
