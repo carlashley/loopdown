@@ -1,4 +1,5 @@
 """Utils used in various package files."""
+import argparse
 import shutil
 import sys
 
@@ -47,15 +48,23 @@ def clean_up_dirs(fp: Path) -> None:
     shutil.rmtree(fp, ignore_errors=True)
 
 
-def debugging_info() -> str:
+def debugging_info(args: argparse.Namespace) -> str:
     """Returns a string of useful debugging information."""
     sw_vers_kwargs = {"capture_output": True, "encoding": "utf-8"}
     pn = partial(sw_vers, *["--productName"], **sw_vers_kwargs)
     pv = partial(sw_vers, *["--productVersion"], **sw_vers_kwargs)
     bv = partial(sw_vers, *["--buildVersion"], **sw_vers_kwargs)
     mac_os_vers_str = f"{pn().stdout.strip()} {pv().stdout.strip()} ({bv().stdout.strip()})"
+    args = vars(args)
+    args_str = ""
 
-    return f"Debug info: {mac_os_vers_str}, Python {sys.version}"
+    for k, v in args.items():
+        args_str = f"{args_str} '{k}'='{v}',".strip()
+
+    return (
+        f"OS Version: {mac_os_vers_str!r}; Executable: {sys.executable!r}; Python Version: {sys.version!r}"
+        f" Arguments: {args_str}"
+    )
 
 
 def is_root() -> bool:

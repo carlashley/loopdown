@@ -63,38 +63,36 @@ class ParsersMixin:
     def parse_packages(self, pkgs: dict[str, dict[str, Any]]) -> None:
         """Parse packages from a source property list file representing audio content packages to download/install.
         :param pkgs: dictionary object representing package metadata"""
-        index, max_p = 0, 11
         for name, pkg in pkgs.items():
-            if index < max_p:
-                if pkg["DownloadName"] not in self.PROCESSED_PKGS:
-                    package = self.parse_package_for_attrs(pkg)
+            if pkg["DownloadName"] not in self.PROCESSED_PKGS:
+                package = self.parse_package_for_attrs(pkg)
 
-                    if self.include_package(package):
-                        if package.is_mandatory:
-                            append_to = "mandatory"
-                        else:
-                            append_to = "optional"
+                if self.include_package(package):
+                    if package.is_mandatory:
+                        append_to = "mandatory"
+                    else:
+                        append_to = "optional"
 
-                        self.packages[append_to].add(package)
-                index += 1
+                    self.packages[append_to].add(package)
 
     def install_pkg(self, fp: Path, _target: str) -> bool:
         """Install a package.
         :param fp: package file path"""
-        args = ["-dumplog", "-pkg", str(fp), "target", _target]
+        args = ["-dumplog", "-pkg", str(fp), "-target", _target]
         kwargs = {"capture_output": True, "encoding": "utf-8"}
         p = installer(*args, **kwargs)
 
+        self.log.debug(f"installer called with: {args}")
         self.log.debug(p.stdout.strip())
         self.log.warning(p.stderr.strip())
 
         return p.returncode == 0
 
-    def all_files_installed(self, files: str | list[str]) -> bool:
+    def any_files_installed(self, files: str | list[str]) -> bool:
         """Determines if all files that are used to determine a package is installed exist on the
         local filesystem.
         :param files: a string or list of string representations of all files that must be checked"""
-        return all(Path(file).exists() for file in files)
+        return any(Path(file).exists() for file in files)
 
     def fetch_remote_source_file(self, url: str, dest: Path) -> Optional[Path]:
         """Fetches a source file from a remote location. This is used to fetch the property list files
@@ -118,11 +116,12 @@ class ParsersMixin:
         kwargs = {"capture_output": True}
         p = diskutil(*args, **kwargs)
 
+        self.log.debug(f"diskutil called with: {args}")
         if p.returncode == 0:
             data = plistlib.loads(p.stdout)
             freespace = data.get("APFSContainerFree", data.get("FreeSpace"))
             has_freespace = freespace > required_space
-            prefix = f"{bytes2hr(required_space)} space required, {bytes2hr(freespace)} available,"
+            prefix = f"Disk space required: {bytes2hr(required_space)}, {bytes2hr(freespace)} available"
 
             self.log.info(f"{prefix}, has enough space: {has_freespace}")
             return has_freespace
@@ -148,6 +147,7 @@ class ParsersMixin:
         kwargs = {"capture_output": True}
         p = pkgutil(*args, **kwargs)
 
+        self.log.debug(f"pkgutil called with: {args}")
         if p.returncode == 0:
             data = plistlib.loads(p.stdout)
             _installed_pkg_vers = data.get("pkg-version", "0.0.0")
@@ -306,7 +306,7 @@ class ParsersMixin:
         if not pkg.get("is_mandatory"):
             pkg["is_mandatory"] = False
 
-        pkg["is_installed"] = self.all_files_installed(pkg["file_check"]) and self.package_is_installed(
+        pkg["is_installed"] = self.any_files_installed(pkg["file_check"]) and self.package_is_installed(
             pkg["package_id"], pkg.get("package_vers", "0.0.0")
         )
         pkg["install_size"] = Size(filesize=pkg["install_size"])
@@ -319,6 +319,6 @@ class ParsersMixin:
         directory structure.
         :param name: string representation of package name; for example: 'MAContent10_GarageBand6Legacy.pkg'
         :param base: string representation of package base url; for example:
-                         'https://audiocontentdownload.apple.com/lp10_ms3_content_2016/'"""
+                         'https://audiocontentdownload.apple.com/'"""
         base = f"{base}/" if not base.endswith("/") else base  # Ensure 'urljoin' correctly joins url paths
         return urljoin(base, name)

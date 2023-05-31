@@ -9,10 +9,10 @@ from .utils import clean_up_dirs
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 
-__license__: str = "Apache License Version 2.0"
-__script_name__: str = "ldi"
-__version__: str = "1.0.20230526"
-__version_string__: str = f"{__script_name__} v{__version__}, licensed under the {__license__}"
+_license: str = "Apache License Version 2.0"
+_script_name: str = "loopdown"
+_version: str = "1.0.20230531"
+_version_string: str = f"{_script_name} v{_version}, licensed under the {_license}"
 
 
 class Loopdown(ParsersMixin, RequestMixin):
@@ -69,4 +69,12 @@ class Loopdown(ParsersMixin, RequestMixin):
             if self.default_working_download_dest.exists():
                 self.log.error(
                     f"Unable to delete {str(self.default_working_download_dest)!r}, please delete manually.",
+                )
+
+        if self.install and not self.dry_run and self.default_packages_download_dest.exists():
+            clean_up_dirs(self.default_packages_download_dest)
+
+            if self.default_packages_download_dest.exists():
+                self.log.error(
+                    f"Unable to delete ({str(self.default_packages_download_dest)!r}, please delete  manually)"
                 )

@@ -4,8 +4,7 @@ import sys
 import tempfile
 
 from pathlib import Path
-from . import __version_string__
-
+from . import _version_string
 from .utils import (
     is_root,
     validate_caching_server_url,
@@ -165,7 +164,7 @@ def arguments() -> argparse.Namespace:
     a(
         "--version",
         action="version",
-        version=__version_string__,
+        version=_version_string,
     )
 
     # -- Hidden arguments here... THESE SHOULD NOT BE USED! -- #

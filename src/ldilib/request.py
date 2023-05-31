@@ -80,6 +80,7 @@ class RequestMixin:
 
         p = curl(*args, **kwargs)
 
+        self.log.debug(f"curl called with: {args}")
         if p.returncode == 0:
             if dest.exists() and dest.stat().st_size > 0:
                 return dest
