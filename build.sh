@@ -9,11 +9,16 @@ LOCAL_PYTHON=$(echo "/usr/bin/env python3")
 INTERPRETER=$1
 
 if [[ -z ${INTERPRETER} ]]; then
-    INTERPRETER="/usr/local/bin/python3"
+    INTERPRETER="/usr/bin/env python3"
 fi
 
 if [[ ! -d ${BUILD_DIR} ]]; then
     mkdir -p ${BUILD_DIR}
+fi
+
+if [[ ! ${INTERPRETER} == "/usr/bin/env python3" ]]; then
+    mkdir -p ${BUILD_DIR}/custom
+    ARCHIVE_V=${BUILD_DIR}/custom/${NAME}-${VERSION}
 fi
 
 BUILD_CMD=$(echo "${LOCAL_PYTHON}" -m zipapp src --compress --output ${ARCHIVE_V} --python=\"${INTERPRETER}\")
@@ -22,6 +27,11 @@ eval ${BUILD_CMD}
 
 
 if [[ $? == 0 ]] && [[ -f ${ARCHIVE_V} ]]; then
-    /bin/cp ${ARCHIVE_V} ${BUILD_OUT}
-    /bin/echo Built ${BUILD_OUT}
+    if [[ ${INTERPRETER} == "/usr/bin/env python3" ]]; then
+        /bin/cp ${ARCHIVE_V} ${BUILD_OUT}
+        /bin/echo Built ${BUILD_OUT}
+    else
+        /bin/cp ${ARCHIVE_V} ${BUILD_DIR}/custom/${NAME}
+        /bin/echo Built ${BUILD_DIR}/custom/${NAME}
+    fi
 fi
