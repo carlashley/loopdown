@@ -41,5 +41,14 @@ Please include the folder path and package name including the file extension; fo
 - :white_check_mark: Yes
 - :white_check_mark: No
 
+
+Has the `--log-level debug` argument and parameter been used?
+If `loopdown` has been run with `--log-level debug`, please attach the output of the log run.
+Log files are stored in `/Users/Shared/loopdown`; the most recent log will be `/Users/Shared/loopdown/loopdown.log`
+- :white_check_mark: Yes
+- :white_check_mark: No
+
+
+
 **Which macOS Version?**
 Output of `sw_vers`:

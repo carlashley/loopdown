@@ -6,7 +6,10 @@ This should run on any version of Python 3 after/including 3.10; `packaging` wil
 Run `./build.sh` with no additional arguments to create a compressed zipapp version of this utility; please note the default Python interpreter and shebang used is `/usr/bin/env python3`, if a more specific shebang needs to be used, run `./build.sh /new/shebang/path`, for example: `./build.sh /usr/local/bin/python3`. This will generate a new "build" in `./dist/zipapp/usr/local/bin/custom/`.
 
 ## Support
-This is provided as is. No support provided.
+This tool is provided 'as is', if an application is prompting to install a package that `loopdown` has installed, please use this [issue form](https://github.com/carlashley/loopdown/issues/new?assignees=carlashley&labels=install+prompt&projects=&template=package-install-prompt-issue.md&title= "raise an issue").
+Please note, responses to issues raised may be delayed.
+
+Feature requests can be made, but this project has been deliberately kept to a very defined scope of behaviour/capability.
 
 ## License
 Licensed under the Apache License Version 2.0. See `LICENSE` for the full license.
