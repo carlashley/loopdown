@@ -231,7 +231,7 @@ def arguments(args: Optional[list] = None) -> argparse.Namespace:
         dest="discover_plists_range",
         default=disc_plists_def,
         type=int,
-        metavar="[value]",
+        metavar=("[min]", "[max]"),
         required=False,
         help=(
             argparse.SUPPRESS
