@@ -16,8 +16,8 @@ Licensed under the Apache License Version 2.0. See `LICENSE` for the full licens
 
 ## Usage
 ```
-usage: loopdown [-h] [--advanced-help] [-n] [-a [app] [[app] ...] | -p [path|url] [[path|url] ...]] [-m] [-o] [--cache-server [server]] [--pkg-server [server]]
-                [--create-mirror [path] | -i] [--force] [-s] [--log-level [level]] [--version]
+usage: loopdown [-h] [--advanced-help] [-n] [-a [app] [[app] ...] | -p [plist] [[plist] ...]] [-m] [-o] [--cache-server [server]] [--pkg-server [server]] [--create-mirror [path] |
+                -i] [--force] [-s] [--log-level [level]] [--version]
 
 options:
   -h, --help            show this help message and exit
@@ -26,9 +26,9 @@ options:
   -a [app] [[app] ...], --apps [app] [[app] ...]
                         application/s to process package content from; valid values are 'all', 'garageband', 'logicpro', 'mainstage', selecting 'all' will process packages for
                         any/all of the three apps if found on the target device; note that the -p/--plist argument cannot be used with this argument
-  -p [path|url] [[path|url] ...], --plist [path|url] [[path|url] ...]
+  -p [plist] [[plist] ...], --plist [plist] [[plist] ...]
                         property list/s to process package content from in the absence of an installed application; note that the -a/--apps argument cannot be used with this
-                        argument
+                        argument, use '--discover-plists' to discover available property lists
   -m, --mandatory       select all mandatory packages for processing; this and/or the -o/--optional argument is required
   -o, --optional        select all optional packages for processing; this and/or the -m/--mandatory argument is required
   --cache-server [server]

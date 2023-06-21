@@ -72,11 +72,12 @@ def arguments(args: Optional[list] = None) -> argparse.Namespace:
         "--plist",
         nargs="+",
         dest="plists",
-        metavar="[path|url]",
+        metavar="[plist]",
         required=False,
         help=(
             "property list/s to process package content from in the absence of an installed application;"
-            " note that the -a/--apps argument cannot be used with this argument"
+            " note that the -a/--apps argument cannot be used with this argument, use '--discover-plists' to"
+            " discover available property lists"
         ),
     )
 
