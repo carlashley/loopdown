@@ -10,8 +10,12 @@ class RequestMixin:
         result = {}
         redir_str = "\r\n\r"  # url redirects output includes this line break pattern
         http_prefixes = ["HTTP/1", "HTTP/2", "HTTP/3"]
-        args = ["--silent", "-I", url]
+        args = ["--silent", "-I", url, "--retry", self.max_retries, "--retry-max-time", self.max_retry_time_limit]
         kwargs = {"capture_output": True, "encoding": "utf-8"}
+
+        if self.proxy_args:
+            args.extend(self.proxy_args)
+
         p = curl(*args, **kwargs)
 
         if p.returncode == 0:
@@ -50,17 +54,33 @@ class RequestMixin:
     def is_status_ok(self, url: str, _ok_statuses: list[int] = [*range(200, 300)]) -> bool:
         """Determine if the URL has a status code that is in an OK range.
         :param url: url to check the status code of"""
-        args = ["-I", "--silent", "-o", "/dev/null", "-w", "%{http_code}", url]
+        args = [
+            "-I",
+            "--silent",
+            "-o",
+            "/dev/null",
+            "-w",
+            "%{http_code}",
+            url,
+            "--retry",
+            self.max_retries,
+            "--retry-max-time",
+            self.max_retry_time_limit,
+        ]
+
+        if self.proxy_args:
+            args.extend(self.proxy_args)
+
         kwargs = {"capture_output": True, "encoding": "utf-8"}
         p = curl(*args, **kwargs)
 
         if p.returncode == 0:
             status = int(p.stdout.strip())
             self.log.warning(f"{url} - HTTP {status}")
-            return status in _ok_statuses
+            return (status, status in _ok_statuses)
         else:
             self.log.error(f"'curl {' '.join(args)}' exited with returncode {p.returncode}: {p.stderr.strip()}")
-            return False
+            return (-999, False)
 
     def get_file(self, url: str, dest: Path, silent: bool = False) -> Optional[Path]:
         """Get a file from the provided URL. This method checks if the requested file is compressed, automatically
@@ -69,7 +89,21 @@ class RequestMixin:
         :param url: url to retrieve
         :param dest: destination the file will be saved to
         :param silent: perform file retrieval silently; default False"""
-        args = ["--silent" if silent else "--progress-bar", url, "-o", str(dest), "--create-dirs"]
+        args = [
+            "--silent" if silent else "--progress-bar",
+            url,
+            "-o",
+            str(dest),
+            "--create-dirs",
+            "--retry",
+            self.max_retries,
+            "--retry-max-time",
+            self.max_retry_time_limit,
+        ]
+
+        if self.proxy_args:
+            args.extend(self.proxy_args)
+
         kwargs = {"capture_output": silent}
 
         if self.cache_server and "&source" in url:

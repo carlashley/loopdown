@@ -32,6 +32,9 @@ class Loopdown(ParsersMixin, RequestMixin):
         feed_base_url: Optional[str] = None,
         default_packages_download_dest: Optional[Path] = None,
         default_working_download_dest: Optional[Path] = None,
+        max_retries: Optional[int] = None,
+        max_retry_time_limit: Optional[int] = None,
+        proxy_args: Optional[list[str]] = None,
         log: Optional[logging.Logger] = None,
     ) -> None:
         self.dry_run = dry_run
@@ -48,6 +51,9 @@ class Loopdown(ParsersMixin, RequestMixin):
         self.feed_base_url = feed_base_url
         self.default_packages_download_dest = default_packages_download_dest
         self.default_working_download_dest = default_working_download_dest
+        self.max_retries = max_retries
+        self.max_retry_time_limit = max_retry_time_limit
+        self.proxy_args = proxy_args
         self.log = log
 
         # Clean up before starting, just incase cruft is left over.

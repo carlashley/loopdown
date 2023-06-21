@@ -23,6 +23,7 @@ class LoopDownloadPackage:
     download_size: int | float = field(default=None, hash=False, compare=False)
     download_url: str = field(default=None, hash=False, compare=False)
     package_id: str = field(default=None, hash=True, compare=True)
+    status_code: int | str = field(default=None, hash=False, compare=False)
     status_ok: bool = field(default=None, hash=False, compare=False)
     is_compressed: bool = field(default=None, hash=False, compare=False)
     is_installed: bool = field(default=None, hash=True, compare=True)
@@ -33,4 +34,8 @@ class LoopDownloadPackage:
 
     # String representation for simple output
     def __repr__(self):
-        return f"{self.download_url} ({self.download_size} download)"
+        if not self.status_ok:
+            s_msg = f"HTTP error {self.status_code}" if not self.status_code == -999 else "curl error"
+            return f"{self.download_url} ({s_msg})"
+        else:
+            return f"{self.download_url} ({self.download_size} download)"
