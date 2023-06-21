@@ -303,7 +303,7 @@ class ParsersMixin:
         pkg["download_dest"] = dest_base.joinpath(pkg_path.removeprefix("/"))
         pkg["download_size"] = Size(filesize=self.get_headers(url).get("content-size", size_fallback))
         pkg["is_compressed"] = self.is_compressed(url)
-        pkg["status_ok"] = self.is_status_ok(url)
+        pkg["status_code"], pkg["status_ok"] = self.is_status_ok(url)
         pkg["install_target"] = "/"
 
         if not pkg.get("is_mandatory"):
@@ -325,3 +325,18 @@ class ParsersMixin:
                          'https://audiocontentdownload.apple.com/'"""
         base = f"{base}/" if not base.endswith("/") else base  # Ensure 'urljoin' correctly joins url paths
         return urljoin(base, name)
+
+    def parse_discovery(self, start: int, end: int) -> list[str]:
+        """Discovery property lists for audio content downloads.
+        :param start: integer value to start generating url values for discovery
+        :param end: integer value to stop generating url values for discovery"""
+        for app, _ in self.APPLICATION_PATHS.items():
+            self.log.info(f"Discovering property list files for {app!r}")
+            app_ver = 3 if app == "mainstage" else 10
+
+            for target in range(start, end + 1):
+                url = urljoin(self.feed_base_url, f"{app}{app_ver}{target}.plist")
+                status_code, status_ok = self.is_status_ok(url)
+
+                if status_ok:
+                    self.log.info(f"Found property list file: {Path(url).name!r}")
