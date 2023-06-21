@@ -16,11 +16,12 @@ Licensed under the Apache License Version 2.0. See `LICENSE` for the full licens
 
 ## Usage
 ```
-usage: loopdown [-h] [-n] [-a [app] [[app] ...] | -p [path|url] [[path|url] ...]] [-m] [-o] [--cache-server [server] | --pkg-server [server]] [--create-mirror [path] | -i]
-                [--force] [-s] [--log-level [level]] [--version]
+usage: loopdown [-h] [--advanced-help] [-n] [-a [app] [[app] ...] | -p [path|url] [[path|url] ...]] [-m] [-o] [--cache-server [server]] [--pkg-server [server]]
+                [--create-mirror [path] | -i] [--force] [-s] [--log-level [level]] [--version]
 
 options:
   -h, --help            show this help message and exit
+  --advanced-help       show hidden arguments; note, not all of these arguments should be directly modified, use these at your own risk
   -n, --dry-run         perform a dry run; no action taken
   -a [app] [[app] ...], --apps [app] [[app] ...]
                         application/s to process package content from; valid values are 'all', 'garageband', 'logicpro', 'mainstage', selecting 'all' will process packages for
@@ -40,7 +41,8 @@ options:
                         create a local mirror of the content following the same directory structure as the Apple audio content download structure
   -i, --install         install the content on this device; note, this does not override the Apple package install check scripts, installs will still fail if the Apple install
                         checks fail, for example, an unsupported OS version, or no supported application is installed
-  --force               forcibly performs the selected options regardless of pre-existing installations/downloads, etc
+  --force               forcibly performs the selected options regardless of pre-existing installations/downloads, etc; this will not force downloads/installs where fetching the
+                        audio content fails for various reasons
   -s, --silent          suppresses all output
   --log-level [level]   set the logging level; valid options are 'info', 'debug'
   --version             show program's version number and exit
