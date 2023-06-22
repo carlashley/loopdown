@@ -202,13 +202,16 @@ class ParsersMixin:
     def parse_caching_server_url(self, url: str, server: str) -> str:
         """Formats a url into the correct format required for pulling a file through Apple content caching
         server/s.
-        Note: HTTPS is not supported by Apple caching server, so url's will be converted from HTTPS to HTTP.
         :param url: url to be formatted
         :param server: the caching url; this must be in the format of 'http://example.org:port'"""
-        url = urlparse(url.replace("https", "http"))
-        path, netloc = url.path, url.netloc
+        p_url = urlparse(url.replace("https", "http"))
+        scheme, path, netloc = p_url.scheme, p_url.path, p_url.netloc
 
-        return f"{server}{path}?source={netloc}"
+        if not any(url.startswith(s) for s in ["http", "https"]):
+            self.log.warning(f"Missing scheme for url (fallback to https): {url}")
+            scheme = "https"
+
+        return f"{server}{path}?source={netloc}&sourceScheme={scheme}"
 
     def parse_download_install_statement(self) -> str:
         """Parse the total size of packages to be downloaded, how many are mandatory, optional."""
