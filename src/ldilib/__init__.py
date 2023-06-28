@@ -11,7 +11,7 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 _license: str = "Apache License Version 2.0"
 _script_name: str = "loopdown"
-_version: str = "1.0.20230622"
+_version: str = "1.0.20230628"
 _version_string: str = f"{_script_name} v{_version}, licensed under the {_license}"
 
 
@@ -32,9 +32,10 @@ class Loopdown(ParsersMixin, RequestMixin):
         feed_base_url: Optional[str] = None,
         default_packages_download_dest: Optional[Path] = None,
         default_working_download_dest: Optional[Path] = None,
+        default_log_directory: Optional[Path] = None,
         max_retries: Optional[int] = None,
         max_retry_time_limit: Optional[int] = None,
-        proxy_args: Optional[list[str]] = None,
+        proxy_args: Optional[list[str]] = [],
         log: Optional[logging.Logger] = None,
     ) -> None:
         self.dry_run = dry_run
@@ -51,10 +52,16 @@ class Loopdown(ParsersMixin, RequestMixin):
         self.feed_base_url = feed_base_url
         self.default_packages_download_dest = default_packages_download_dest
         self.default_working_download_dest = default_working_download_dest
+        self.default_log_directory = default_log_directory
         self.max_retries = max_retries
         self.max_retry_time_limit = max_retry_time_limit
         self.proxy_args = proxy_args
         self.log = log
+
+        # curl/request related arg lists
+        self._useragt = ["--user-agent", f"{_script_name}/{_version_string}"]
+        self._retries = ["--retry", self.max_retries, "--retry-max-time", self.max_retry_time]
+        self._noproxy = ["--noproxy", "*"] if self.cache_server else []  # for caching server
 
         # Clean up before starting, just incase cruft is left over.
         self.cleanup_working_dirs()
@@ -65,7 +72,98 @@ class Loopdown(ParsersMixin, RequestMixin):
 
     def __repr__(self):
         """String representation of class."""
-        return self.parse_download_install_statement()
+        if self.has_packages:
+            return self.parse_download_install_statement()
+        else:
+            msg = "No packages found; there may be no packages to download/install"
+
+            if self.install:
+                suffix = "application/s installed"
+            elif self.plists:
+                suffix = "metadata property list file/s found for processing"
+
+            return f"{msg} or no {suffix}"
+
+    def process_metadata(self, apps_arg: list[str], plists_arg: list[str]) -> None:
+        """Process metadata from apps/plists for downloading/installing"""
+        if apps_arg:
+            for app in apps_arg:
+                source_file = self.parse_application_plist_source_file(app)
+
+                if source_file and source_file.exists():
+                    packages = self.parse_plist_source_file(source_file)
+                    self.parse_packages(packages)
+
+        if plists_arg:
+            for plist in plists_arg:
+                source_file = self.parse_plist_remote_source_file(plist)
+
+                if source_file and source_file.exists():
+                    packages = self.parse_plist_source_file(source_file)
+                    self.parse_packages(packages)
+
+    @property
+    def has_packages(self) -> bool:
+        """Test if metadata processing has yielded packages to download/install."""
+        return (len(self.packages["mandatory"]) or len(self.packages["optional"])) > 0
+
+    def sort_packages(self) -> set:
+        """Sort packages into a single set."""
+        return sorted(list(self.packages["mandatory"].union(self.packages["optional"])), key=lambda x: x.download_name)
+
+    def download_or_install(self, packages: set) -> tuple[int, int]:
+        """Perform the download or install, or output dry-run information as appropriate.
+        :param packages: a set of package objects for downloading/installing"""
+        errors, install_failures, total_packages = 0, [], len(packages)
+
+        for package in packages:
+            pkg = None
+            counter = f"{packages.index(package) + 1} of {total_packages}"
+
+            if package.status_ok:
+                if self.dry_run:
+                    prefix = "Download" if not self.install else "Download and install"
+                elif not self.dry_run:
+                    prefix = "Downloading" if not self.install else "Downloading and installing"
+            else:
+                prefix = "Package error"
+                errors += 1
+
+            self.log.info(f"{prefix} {counter} - {package}")
+
+            if not self.dry_run:
+                # Force download, Will not resume partials!
+                if self.force and package.download_dest.exists():
+                    package.download_dest.unlink(missing_ok=True)
+
+                if package.status_ok:
+                    pkg = self.get_file(package.download_url, package.download_dest, self.silent)
+
+                if self.install and pkg:
+                    self.log.info(f"Installing {counter} - {package.download_dest.name!r}")
+                    installed = self.install_pkg(package.download_dest, package.install_target)
+
+                    if installed:
+                        self.log.info(f"  {package.download_dest} was installed")
+                    else:
+                        pkg_fp = package.download_dest
+                        inst_fp = "/var/log/install.log"
+                        log_fp = self.default_log_directory.joinpath("loopdown.log")
+                        install_failures.append(package.download_dest.name)
+                        self.log.error(
+                            f"  {pkg_fp} was not installed; see '{inst_fp}' or '{log_fp}' for more information."
+                        )
+
+                    package.download_dest.unlink(missing_ok=True)
+
+        return (errors, install_failures)
+
+    def generate_warning_message(self, errors: int, total: int, threshold: float = 0.5) -> None:
+        """Generate warning message if the number of package fetch errors exceeds a threshold value.
+        :param errors: total number of errors when fetching packages
+        :param total: total number of packages
+        :param threshold: value to use for calculating the threshold; default is 0.5 (50%)"""
+        return float(errors) >= float(total * threshold)
 
     def cleanup_working_dirs(self) -> None:
         """Clean up all working directories."""
