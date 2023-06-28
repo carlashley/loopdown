@@ -1,6 +1,7 @@
 """Model classes"""
 from dataclasses import dataclass, field
 from pathlib import Path
+
 from .utils import bytes2hr
 
 
