@@ -16,34 +16,39 @@ Licensed under the Apache License Version 2.0. See `LICENSE` for the full licens
 
 ## Usage
 ```
-usage: loopdown [-h] [--advanced-help] [-n] [-a [app] [[app] ...] | -p [plist] [[plist] ...]] [-m] [-o] [--cache-server [server]] [--pkg-server [server]] [--create-mirror [path] |
-                -i] [--force] [-s] [--log-level [level]] [--version]
+usage: loopdown [-h] [--advanced-help] [--version] [--log-level [level]] [-n] [-a [app] [[app] ...] | -p [plist] [[plist] ...]] [-m] [-o] [-f] [-i] [-s] [--create-mirror [path]]
+                [--cache-server server] [--pkg-server [server]] [--discover-plists]
+
+loopdown can be used to download, install, mirror, or discover information about the additional audio content that Apple provides for the audio editing/mixing software programs
+GarageBand, LogicPro X , and MainStage3.
 
 options:
   -h, --help            show this help message and exit
-  --advanced-help       show hidden arguments; note, not all of these arguments should be directly modified, use these at your own risk
-  -n, --dry-run         perform a dry run; no action taken
-  -a [app] [[app] ...], --apps [app] [[app] ...]
-                        application/s to process package content from; valid values are 'all', 'garageband', 'logicpro', 'mainstage', selecting 'all' will process packages for
-                        any/all of the three apps if found on the target device; note that the -p/--plist argument cannot be used with this argument
-  -p [plist] [[plist] ...], --plist [plist] [[plist] ...]
-                        property list/s to process package content from in the absence of an installed application; note that the -a/--apps argument cannot be used with this
-                        argument, use '--discover-plists' to discover available property lists
-  -m, --mandatory       select all mandatory packages for processing; this and/or the -o/--optional argument is required
-  -o, --optional        select all optional packages for processing; this and/or the -m/--mandatory argument is required
-  --cache-server [server]
-                        the url representing an Apple caching server instance; for example: 'http://example.org:51492'; note that the --pkg-server argument cannot be used with
-                        this argument
-  --pkg-server [server]
-                        the url representing a local mirror of package content; for example: 'https://example.org/' (the mirror must have the same folder structure as the Apple
-                        package server; note that the --cache-server argument cannot be used with this argument
-  --create-mirror [path]
-                        create a local mirror of the content following the same directory structure as the Apple audio content download structure
-  -i, --install         install the content on this device; note, this does not override the Apple package install check scripts, installs will still fail if the Apple install
-                        checks fail, for example, an unsupported OS version, or no supported application is installed
-  --force               forcibly performs the selected options regardless of pre-existing installations/downloads, etc; this will not force downloads/installs where fetching the
-                        audio content fails for various reasons
-  -s, --silent          suppresses all output
-  --log-level [level]   set the logging level; valid options are 'info', 'debug'
+  --advanced-help
   --version             show program's version number and exit
+  --log-level [level]   sets the logging level; valid options are: (choices); default is 'info'
+  -n, --dry-run         perform a dry run
+  -a [app] [[app] ...], --apps [app] [[app] ...]
+                        application/s to process package content from; valid options are: 'all', 'garageband', 'logicpro', or 'mainstage', cannot be used with '--discover-plists',
+                        requires either '--create-mirror' or '-i/--install'
+  -p [plist] [[plist] ...], --plist [plist] [[plist] ...]
+                        property list/s to process package content from, use '--discover-plists' to find valid options, cannot be used with '--discover-plists', requires
+                        either/both '--cache-server' or '--create-mirror'
+  -m, --mandatory       process all mandatory package content, cannot be used with '--discover-plists'
+  -o, --optional        process all optional package content, cannot be used with '--discover-plists'
+  -f, --force           force install or download regardless of pre-existing installs/download data, cannot be used with '--discover-plists'
+  -i, --install         install the audio content packages based on the app/s and mandatory/optional options specified, cannot be used with '--discover-plists', requires
+                        either/both '-m/--mandatory' or '-o/--optional', cannot be used with '--create-mirror' or '-p/--plists'
+  -s, --silent          suppresses all output on stdout and stderr, cannot be used with '--discover-plists'
+  --create-mirror [path]
+                        create a local mirror of the 'https://audiocontentdownload.apple.com' directory structure based on the app/s or property list/s being processed, cannot be
+                        used with '--discover-plists', requires either/both '-m/--mandatory' or '-o/--optional'
+  --cache-server server
+                        specify 'auto' for autodiscovery of a caching server or provide a url, for example: 'http://example.org:51000', cannot be used with '--discover-plists',
+                        requires either '--create-mirror' or '-i/--install'
+  --pkg-server [server]
+                        local server of mirrored content, for example 'http://example.org', cannot be used with'--discover-plists', requires '-i/--install'
+  --discover-plists     discover the property lists hosted by Apple for GarageBand, Logic Pro X, and MainStage 3
+
+loopdown v1.0.20230628, licensed under the Apache License Version 2.0
 ```
