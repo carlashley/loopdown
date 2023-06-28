@@ -2,13 +2,22 @@
 import subprocess
 
 
+def assetcachelocatorutil(*args, **kwargs) -> subprocess.CompletedProcess:
+    """Wraps '/usr/bin/AssetCacheLocatorUtil'.
+    Note: The only valid argument that this binary accepts is '--json'.
+    This binary returns the json output on stdout, but also returns a bunch of 'normal' output to stderr.
+    :param args: argument to pass on to the system binary"""
+    cmd = ["AssetCacheLocatorUtil", *args]
+    return subprocess.run(cmd, **kwargs)
+
+
 def curl(*args, **kwargs) -> subprocess.CompletedProcess:
     """Wraps '/usr/bin/curl'.
     This wrapper defaults to following redirects (max follow depth of 5 redirects), and includes
     the user agent string in all operations.
     :param *args: arguments to pass to the system binary
     :param **kwargs: arguments to pass to the subprocess call"""
-    cmd = ["/usr/bin/curl", "-L", "--max-redirs", "5", "--user-agent", "loopdown/1", *args]
+    cmd = ["/usr/bin/curl", "-L", *args]
     return subprocess.run(cmd, **kwargs)
 
 
