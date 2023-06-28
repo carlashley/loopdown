@@ -9,8 +9,6 @@ from typing import Any, Optional
 from urllib.parse import urljoin, urlparse
 
 from .models import LoopDownloadPackage, Size
-
-# from .request import get_file, get_headers, is_compressed, is_status_ok
 from .utils import bytes2hr
 from .wrappers import diskutil, installer, pkgutil
 
@@ -122,9 +120,7 @@ class ParsersMixin:
             freespace = data.get("APFSContainerFree", data.get("FreeSpace"))
             has_freespace = freespace > required_space
             prefix = f"Disk space required: {bytes2hr(required_space)}, {bytes2hr(freespace)} available"
-
-            self.log.info(f"{prefix}, has enough space: {has_freespace}")
-            return has_freespace
+            return (has_freespace, prefix)
         else:
             self.log.error(f"Error performing disk space check: {p.stderr.decode('utf-8').strip()}")
             sys.exit(88)
@@ -199,16 +195,19 @@ class ParsersMixin:
 
         return result
 
-    def parse_caching_server_url(self, url: str, server: str) -> str:
+    def parse_caching_server_url(self, url: str, server: str, def_scheme: str = "https") -> str:
         """Formats a url into the correct format required for pulling a file through Apple content caching
         server/s.
         :param url: url to be formatted
-        :param server: the caching url; this must be in the format of 'http://example.org:port'"""
+        :param server: the caching url; this must be in the format of 'http://example.org:port'
+        :param def_scheme: default scheme to use as the 'sourceScheme' value in the reconstructed
+                           url; default is 'https' - this should always be 'https' as the package server
+                           value when pulling packages through the caching server should always be
+                           an Apple source"""
         p_url = urlparse(url.replace("https", "http"))
         scheme, path, netloc = p_url.scheme, p_url.path, p_url.netloc
 
-        if not any(url.startswith(s) for s in ["http", "https"]):
-            self.log.warning(f"Missing scheme for url (fallback to https): {url}")
+        if scheme not in ["http", "https"] or scheme is None:
             scheme = "https"
 
         return f"{server}{path}?source={netloc}&sourceScheme={scheme}"
@@ -300,13 +299,14 @@ class ParsersMixin:
         name = pkg["download_name"]
         size_fallback = pkg["download_size"]
         url = self.parse_package_url_from_name(name, self.pkg_server or self.cache_server)
+        parsed_url = self.parse_caching_server_url(url, self.cache_server) if self.cache_server else url
         pkg_path = urlparse(url).path
 
-        pkg["download_url"] = self.parse_caching_server_url(url, self.cache_server) if self.cache_server else url
+        pkg["download_url"] = parsed_url
         pkg["download_dest"] = dest_base.joinpath(pkg_path.removeprefix("/"))
-        pkg["download_size"] = Size(filesize=self.get_headers(url).get("content-size", size_fallback))
-        pkg["is_compressed"] = self.is_compressed(url)
-        pkg["status_code"], pkg["status_ok"] = self.is_status_ok(url)
+        pkg["download_size"] = Size(filesize=self.get_headers(parsed_url).get("content-size", size_fallback))
+        pkg["is_compressed"] = self.is_compressed(parsed_url)
+        pkg["status_code"], pkg["status_ok"] = self.is_status_ok(parsed_url)
         pkg["install_target"] = "/"
 
         if not pkg.get("is_mandatory"):
@@ -329,15 +329,16 @@ class ParsersMixin:
         base = f"{base}/" if not base.endswith("/") else base  # Ensure 'urljoin' correctly joins url paths
         return urljoin(base, name)
 
-    def parse_discovery(self, start: int, end: int) -> list[str]:
+    def parse_discovery(self, r: list[int]) -> list[str]:
         """Discovery property lists for audio content downloads.
-        :param start: integer value to start generating url values for discovery
-        :param end: integer value to stop generating url values for discovery"""
+        :param r: range starting from a minimum value to a maximum value"""
+        start, finish = r
+
         for app, _ in self.APPLICATION_PATHS.items():
             self.log.info(f"Discovering property list files for {app!r}")
             app_ver = 3 if app == "mainstage" else 10
 
-            for target in range(start, end + 1):
+            for target in range(start, finish + 1):
                 url = urljoin(self.feed_base_url, f"{app}{app_ver}{target}.plist")
                 status_code, status_ok = self.is_status_ok(url)
 
