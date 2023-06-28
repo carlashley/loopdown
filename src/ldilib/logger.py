@@ -27,22 +27,25 @@ def add_stream(stream: TextIO, filters: list[int], log: logging.Logger) -> None:
     log.addHandler(h)
 
 
-def construct_logger(level: str = "INFO", silent: bool = False) -> logging.Logger:
+def construct_logger(
+    level: str = "INFO", dest: Path = Path("/Users/Shared/loopdown"), silent: bool = False
+) -> logging.Logger:
     """Construct logging.
     :param name: log name (use '__name__' when calling this function).
+    :param dest: log directory destination; this should be a directory only, not an actual file
     :param level: log level value, default is 'INFO'."""
     name = __name__
-    log_path = Path("/Users/Shared/loopdown/loopdown.log")
+    fp = dest.joinpath("loopdown.log")
 
     # Create parent log directory path if it doesn't exist
-    if not log_path.parent.exists():
-        log_path.parent.mkdir(parents=True, exist_ok=True)
+    if not fp.parent.exists():
+        fp.parent.mkdir(parents=True, exist_ok=True)
 
     # Construct the logger instance
     log = logging.getLogger(name)
     log.setLevel(level.upper())
     formatter = logging.Formatter(fmt=LOG_FMT, datefmt=LOG_DATE_FMT)
-    fh = RotatingFileHandler(log_path, backupCount=14)  # keep the last 14 logs
+    fh = RotatingFileHandler(fp, backupCount=14)  # keep the last 14 logs
     fh.setFormatter(formatter)
     log.addHandler(fh)
 
@@ -53,7 +56,7 @@ def construct_logger(level: str = "INFO", silent: bool = False) -> logging.Logge
     if not silent:
         add_stream(stream=sys.stdout, filters=STDOUT_FILTERS, log=log)
 
-    if log_path.exists() and log_path.stat().st_size > 0:
+    if fp.exists() and fp.stat().st_size > 0:
         fh.doRollover()
 
     return log
