@@ -50,5 +50,5 @@ options:
                         local server of mirrored content, for example 'http://example.org', cannot be used with'--discover-plists', requires '-i/--install'
   --discover-plists     discover the property lists hosted by Apple for GarageBand, Logic Pro X, and MainStage 3
 
-loopdown v1.0.20230628, licensed under the Apache License Version 2.0
+loopdown v1.0.20230706, licensed under the Apache License Version 2.0
 ```
