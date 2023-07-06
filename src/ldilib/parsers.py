@@ -329,12 +329,13 @@ class ParsersMixin:
         base = f"{base}/" if not base.endswith("/") else base  # Ensure 'urljoin' correctly joins url paths
         return urljoin(base, name)
 
-    def parse_discovery(self, r: list[int]) -> list[str]:
+    def parse_discovery(self, apps: list[str], r: list[int]) -> list[str]:
         """Discovery property lists for audio content downloads.
         :param r: range starting from a minimum value to a maximum value"""
         start, finish = r
 
-        for app, _ in self.APPLICATION_PATHS.items():
+        # for app, _ in self.APPLICATION_PATHS.items():
+        for app in apps:
             self.log.info(f"Discovering property list files for {app!r}")
             app_ver = 3 if app == "mainstage" else 10
 

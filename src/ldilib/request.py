@@ -7,6 +7,10 @@ from .wrappers import curl
 
 
 class RequestMixin:
+    def _expand_curl_args(self) -> list[str]:
+        """Expands a series of core arguments that need to be included in every curl request."""
+        return [*self._noproxy, *self._useragt, *self._retries, *self._proxy_args]
+
     def curl_error(self, args: list[str], p: subprocess.CompletedProcess) -> None:
         """Log when methods using the 'curl' wrapper exit with non-zero return codes.
         :param args: list of arguments passed to the 'curl' wrapper
@@ -23,7 +27,7 @@ class RequestMixin:
     def get_headers(self, url: str, _sep: str = ": ") -> dict[str, str | int]:
         """Get the headers for a given URL, returned as a dictionary object."""
         result = {}
-        args = [*self._noproxy, *self._useragt, *self._retries, *self.proxy_args]
+        args = self._expand_curl_args()
         kwargs = {"capture_output": True, "encoding": "utf-8"}
         p = curl(*args, **kwargs)
 
@@ -66,7 +70,7 @@ class RequestMixin:
     def is_status_ok(self, url: str, _ok_statuses: list[int] = [*range(200, 300)]) -> bool:
         """Determine if the URL has a status code that is in an OK range.
         :param url: url to check the status code of"""
-        args = [*self._noproxy, *self._useragt, *self._retries, *self.proxy_args]
+        args = self._expand_curl_args()
         args.extend(["-I", "--silent", "-o", "/dev/null", "-w", "%{http_code}", url])
         kwargs = {"capture_output": True, "encoding": "utf-8"}
         p = curl(*args, **kwargs)
@@ -86,7 +90,7 @@ class RequestMixin:
         :param url: url to retrieve
         :param dest: destination the file will be saved to
         :param silent: perform file retrieval silently; default False"""
-        args = [*self._noproxy, *self._useragt, *self._retries, *self.proxy_args]
+        args = self._expand_curl_args()
         args.extend(["--silent" if silent else "--progress-bar", url, "-o", str(dest), "--create-dirs"])
         kwargs = {"capture_output": silent}
 

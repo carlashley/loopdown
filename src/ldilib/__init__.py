@@ -11,7 +11,7 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 _license: str = "Apache License Version 2.0"
 _script_name: str = "loopdown"
-_version: str = "1.0.20230628"
+_version: str = "1.0.20230706"
 _version_string: str = f"{_script_name} v{_version}, licensed under the {_license}"
 
 
@@ -35,7 +35,7 @@ class Loopdown(ParsersMixin, RequestMixin):
         default_log_directory: Optional[Path] = None,
         max_retries: Optional[int] = None,
         max_retry_time_limit: Optional[int] = None,
-        proxy_args: Optional[list[str]] = [],
+        proxy_args: Optional[list[str]] = None,
         log: Optional[logging.Logger] = None,
     ) -> None:
         self.dry_run = dry_run
@@ -55,13 +55,13 @@ class Loopdown(ParsersMixin, RequestMixin):
         self.default_log_directory = default_log_directory
         self.max_retries = max_retries
         self.max_retry_time_limit = max_retry_time_limit
-        self.proxy_args = proxy_args
         self.log = log
 
         # curl/request related arg lists
         self._useragt = ["--user-agent", f"{_script_name}/{_version_string}"]
-        self._retries = ["--retry", self.max_retries, "--retry-max-time", self.max_retry_time]
+        self._retries = ["--retry", self.max_retries, "--retry-max-time", self.max_retry_time_limit]
         self._noproxy = ["--noproxy", "*"] if self.cache_server else []  # for caching server
+        self._proxy_args = proxy_args or []
 
         # Clean up before starting, just incase cruft is left over.
         self.cleanup_working_dirs()
@@ -76,13 +76,17 @@ class Loopdown(ParsersMixin, RequestMixin):
             return self.parse_download_install_statement()
         else:
             msg = "No packages found; there may be no packages to download/install"
+            suffix = None
 
-            if self.install:
+            if self.apps:
                 suffix = "application/s installed"
             elif self.plists:
                 suffix = "metadata property list file/s found for processing"
 
-            return f"{msg} or no {suffix}"
+            if suffix:
+                return f"{msg} or no {suffix}"
+            else:
+                return f"{msg}"
 
     def process_metadata(self, apps_arg: list[str], plists_arg: list[str]) -> None:
         """Process metadata from apps/plists for downloading/installing"""

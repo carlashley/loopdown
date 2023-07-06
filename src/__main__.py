@@ -51,7 +51,7 @@ def main() -> None:
 
     try:
         if args.discover_plists:
-            ld.parse_discovery(args.discover_plists_range)
+            ld.parse_discovery(args.apps, args.discover_plists_range)
             sys.exit()
         if not args.discover_plists:
             processing_str = ", ".join(f"'{item}'" for item in args.apps or args.plists)
