@@ -25,7 +25,6 @@ def arguments() -> argparse.Namespace:
         :param a: list of argument string values; for example ['-a/--apple', '--bannana']
         :param sep: seperator string; default is ','
         :param suffix: the suffix string that 'joins' a list of more than 1 argument; default is 'or'"""
-        print(a)
         if len(a) >= 2:
             return f"{sep}".join(a[0:-1]) + f" {suffix} {a[-1]}"
         else:
@@ -38,7 +37,7 @@ def arguments() -> argparse.Namespace:
     args.max_retry_time_limit = str(args.max_retry_time_limit)
 
     # -a/--apps must be corrected here to ensure the right list of values is passed on
-    if args.apps and args.apps == "all" or (args.discover_plists and not args.apps):
+    if (args.apps and "all" in args.apps) or (args.discover_plists and not args.apps):
         args.apps = ["garageband", "logicpro", "mainstage"]
 
     # A minimum of -a/--apps, --create-mirror, --discover-plists, or --plists is required
@@ -47,7 +46,7 @@ def arguments() -> argparse.Namespace:
         parser.error(f"one or more of these arguments is required: {argstr}")
 
     # -i/--install and --create-mirror require either -m/--mandatory and/or -o/--optional
-    if args.install or args.create_mirror and not any([args.mandatory, args.optional]):
+    if (args.install or args.create_mirror) and not any([args.mandatory, args.optional]):
         prefix = opts_map["install" if args.install else "create_mirror"]
         argstr = join_args([opts_map[arg] for arg in ["mandatory", "optional"]], suffix="and/or")
         parser.error(f"argument {prefix}: not allowed without: {argstr}")
