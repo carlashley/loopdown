@@ -20,6 +20,7 @@ Output of `loopdown --version`:
 **Are the packages being installed for the first time, or an upgrade?**
 - :white_check_mark: First Time
 - :white_check_mark: Upgrade
+- :black_square_button: Not Applicable
 
 **Which packages are installed but still prompt to be installed?**
 Please include the folder path and package name including the file extension; for example:
@@ -28,18 +29,22 @@ Please include the folder path and package name including the file extension; fo
 **Is the `--pkg-server` argument being used?**
 - :white_check_mark: Yes
 - :negative_squared_cross_mark: No
+- :black_square_button: Not Applicable
 
 **If the `--pkg-server` argument has been used, have the packages been refreshed within the last week?**
 - :white_check_mark: Yes
 - :negative_squared_cross_mark: No
+- :black_square_button: Not Applicable
 
 **Is the `--cache-server` argument being used?**
 - :white_check_mark: Yes
 - :negative_squared_cross_mark: No
+- :black_square_button: Not Applicable
 
 **If the `--cache-server` has been used, has `loopdown` been run on one Mac to pre-warm the cache?**
 - :white_check_mark: Yes
 - :negative_squared_cross_mark: No
+- :black_square_button: Not Applicable
 
 
 Has the `--log-level debug` argument and parameter been used?
@@ -51,4 +56,4 @@ Log files are stored in `/Users/Shared/loopdown`; the most recent log will be `/
 
 
 **Which macOS Version?**
-Output of `sw_vers`:
+Output of `sw_vers -productVersion`:
