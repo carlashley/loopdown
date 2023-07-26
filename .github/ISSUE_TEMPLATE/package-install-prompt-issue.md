@@ -27,26 +27,26 @@ Please include the folder path and package name including the file extension; fo
 
 **Is the `--pkg-server` argument being used?**
 - :white_check_mark: Yes
-- :white_check_mark: No
+- :negative_squared_cross_mark: No
 
 **If the `--pkg-server` argument has been used, have the packages been refreshed within the last week?**
 - :white_check_mark: Yes
-- :white_check_mark: No
+- :negative_squared_cross_mark: No
 
 **Is the `--cache-server` argument being used?**
 - :white_check_mark: Yes
-- :white_check_mark: No
+- :negative_squared_cross_mark: No
 
 **If the `--cache-server` has been used, has `loopdown` been run on one Mac to pre-warm the cache?**
 - :white_check_mark: Yes
-- :white_check_mark: No
+- :negative_squared_cross_mark: No
 
 
 Has the `--log-level debug` argument and parameter been used?
 If `loopdown` has been run with `--log-level debug`, please attach the output of the log run.
 Log files are stored in `/Users/Shared/loopdown`; the most recent log will be `/Users/Shared/loopdown/loopdown.log`
 - :white_check_mark: Yes
-- :white_check_mark: No
+- :negative_squared_cross_mark: No
 
 
 
