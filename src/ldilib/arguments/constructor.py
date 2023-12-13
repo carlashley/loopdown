@@ -41,7 +41,7 @@ def construct_arguments(config: list[dict[str, Any]]) -> argparse.ArgumentParser
             if choices and choices_tgt in help_str:
                 first_choice_str = ", ".join(f"'{c}'" for c in choices[0:-1])
                 choice_str = f"{first_choice_str}, or '{choices[-1]}'"
-                kwargs["help"] = help_str.replace(choices_tgt, choice_str)
+                help_str = help_str.replace(choices_tgt, choice_str)
 
             if default and default_tgt in help_str:
                 if isinstance(default, (list, set, tuple)):
@@ -49,7 +49,9 @@ def construct_arguments(config: list[dict[str, Any]]) -> argparse.ArgumentParser
                 else:
                     default_str = f"'{default}'"
 
-                kwargs["help"] = help_str.replace(default_tgt, default_str)
+                help_str = help_str.replace(default_tgt, default_str)
+
+            kwargs["help"] = help_str
 
         if c.get("hidden", False) and not help_args.advanced_help:
             kwargs["help"] = argparse.SUPPRESS

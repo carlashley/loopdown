@@ -52,3 +52,44 @@ options:
 
 loopdown v1.0.20230726, licensed under the Apache License Version 2.0
 ```
+
+### How this works
+#### Installation/updating on a client Mac - no mirror/caching server
+On a Mac with any of the three audio applications installed, `loopdown` inspects the application bundle for a property list file that contains metadata about the audio contents for that version of the application, and based on this information and the options provided to the utility, will either install or update the necessary packages.
+
+#### Installation/updating on a client Mac - mirror/caching server
+##### pkg-server
+If the `--pkg-server` argument is supplied with a web server as the parameter, `loopdown` will use that URL in place of the Apple CDN. The paths to each package must be an exact mirror of the Apple paths (this can be done by using the `--create-mirror [path]` argument and parameter on a standalone Mac).
+
+For example, if mirroring from `https://example.org`, then the folder paths must match `https://example.org/lp10_ms3_content_2013/[package files]` and/org `https://example.org/lp10_ms3_content_2016/[package files]`.
+
+##### cache-server
+If the `--cache-server` argument is supplied with an Apple caching server URL as the parameter, `loopdown` will use that caching server just the same as if the audio application itself was downloading the audio content.
+
+In this particular scenario, if you are _installing_ the audio content packages on multiple clients, best practice is to do this one one Mac first, before proceeding with additional clients.
+
+#### Creating a mirror
+A mirror copy of the audio content files can be created on a standalone Mac, it is preferable to have the relevant audio applications installed, but it is not required.
+
+If the applications are installed, the mirror can be created with:
+```
+> ./loopdown -m -o --create-mirror [path] -a [app]
+```
+
+If the applications are not installed, the mirror can be created with:
+```
+> ./loopdown -m -o --create-mirror [path] -p [plist]
+```
+
+#### Discovering content
+To find the relevant property lists for use with the `-p/--plist` argument, use the `--discover-plists` argument.
+
+
+#### Advanced Configuration/Overriding Default Configuration
+There are a number of command line arguments that are hidden from the `-h/--help` argument by default, these are used for configuring default parameters, but if necessary these default parameters can be overridden; use the `--advanced-help` argument to show these options.
+
+It is recommended to leave these options as their default settings.
+
+
+#### Logging
+By default, logs are stored in `/Users/Shared/loopdown`. If you need more detailed logging than the standard level, use the `--log-level [level]` argument and parameter.
