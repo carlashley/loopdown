@@ -21,6 +21,10 @@ if [[ ! ${INTERPRETER} == "/usr/bin/env python3" ]]; then
     ARCHIVE_V=${BUILD_DIR}/custom/${NAME}-${VERSION}
 fi
 
+if [[ ! -d ./src/packaging ]]; then
+    python3 -m pip install -r requirements.txt --target ./src
+fi
+
 BUILD_CMD=$(echo "${LOCAL_PYTHON}" -m zipapp src --compress --output ${ARCHIVE_V} --python=\"${INTERPRETER}\")
 echo ${BUILD_CMD}
 eval ${BUILD_CMD}
