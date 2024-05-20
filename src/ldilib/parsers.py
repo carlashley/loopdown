@@ -337,9 +337,17 @@ class ParsersMixin:
         # for app, _ in self.APPLICATION_PATHS.items():
         for app in apps:
             self.log.info(f"Discovering property list files for {app!r}")
-            app_ver = 3 if app == "mainstage" else 10
+            if app == "mainstage":
+                app_ver = 3
+            elif app == "logicpro":
+                app_ver = 11
+            else:
+                app_ver = 10
 
             for target in range(start, finish + 1):
+                if app == "logicpro":
+                    target = format(target, '02d')
+                
                 url = urljoin(self.feed_base_url, f"{app}{app_ver}{target}.plist")
                 status_code, status_ok = self.is_status_ok(url)
 
