@@ -11,7 +11,7 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 _license: str = "Apache License Version 2.0"
 _script_name: str = "loopdown"
-_version: str = "1.0.20240102"
+_version: str = "1.0.20240525"
 _version_string: str = f"{_script_name} v{_version}, licensed under the {_license}"
 
 
