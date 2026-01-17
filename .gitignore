@@ -1,0 +1,77 @@
+# =========================
+# Xcode
+# =========================
+
+# User-specific Xcode state
+*.xcuserstate
+*.xcuserdata/
+
+# Derived data & build products
+DerivedData/
+build/
+Build/
+
+# Xcode build logs
+*.xcactivitylog
+
+# Indexing
+*.xccheckout
+*.xcscmblueprint
+
+# =========================
+# Swift / SwiftPM
+# =========================
+
+# SwiftPM build artifacts (even if not using SwiftPM now)
+.build/
+Package.resolved
+
+# Swift documentation output
+*.doccarchive
+
+# =========================
+# macOS
+# =========================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# =========================
+# Temporary / Editor files
+# =========================
+
+*~
+*.swp
+*.swo
+*.tmp
+
+# =========================
+# Archives / installers
+# =========================
+
+*.zip
+*.tar.gz
+*.dmg
+
+# =========================
+# Logs
+# =========================
+
+*.log
+
+# =========================
+# Secrets / local overrides
+# =========================
+
+.env
+.env.*
+*.local
+
+
+# =========================
+# Xcode user data (per-user,
+# never commit)
+# =========================
+*.xcuserdata/
+**/*.xcuserdatad/
