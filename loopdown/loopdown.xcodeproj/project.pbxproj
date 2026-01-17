@@ -1,0 +1,1082 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2A734E57F4D44DC5869156B4 /* LoopdownCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398632F1BA16E0053139B /* LoopdownCore.framework */; };
+		594F80C8424040CBBD2934B6 /* LoopdownInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398472F1BA15A0053139B /* LoopdownInfrastructure.framework */; };
+		AB63D0C0CE3543F1A67A35EA /* LoopdownServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA3982B2F1BA1330053139B /* LoopdownServices.framework */; };
+		FAA398352F1BA1330053139B /* LoopdownServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA3982B2F1BA1330053139B /* LoopdownServices.framework */; };
+		FAA398512F1BA15A0053139B /* LoopdownInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398472F1BA15A0053139B /* LoopdownInfrastructure.framework */; };
+		FAA3986D2F1BA16F0053139B /* LoopdownCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398632F1BA16E0053139B /* LoopdownCore.framework */; };
+		FAA639A72F1BB28B00AD5B6E /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = FAA639A62F1BB28B00AD5B6E /* ArgumentParser */; };
+		FAA639A82F1BB32700AD5B6E /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA290E662F1BADCE0090B7F7 /* main.swift */; };
+		FAC711462F1BB88400DE79BF /* LoopdownServices.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C72F1BB85500F1FB70 /* LoopdownServices.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FAC711472F1BB88900DE79BF /* LoopdownInfrastructure.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FAC711482F1BB88E00DE79BF /* LoopdownCore.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C52F1BB83C00F1FB70 /* LoopdownCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		FAA398362F1BA1330053139B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FAA398102F1B9FDD0053139B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FAA3982A2F1BA1330053139B;
+			remoteInfo = LoopdownServices;
+		};
+		FAA398522F1BA15A0053139B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FAA398102F1B9FDD0053139B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FAA398462F1BA15A0053139B;
+			remoteInfo = LoopdownInfrastructure;
+		};
+		FAA3986E2F1BA16F0053139B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FAA398102F1B9FDD0053139B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FAA398622F1BA16E0053139B;
+			remoteInfo = LoopdownCore;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		FAA398162F1B9FDD0053139B /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		FA290E632F1BADCE0090B7F7 /* LoopdownServices.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = LoopdownServices.docc; sourceTree = "<group>"; };
+		FA290E662F1BADCE0090B7F7 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		FA290E682F1BADCE0090B7F7 /* LoopdownInfrastructure.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = LoopdownInfrastructure.docc; sourceTree = "<group>"; };
+		FA290E6B2F1BADCE0090B7F7 /* LoopdownCore.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = LoopdownCore.docc; sourceTree = "<group>"; };
+		FA4A59C52F1BB83C00F1FB70 /* LoopdownCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoopdownCore.h; sourceTree = "<group>"; };
+		FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoopdownInfrastructure.h; sourceTree = "<group>"; };
+		FA4A59C72F1BB85500F1FB70 /* LoopdownServices.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoopdownServices.h; sourceTree = "<group>"; };
+		FAA398182F1B9FDD0053139B /* loopdown */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = loopdown; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAA3982B2F1BA1330053139B /* LoopdownServices.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LoopdownServices.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAA398342F1BA1330053139B /* LoopdownServicesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopdownServicesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAA398472F1BA15A0053139B /* LoopdownInfrastructure.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LoopdownInfrastructure.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAA398502F1BA15A0053139B /* LoopdownInfrastructureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopdownInfrastructureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAA398632F1BA16E0053139B /* LoopdownCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LoopdownCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAA3986C2F1BA16F0053139B /* LoopdownCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopdownCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FAA398152F1B9FDD0053139B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAA639A72F1BB28B00AD5B6E /* ArgumentParser in Frameworks */,
+				AB63D0C0CE3543F1A67A35EA /* LoopdownServices.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA398282F1BA1330053139B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2A734E57F4D44DC5869156B4 /* LoopdownCore.framework in Frameworks */,
+				594F80C8424040CBBD2934B6 /* LoopdownInfrastructure.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA398312F1BA1330053139B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAA398352F1BA1330053139B /* LoopdownServices.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA398442F1BA15A0053139B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA3984D2F1BA15A0053139B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAA398512F1BA15A0053139B /* LoopdownInfrastructure.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA398602F1BA16E0053139B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA398692F1BA16F0053139B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAA3986D2F1BA16F0053139B /* LoopdownCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		FA290E652F1BADCE0090B7F7 /* LoopdownServices */ = {
+			isa = PBXGroup;
+			children = (
+				FA4A59C72F1BB85500F1FB70 /* LoopdownServices.h */,
+				FA290E632F1BADCE0090B7F7 /* LoopdownServices.docc */,
+			);
+			name = LoopdownServices;
+			path = Sources/LoopdownServices;
+			sourceTree = "<group>";
+		};
+		FA290E672F1BADCE0090B7F7 /* LoopdownCLI */ = {
+			isa = PBXGroup;
+			children = (
+				FA290E662F1BADCE0090B7F7 /* main.swift */,
+			);
+			name = LoopdownCLI;
+			path = Sources/LoopdownCLI;
+			sourceTree = "<group>";
+		};
+		FA290E6A2F1BADCE0090B7F7 /* LoopdownInfrastructure */ = {
+			isa = PBXGroup;
+			children = (
+				FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */,
+				FA290E682F1BADCE0090B7F7 /* LoopdownInfrastructure.docc */,
+			);
+			name = LoopdownInfrastructure;
+			path = Sources/LoopdownInfrastructure;
+			sourceTree = "<group>";
+		};
+		FA290E6D2F1BADCE0090B7F7 /* LoopdownCore */ = {
+			isa = PBXGroup;
+			children = (
+				FA4A59C52F1BB83C00F1FB70 /* LoopdownCore.h */,
+				FA290E6B2F1BADCE0090B7F7 /* LoopdownCore.docc */,
+			);
+			name = LoopdownCore;
+			path = Sources/LoopdownCore;
+			sourceTree = "<group>";
+		};
+		FAA3980F2F1B9FDD0053139B = {
+			isa = PBXGroup;
+			children = (
+				FA290E672F1BADCE0090B7F7 /* LoopdownCLI */,
+				FA290E6D2F1BADCE0090B7F7 /* LoopdownCore */,
+				FA290E6A2F1BADCE0090B7F7 /* LoopdownInfrastructure */,
+				FA290E652F1BADCE0090B7F7 /* LoopdownServices */,
+				FAA398192F1B9FDD0053139B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		FAA398192F1B9FDD0053139B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FAA398182F1B9FDD0053139B /* loopdown */,
+				FAA3982B2F1BA1330053139B /* LoopdownServices.framework */,
+				FAA398342F1BA1330053139B /* LoopdownServicesTests.xctest */,
+				FAA398472F1BA15A0053139B /* LoopdownInfrastructure.framework */,
+				FAA398502F1BA15A0053139B /* LoopdownInfrastructureTests.xctest */,
+				FAA398632F1BA16E0053139B /* LoopdownCore.framework */,
+				FAA3986C2F1BA16F0053139B /* LoopdownCoreTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		FAA398262F1BA1330053139B /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAC711462F1BB88400DE79BF /* LoopdownServices.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA398422F1BA15A0053139B /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAC711472F1BB88900DE79BF /* LoopdownInfrastructure.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA3985E2F1BA16E0053139B /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAC711482F1BB88E00DE79BF /* LoopdownCore.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		FAA398172F1B9FDD0053139B /* loopdown */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FAA3981F2F1B9FDD0053139B /* Build configuration list for PBXNativeTarget "loopdown" */;
+			buildPhases = (
+				FAA398142F1B9FDD0053139B /* Sources */,
+				FAA398152F1B9FDD0053139B /* Frameworks */,
+				FAA398162F1B9FDD0053139B /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1893FE3B2932433384D755CA /* PBXTargetDependency */,
+			);
+			name = loopdown;
+			packageProductDependencies = (
+				FAA639A62F1BB28B00AD5B6E /* ArgumentParser */,
+			);
+			productName = loopdown;
+			productReference = FAA398182F1B9FDD0053139B /* loopdown */;
+			productType = "com.apple.product-type.tool";
+		};
+		FAA3982A2F1BA1330053139B /* LoopdownServices */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FAA3983C2F1BA1330053139B /* Build configuration list for PBXNativeTarget "LoopdownServices" */;
+			buildPhases = (
+				FAA398262F1BA1330053139B /* Headers */,
+				FAA398272F1BA1330053139B /* Sources */,
+				FAA398282F1BA1330053139B /* Frameworks */,
+				FAA398292F1BA1330053139B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E11EA5DB94504A8AA8A8ED23 /* PBXTargetDependency */,
+				9F5D9DEBA8144307878280D7 /* PBXTargetDependency */,
+			);
+			name = LoopdownServices;
+			productName = LoopdownServices;
+			productReference = FAA3982B2F1BA1330053139B /* LoopdownServices.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		FAA398332F1BA1330053139B /* LoopdownServicesTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FAA3983F2F1BA1330053139B /* Build configuration list for PBXNativeTarget "LoopdownServicesTests" */;
+			buildPhases = (
+				FAA398302F1BA1330053139B /* Sources */,
+				FAA398312F1BA1330053139B /* Frameworks */,
+				FAA398322F1BA1330053139B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FAA398372F1BA1330053139B /* PBXTargetDependency */,
+			);
+			name = LoopdownServicesTests;
+			productName = LoopdownServicesTests;
+			productReference = FAA398342F1BA1330053139B /* LoopdownServicesTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		FAA398462F1BA15A0053139B /* LoopdownInfrastructure */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FAA398582F1BA15A0053139B /* Build configuration list for PBXNativeTarget "LoopdownInfrastructure" */;
+			buildPhases = (
+				FAA398422F1BA15A0053139B /* Headers */,
+				FAA398432F1BA15A0053139B /* Sources */,
+				FAA398442F1BA15A0053139B /* Frameworks */,
+				FAA398452F1BA15A0053139B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LoopdownInfrastructure;
+			productName = LoopdownInfrastructure;
+			productReference = FAA398472F1BA15A0053139B /* LoopdownInfrastructure.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		FAA3984F2F1BA15A0053139B /* LoopdownInfrastructureTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FAA3985B2F1BA15A0053139B /* Build configuration list for PBXNativeTarget "LoopdownInfrastructureTests" */;
+			buildPhases = (
+				FAA3984C2F1BA15A0053139B /* Sources */,
+				FAA3984D2F1BA15A0053139B /* Frameworks */,
+				FAA3984E2F1BA15A0053139B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FAA398532F1BA15A0053139B /* PBXTargetDependency */,
+			);
+			name = LoopdownInfrastructureTests;
+			productName = LoopdownInfrastructureTests;
+			productReference = FAA398502F1BA15A0053139B /* LoopdownInfrastructureTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		FAA398622F1BA16E0053139B /* LoopdownCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FAA398742F1BA16F0053139B /* Build configuration list for PBXNativeTarget "LoopdownCore" */;
+			buildPhases = (
+				FAA3985E2F1BA16E0053139B /* Headers */,
+				FAA3985F2F1BA16E0053139B /* Sources */,
+				FAA398602F1BA16E0053139B /* Frameworks */,
+				FAA398612F1BA16E0053139B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LoopdownCore;
+			productName = LoopdownCore;
+			productReference = FAA398632F1BA16E0053139B /* LoopdownCore.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		FAA3986B2F1BA16F0053139B /* LoopdownCoreTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FAA398772F1BA16F0053139B /* Build configuration list for PBXNativeTarget "LoopdownCoreTests" */;
+			buildPhases = (
+				FAA398682F1BA16F0053139B /* Sources */,
+				FAA398692F1BA16F0053139B /* Frameworks */,
+				FAA3986A2F1BA16F0053139B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FAA3986F2F1BA16F0053139B /* PBXTargetDependency */,
+			);
+			name = LoopdownCoreTests;
+			productName = LoopdownCoreTests;
+			productReference = FAA3986C2F1BA16F0053139B /* LoopdownCoreTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FAA398102F1B9FDD0053139B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					FAA398172F1B9FDD0053139B = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					FAA3982A2F1BA1330053139B = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					FAA398332F1BA1330053139B = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					FAA398462F1BA15A0053139B = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					FAA3984F2F1BA15A0053139B = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					FAA398622F1BA16E0053139B = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					FAA3986B2F1BA16F0053139B = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = FAA398132F1B9FDD0053139B /* Build configuration list for PBXProject "loopdown" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = FAA3980F2F1B9FDD0053139B;
+			packageReferences = (
+				FAA639A52F1BB28B00AD5B6E /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
+			);
+			productRefGroup = FAA398192F1B9FDD0053139B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FAA398172F1B9FDD0053139B /* loopdown */,
+				FAA3982A2F1BA1330053139B /* LoopdownServices */,
+				FAA398332F1BA1330053139B /* LoopdownServicesTests */,
+				FAA398462F1BA15A0053139B /* LoopdownInfrastructure */,
+				FAA3984F2F1BA15A0053139B /* LoopdownInfrastructureTests */,
+				FAA398622F1BA16E0053139B /* LoopdownCore */,
+				FAA3986B2F1BA16F0053139B /* LoopdownCoreTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FAA398292F1BA1330053139B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA398322F1BA1330053139B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA398452F1BA15A0053139B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA3984E2F1BA15A0053139B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA398612F1BA16E0053139B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA3986A2F1BA16F0053139B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FAA398142F1B9FDD0053139B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAA639A82F1BB32700AD5B6E /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA398272F1BA1330053139B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA398302F1BA1330053139B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA398432F1BA15A0053139B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA3984C2F1BA15A0053139B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA3985F2F1BA16E0053139B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAA398682F1BA16F0053139B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1893FE3B2932433384D755CA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FAA3982A2F1BA1330053139B /* LoopdownServices */;
+			targetProxy = FAA398362F1BA1330053139B /* PBXContainerItemProxy */;
+		};
+		9F5D9DEBA8144307878280D7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FAA398462F1BA15A0053139B /* LoopdownInfrastructure */;
+			targetProxy = FAA398522F1BA15A0053139B /* PBXContainerItemProxy */;
+		};
+		E11EA5DB94504A8AA8A8ED23 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FAA398622F1BA16E0053139B /* LoopdownCore */;
+			targetProxy = FAA3986E2F1BA16F0053139B /* PBXContainerItemProxy */;
+		};
+		FAA398372F1BA1330053139B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FAA3982A2F1BA1330053139B /* LoopdownServices */;
+			targetProxy = FAA398362F1BA1330053139B /* PBXContainerItemProxy */;
+		};
+		FAA398532F1BA15A0053139B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FAA398462F1BA15A0053139B /* LoopdownInfrastructure */;
+			targetProxy = FAA398522F1BA15A0053139B /* PBXContainerItemProxy */;
+		};
+		FAA3986F2F1BA16F0053139B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FAA398622F1BA16E0053139B /* LoopdownCore */;
+			targetProxy = FAA3986E2F1BA16F0053139B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		FAA3981D2F1B9FDD0053139B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		FAA3981E2F1B9FDD0053139B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		FAA398202F1B9FDD0053139B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		FAA398212F1B9FDD0053139B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		FAA3983D2F1BA1330053139B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownServices;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		FAA3983E2F1BA1330053139B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownServices;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		FAA398402F1BA1330053139B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownServicesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		FAA398412F1BA1330053139B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownServicesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		FAA398592F1BA15A0053139B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownInfrastructure;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		FAA3985A2F1BA15A0053139B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownInfrastructure;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		FAA3985C2F1BA15A0053139B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownInfrastructureTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		FAA3985D2F1BA15A0053139B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownInfrastructureTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		FAA398752F1BA16F0053139B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownCore;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		FAA398762F1BA16F0053139B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownCore;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		FAA398782F1BA16F0053139B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownCoreTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		FAA398792F1BA16F0053139B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownCoreTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		FAA398132F1B9FDD0053139B /* Build configuration list for PBXProject "loopdown" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FAA3981D2F1B9FDD0053139B /* Debug */,
+				FAA3981E2F1B9FDD0053139B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FAA3981F2F1B9FDD0053139B /* Build configuration list for PBXNativeTarget "loopdown" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FAA398202F1B9FDD0053139B /* Debug */,
+				FAA398212F1B9FDD0053139B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FAA3983C2F1BA1330053139B /* Build configuration list for PBXNativeTarget "LoopdownServices" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FAA3983D2F1BA1330053139B /* Debug */,
+				FAA3983E2F1BA1330053139B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FAA3983F2F1BA1330053139B /* Build configuration list for PBXNativeTarget "LoopdownServicesTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FAA398402F1BA1330053139B /* Debug */,
+				FAA398412F1BA1330053139B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FAA398582F1BA15A0053139B /* Build configuration list for PBXNativeTarget "LoopdownInfrastructure" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FAA398592F1BA15A0053139B /* Debug */,
+				FAA3985A2F1BA15A0053139B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FAA3985B2F1BA15A0053139B /* Build configuration list for PBXNativeTarget "LoopdownInfrastructureTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FAA3985C2F1BA15A0053139B /* Debug */,
+				FAA3985D2F1BA15A0053139B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FAA398742F1BA16F0053139B /* Build configuration list for PBXNativeTarget "LoopdownCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FAA398752F1BA16F0053139B /* Debug */,
+				FAA398762F1BA16F0053139B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FAA398772F1BA16F0053139B /* Build configuration list for PBXNativeTarget "LoopdownCoreTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FAA398782F1BA16F0053139B /* Debug */,
+				FAA398792F1BA16F0053139B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		FAA639A52F1BB28B00AD5B6E /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-argument-parser.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.6.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FAA639A62F1BB28B00AD5B6E /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FAA639A52F1BB28B00AD5B6E /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = FAA398102F1B9FDD0053139B /* Project object */;
+}
