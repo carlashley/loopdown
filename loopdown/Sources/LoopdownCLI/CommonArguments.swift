@@ -28,7 +28,7 @@ struct AppOptions: ParsableArguments {
 }
 
 struct DryRunOption: ParsableArguments {
-    @Flag(name: [.customShort("n"), .long])
+    @Flag(name: [.customShort("n"), .long], help: "Perform a dry run.")
     var dryRun: Bool = false
 }
 

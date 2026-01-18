@@ -140,7 +140,7 @@ public final class FileLogSink {
 ///  - Unified logging (os.Logger)
 ///  - Zero or more file sinks (tee)
 ///  - Optional console sink (message-only)
-public final class AppLogger {
+public final class AppLogger: @unchecked Sendable {
     private let osLogger: os.Logger
 
     public let minLevel: AppLogLevel

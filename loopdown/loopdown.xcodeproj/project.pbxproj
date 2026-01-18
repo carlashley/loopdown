@@ -30,6 +30,12 @@
 		FAB048C52F1C6F4B000FA556 /* ConcreteApp+ArgumentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB048C42F1C6F4B000FA556 /* ConcreteApp+ArgumentParser.swift */; };
 		FAB048C72F1C74A0000FA556 /* ExecutionLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB048C62F1C74A0000FA556 /* ExecutionLock.swift */; };
 		FAB048CB2F1C7A74000FA556 /* CLIRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB048CA2F1C7A74000FA556 /* CLIRunner.swift */; };
+		FAB47FAE2F1C8CE600CB44A1 /* ByteSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB47FAD2F1C8CE600CB44A1 /* ByteSize.swift */; };
+		FAB47FB02F1C9DDA00CB44A1 /* DownloadPathNormalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB47FAF2F1C9DDA00CB44A1 /* DownloadPathNormalization.swift */; };
+		FAB47FB32F1CA85E00CB44A1 /* AudioApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB47FB22F1CA85E00CB44A1 /* AudioApplication.swift */; };
+		FAB47FB82F1CAC5F00CB44A1 /* CoreLogger+Infrastructure.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB47FB72F1CAC5F00CB44A1 /* CoreLogger+Infrastructure.swift */; };
+		FAB47FBA2F1CAEBF00CB44A1 /* AudioContentPackage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB47FB92F1CAEBF00CB44A1 /* AudioContentPackage.swift */; };
+		FAB47FC22F1CB78300CB44A1 /* LoggerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB47FC02F1CB78300CB44A1 /* LoggerProtocol.swift */; };
 		FAC711462F1BB88400DE79BF /* LoopdownServices.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C72F1BB85500F1FB70 /* LoopdownServices.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FAC711472F1BB88900DE79BF /* LoopdownInfrastructure.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FAC711482F1BB88E00DE79BF /* LoopdownCore.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C52F1BB83C00F1FB70 /* LoopdownCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -101,6 +107,12 @@
 		FAB048C42F1C6F4B000FA556 /* ConcreteApp+ArgumentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConcreteApp+ArgumentParser.swift"; sourceTree = "<group>"; };
 		FAB048C62F1C74A0000FA556 /* ExecutionLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExecutionLock.swift; sourceTree = "<group>"; };
 		FAB048CA2F1C7A74000FA556 /* CLIRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIRunner.swift; sourceTree = "<group>"; };
+		FAB47FAD2F1C8CE600CB44A1 /* ByteSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteSize.swift; sourceTree = "<group>"; };
+		FAB47FAF2F1C9DDA00CB44A1 /* DownloadPathNormalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadPathNormalization.swift; sourceTree = "<group>"; };
+		FAB47FB22F1CA85E00CB44A1 /* AudioApplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioApplication.swift; sourceTree = "<group>"; };
+		FAB47FB72F1CAC5F00CB44A1 /* CoreLogger+Infrastructure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreLogger+Infrastructure.swift"; sourceTree = "<group>"; };
+		FAB47FB92F1CAEBF00CB44A1 /* AudioContentPackage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioContentPackage.swift; sourceTree = "<group>"; };
+		FAB47FC02F1CB78300CB44A1 /* LoggerProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -186,6 +198,7 @@
 				FA0A60C42F1C5A650025ED20 /* CLILogging.swift */,
 				FAB048C42F1C6F4B000FA556 /* ConcreteApp+ArgumentParser.swift */,
 				FAB048CA2F1C7A74000FA556 /* CLIRunner.swift */,
+				FAB47FB72F1CAC5F00CB44A1 /* CoreLogger+Infrastructure.swift */,
 			);
 			name = LoopdownCLI;
 			path = Sources/LoopdownCLI;
@@ -207,6 +220,9 @@
 		FA290E6D2F1BADCE0090B7F7 /* LoopdownCore */ = {
 			isa = PBXGroup;
 			children = (
+				FAB47FC12F1CB78300CB44A1 /* SupportProtocols */,
+				FAB47FB12F1CA84C00CB44A1 /* Models */,
+				FAB47FAC2F1C8CCE00CB44A1 /* Utilities */,
 				FA0A60C72F1C62AF0025ED20 /* BuildInfo.swift */,
 				FA4A59C52F1BB83C00F1FB70 /* LoopdownCore.h */,
 				FA290E6B2F1BADCE0090B7F7 /* LoopdownCore.docc */,
@@ -240,6 +256,32 @@
 				FAA3986C2F1BA16F0053139B /* LoopdownCoreTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		FAB47FAC2F1C8CCE00CB44A1 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				FAB47FAD2F1C8CE600CB44A1 /* ByteSize.swift */,
+				FAB47FAF2F1C9DDA00CB44A1 /* DownloadPathNormalization.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		FAB47FB12F1CA84C00CB44A1 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				FAB47FB22F1CA85E00CB44A1 /* AudioApplication.swift */,
+				FAB47FB92F1CAEBF00CB44A1 /* AudioContentPackage.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		FAB47FC12F1CB78300CB44A1 /* SupportProtocols */ = {
+			isa = PBXGroup;
+			children = (
+				FAB47FC02F1CB78300CB44A1 /* LoggerProtocol.swift */,
+			);
+			path = SupportProtocols;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -547,6 +589,7 @@
 				FA0A60B32F1C548D0025ED20 /* CommonArguments.swift in Sources */,
 				FA0A60B92F1C55540025ED20 /* Loopdown.swift in Sources */,
 				FA0A60B52F1C54BE0025ED20 /* Deploy.swift in Sources */,
+				FAB47FB82F1CAC5F00CB44A1 /* CoreLogger+Infrastructure.swift in Sources */,
 				FA0A60C52F1C5A650025ED20 /* CLILogging.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -586,9 +629,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FAB47FAE2F1C8CE600CB44A1 /* ByteSize.swift in Sources */,
+				FAB47FC22F1CB78300CB44A1 /* LoggerProtocol.swift in Sources */,
 				FA0A60BD2F1C568D0025ED20 /* ConcreteApp.swift in Sources */,
 				FA0A60C82F1C62AF0025ED20 /* BuildInfo.swift in Sources */,
+				FAB47FB32F1CA85E00CB44A1 /* AudioApplication.swift in Sources */,
+				FAB47FBA2F1CAEBF00CB44A1 /* AudioContentPackage.swift in Sources */,
 				FA0A60A62F1C4BAE0025ED20 /* LoopdownConstants.swift in Sources */,
+				FAB47FB02F1C9DDA00CB44A1 /* DownloadPathNormalization.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
