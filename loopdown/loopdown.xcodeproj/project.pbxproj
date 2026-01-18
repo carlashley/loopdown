@@ -20,7 +20,6 @@
 		FA0A60B72F1C550F0025ED20 /* Download.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60B62F1C550F0025ED20 /* Download.swift */; };
 		FA0A60B92F1C55540025ED20 /* Loopdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60B82F1C55540025ED20 /* Loopdown.swift */; };
 		FA0A60BD2F1C568D0025ED20 /* ConcreteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60BC2F1C568D0025ED20 /* ConcreteApp.swift */; };
-		FA0A60C12F1C56CA0025ED20 /* AppChoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C02F1C56CA0025ED20 /* AppChoice.swift */; };
 		FA0A60C32F1C58D50025ED20 /* ValidationHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C22F1C58D50025ED20 /* ValidationHelpers.swift */; };
 		FA0A60C52F1C5A650025ED20 /* CLILogging.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C42F1C5A650025ED20 /* CLILogging.swift */; };
 		FA0A60C82F1C62AF0025ED20 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C72F1C62AF0025ED20 /* BuildInfo.swift */; };
@@ -28,6 +27,9 @@
 		FAA398512F1BA15A0053139B /* LoopdownInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398472F1BA15A0053139B /* LoopdownInfrastructure.framework */; };
 		FAA3986D2F1BA16F0053139B /* LoopdownCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398632F1BA16E0053139B /* LoopdownCore.framework */; };
 		FAA639A72F1BB28B00AD5B6E /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = FAA639A62F1BB28B00AD5B6E /* ArgumentParser */; };
+		FAB048C52F1C6F4B000FA556 /* ConcreteApp+ArgumentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB048C42F1C6F4B000FA556 /* ConcreteApp+ArgumentParser.swift */; };
+		FAB048C72F1C74A0000FA556 /* ExecutionLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB048C62F1C74A0000FA556 /* ExecutionLock.swift */; };
+		FAB048CB2F1C7A74000FA556 /* CLIRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB048CA2F1C7A74000FA556 /* CLIRunner.swift */; };
 		FAC711462F1BB88400DE79BF /* LoopdownServices.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C72F1BB85500F1FB70 /* LoopdownServices.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FAC711472F1BB88900DE79BF /* LoopdownInfrastructure.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FAC711482F1BB88E00DE79BF /* LoopdownCore.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C52F1BB83C00F1FB70 /* LoopdownCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -80,7 +82,6 @@
 		FA0A60B62F1C550F0025ED20 /* Download.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Download.swift; sourceTree = "<group>"; };
 		FA0A60B82F1C55540025ED20 /* Loopdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loopdown.swift; sourceTree = "<group>"; };
 		FA0A60BC2F1C568D0025ED20 /* ConcreteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConcreteApp.swift; sourceTree = "<group>"; };
-		FA0A60C02F1C56CA0025ED20 /* AppChoice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppChoice.swift; sourceTree = "<group>"; };
 		FA0A60C22F1C58D50025ED20 /* ValidationHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationHelpers.swift; sourceTree = "<group>"; };
 		FA0A60C42F1C5A650025ED20 /* CLILogging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLILogging.swift; sourceTree = "<group>"; };
 		FA0A60C72F1C62AF0025ED20 /* BuildInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BuildInfo.swift; path = Sources/Generated/BuildInfo.swift; sourceTree = SOURCE_ROOT; };
@@ -97,6 +98,9 @@
 		FAA398502F1BA15A0053139B /* LoopdownInfrastructureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopdownInfrastructureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAA398632F1BA16E0053139B /* LoopdownCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LoopdownCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAA3986C2F1BA16F0053139B /* LoopdownCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopdownCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAB048C42F1C6F4B000FA556 /* ConcreteApp+ArgumentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConcreteApp+ArgumentParser.swift"; sourceTree = "<group>"; };
+		FAB048C62F1C74A0000FA556 /* ExecutionLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExecutionLock.swift; sourceTree = "<group>"; };
+		FAB048CA2F1C7A74000FA556 /* CLIRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIRunner.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -178,9 +182,10 @@
 				FA0A60B42F1C54BE0025ED20 /* Deploy.swift */,
 				FA0A60B62F1C550F0025ED20 /* Download.swift */,
 				FA0A60B82F1C55540025ED20 /* Loopdown.swift */,
-				FA0A60C02F1C56CA0025ED20 /* AppChoice.swift */,
 				FA0A60C22F1C58D50025ED20 /* ValidationHelpers.swift */,
 				FA0A60C42F1C5A650025ED20 /* CLILogging.swift */,
+				FAB048C42F1C6F4B000FA556 /* ConcreteApp+ArgumentParser.swift */,
+				FAB048CA2F1C7A74000FA556 /* CLIRunner.swift */,
 			);
 			name = LoopdownCLI;
 			path = Sources/LoopdownCLI;
@@ -193,6 +198,7 @@
 				FA290E682F1BADCE0090B7F7 /* LoopdownInfrastructure.docc */,
 				FA0A60A72F1C4C9E0025ED20 /* Logging.swift */,
 				FA0A60AE2F1C54020025ED20 /* PrivilegeCheck.swift */,
+				FAB048C62F1C74A0000FA556 /* ExecutionLock.swift */,
 			);
 			name = LoopdownInfrastructure;
 			path = Sources/LoopdownInfrastructure;
@@ -536,8 +542,9 @@
 				FA0A60AB2F1C51630025ED20 /* AppLogLevel+ArgumentParser.swift in Sources */,
 				FA0A60B12F1C54560025ED20 /* ServerArguments.swift in Sources */,
 				FA0A60B72F1C550F0025ED20 /* Download.swift in Sources */,
+				FAB048CB2F1C7A74000FA556 /* CLIRunner.swift in Sources */,
+				FAB048C52F1C6F4B000FA556 /* ConcreteApp+ArgumentParser.swift in Sources */,
 				FA0A60B32F1C548D0025ED20 /* CommonArguments.swift in Sources */,
-				FA0A60C12F1C56CA0025ED20 /* AppChoice.swift in Sources */,
 				FA0A60B92F1C55540025ED20 /* Loopdown.swift in Sources */,
 				FA0A60B52F1C54BE0025ED20 /* Deploy.swift in Sources */,
 				FA0A60C52F1C5A650025ED20 /* CLILogging.swift in Sources */,
@@ -562,6 +569,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FAB048C72F1C74A0000FA556 /* ExecutionLock.swift in Sources */,
 				FA0A60AF2F1C54020025ED20 /* PrivilegeCheck.swift in Sources */,
 				FA0A60A82F1C4C9E0025ED20 /* Logging.swift in Sources */,
 			);

@@ -13,10 +13,17 @@ import LoopdownCore
 // MARK: - Common arguments
 
 struct AppOptions: ParsableArguments {
-    @Option(name: [.short, .long], help: ArgumentHelp("Install content for an app or apps; use 'auto' to select all supported apps.\n", valueName: "app"))
-    var apps: AppChoice
+    @Option(
+        name: [.short, .long],
+        parsing: .upToNextOption,
+        help: ArgumentHelp(
+            "Install content for an app (default: all supported apps).\n",
+            valueName: "app"
+        )
+    )
+    var app: [ConcreteApp] = []
 
-    var resolvedApps: [ConcreteApp] { apps.expandedApps }
+    var resolvedApps: [ConcreteApp] { app.isEmpty ? ConcreteApp.allCases : app }
 
 }
 
@@ -31,12 +38,12 @@ struct LoggingOptions: ParsableArguments {
 }
 
 struct RequiredContentOption: ParsableArguments {
-    @Flag(name: [.short, .long])
+    @Flag(name: [.short, .long], help: "Select required content.")
     var required: Bool = false
 }
 
 struct OptionalContentOption: ParsableArguments {
-    @Flag(name: [.short, .long])
+    @Flag(name: [.short, .long], help: "Select optional content.")
     var optional: Bool = false
 }
 
