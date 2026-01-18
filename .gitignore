@@ -81,3 +81,11 @@ Package.resolved
 # =========================
 *.xcuserdata/
 **/*.xcuserdatad/
+
+
+# =========================
+# Custom specific to this
+# repo
+# =========================
+builds/
+Generated/
