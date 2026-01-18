@@ -23,6 +23,9 @@
 		FA0A60C32F1C58D50025ED20 /* ValidationHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C22F1C58D50025ED20 /* ValidationHelpers.swift */; };
 		FA0A60C52F1C5A650025ED20 /* CLILogging.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C42F1C5A650025ED20 /* CLILogging.swift */; };
 		FA0A60C82F1C62AF0025ED20 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C72F1C62AF0025ED20 /* BuildInfo.swift */; };
+		FA58F8E52F1CC9EA001EFB98 /* SystemProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8E42F1CC9EA001EFB98 /* SystemProfiler.swift */; };
+		FA58F8EB2F1CCD38001EFB98 /* SubprocessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8E92F1CCD38001EFB98 /* SubprocessRunner.swift */; };
+		FA58F8ED2F1CCF81001EFB98 /* PackageInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8EC2F1CCF81001EFB98 /* PackageInfo.swift */; };
 		FAA398352F1BA1330053139B /* LoopdownServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA3982B2F1BA1330053139B /* LoopdownServices.framework */; };
 		FAA398512F1BA15A0053139B /* LoopdownInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398472F1BA15A0053139B /* LoopdownInfrastructure.framework */; };
 		FAA3986D2F1BA16F0053139B /* LoopdownCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398632F1BA16E0053139B /* LoopdownCore.framework */; };
@@ -97,6 +100,9 @@
 		FA4A59C52F1BB83C00F1FB70 /* LoopdownCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoopdownCore.h; sourceTree = "<group>"; };
 		FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoopdownInfrastructure.h; sourceTree = "<group>"; };
 		FA4A59C72F1BB85500F1FB70 /* LoopdownServices.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoopdownServices.h; sourceTree = "<group>"; };
+		FA58F8E42F1CC9EA001EFB98 /* SystemProfiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemProfiler.swift; sourceTree = "<group>"; };
+		FA58F8E92F1CCD38001EFB98 /* SubprocessRunner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SubprocessRunner.swift; sourceTree = "<group>"; };
+		FA58F8EC2F1CCF81001EFB98 /* PackageInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageInfo.swift; sourceTree = "<group>"; };
 		FAA398182F1B9FDD0053139B /* loopdown */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = loopdown; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAA3982B2F1BA1330053139B /* LoopdownServices.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LoopdownServices.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAA398342F1BA1330053139B /* LoopdownServicesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopdownServicesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -207,6 +213,7 @@
 		FA290E6A2F1BADCE0090B7F7 /* LoopdownInfrastructure */ = {
 			isa = PBXGroup;
 			children = (
+				FA58F8EA2F1CCD38001EFB98 /* Subprocess */,
 				FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */,
 				FA290E682F1BADCE0090B7F7 /* LoopdownInfrastructure.docc */,
 				FA0A60A72F1C4C9E0025ED20 /* Logging.swift */,
@@ -231,6 +238,16 @@
 			);
 			name = LoopdownCore;
 			path = Sources/LoopdownCore;
+			sourceTree = "<group>";
+		};
+		FA58F8EA2F1CCD38001EFB98 /* Subprocess */ = {
+			isa = PBXGroup;
+			children = (
+				FA58F8E92F1CCD38001EFB98 /* SubprocessRunner.swift */,
+				FA58F8E42F1CC9EA001EFB98 /* SystemProfiler.swift */,
+				FA58F8EC2F1CCF81001EFB98 /* PackageInfo.swift */,
+			);
+			path = Subprocess;
 			sourceTree = "<group>";
 		};
 		FAA3980F2F1B9FDD0053139B = {
@@ -612,9 +629,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA58F8EB2F1CCD38001EFB98 /* SubprocessRunner.swift in Sources */,
 				FAB048C72F1C74A0000FA556 /* ExecutionLock.swift in Sources */,
 				FA0A60AF2F1C54020025ED20 /* PrivilegeCheck.swift in Sources */,
 				FA0A60A82F1C4C9E0025ED20 /* Logging.swift in Sources */,
+				FA58F8ED2F1CCF81001EFB98 /* PackageInfo.swift in Sources */,
+				FA58F8E52F1CC9EA001EFB98 /* SystemProfiler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
