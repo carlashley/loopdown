@@ -8,6 +8,7 @@
 import ArgumentParser
 import LoopdownInfrastructure
 import LoopdownCore
+import LoopdownServices
 
 
 // MARK: Deploy only arguments
