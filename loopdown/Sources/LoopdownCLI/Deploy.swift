@@ -39,9 +39,6 @@ struct Deploy: ParsableCommand {
     @OptionGroup var force: ForceDeployOption
     @OptionGroup var servers: ServerOptions
 
-    /// Fixed deploy destination. Not user configurable.
-    var dest: String { LoopdownConstants.Paths.defaultDest }
-
     func validate() throws {
         // Enforce content selection
         try validateContentSelection(required: required.required, optional: optional.optional)
@@ -55,24 +52,65 @@ struct Deploy: ParsableCommand {
     
     func run() throws {
         try CLIRunner.runLocked {
-            let logger = CLILogging.startRun(
-                category: "Deploy",
-                minLevel: logging.logLevel
-            )
-
-            logger.info("Started deploy (dryRun=\(dry.dryRun))")
-            logger.info("apps: \(apps.resolvedApps.map(\.rawValue).joined(separator: ", "))")
-
-            if let cache = servers.cacheServer {
-                logger.info("cacheServer: \(cache)")
+            do  {
+                let logger = CLILogging.startRun(
+                    category: "Deploy",
+                    minLevel: logging.logLevel
+                )
+                
+                logger.info("Started deploy (dryRun=\(dry.dryRun))")
+                logger.info("apps: \(apps.resolvedApps.map(\.rawValue).joined(separator: ", "))")
+                
+                if let cache = servers.cacheServer {
+                    logger.info("cacheServer: \(cache)")
+                }
+                if let mirror = servers.mirrorServer {
+                    logger.info("mirrorServer: \(mirror)")
+                }
+                
+                // Decide staging destination.
+                // - dryRun: do not create anything; just use the conventional path for display/planning.
+                // - real run: create a unique temp staging directory and guarantee cleanup.
+                let staging: TemporaryDirectory?
+                let signalCleanup: SignalCleanup?
+                
+                if dry.dryRun {
+                    staging = nil
+                    signalCleanup = nil
+                } else {
+                    let tmp = try TemporaryDirectory(prefix: "loopdown-staging-")
+                    staging = tmp
+                    logger.info("staging: \(tmp.url.path)")
+                    
+                    let sc = SignalCleanup { tmp.cleanup() }
+                    sc.install()
+                    signalCleanup = sc
+                }
+                
+                defer {
+                    // Restore signals and cleanup on normal exit.
+                    signalCleanup?.uninstall()
+                    staging?.cleanup()
+                }
+                
+                // Temporary: ensure scope doesn't end immediately
+                logger.debug("Deploy logic not implemented yet...")
+                // TODO: deploy logic
+                // Use destPath as the staging directory for downloads/unpacks/etc.
+                //
+                // try DeployController.deploy(
+                //     apps: apps.resolvedApps,
+                //     required: required.required,
+                //     optional: optional.optional,
+                //     force: force.forceDeploy,
+                //     cacheServer: servers.cacheServer,
+                //     mirrorServer: servers.mirrorServer,
+                //     stagingDir: destPath,
+                //     dryRun: dry.dryRun,
+                //     logger: logger
+                // )
             }
-            if let mirror = servers.mirrorServer {
-                logger.info("mirrorServer: \(mirror)")
-            }
-
-            logger.info("dest: \(dest)")
-
-            // TODO: deploy logic
         }
     }
+
 }

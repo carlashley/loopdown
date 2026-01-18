@@ -26,6 +26,8 @@
 		FA58F8E52F1CC9EA001EFB98 /* SystemProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8E42F1CC9EA001EFB98 /* SystemProfiler.swift */; };
 		FA58F8EB2F1CCD38001EFB98 /* SubprocessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8E92F1CCD38001EFB98 /* SubprocessRunner.swift */; };
 		FA58F8ED2F1CCF81001EFB98 /* PackageInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8EC2F1CCF81001EFB98 /* PackageInfo.swift */; };
+		FA58F8EF2F1CD57C001EFB98 /* TemporaryDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8EE2F1CD57C001EFB98 /* TemporaryDirectory.swift */; };
+		FA58F8F12F1CD5E9001EFB98 /* SignalCleanup.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8F02F1CD5E9001EFB98 /* SignalCleanup.swift */; };
 		FAA398352F1BA1330053139B /* LoopdownServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA3982B2F1BA1330053139B /* LoopdownServices.framework */; };
 		FAA398512F1BA15A0053139B /* LoopdownInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398472F1BA15A0053139B /* LoopdownInfrastructure.framework */; };
 		FAA3986D2F1BA16F0053139B /* LoopdownCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398632F1BA16E0053139B /* LoopdownCore.framework */; };
@@ -103,6 +105,8 @@
 		FA58F8E42F1CC9EA001EFB98 /* SystemProfiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemProfiler.swift; sourceTree = "<group>"; };
 		FA58F8E92F1CCD38001EFB98 /* SubprocessRunner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SubprocessRunner.swift; sourceTree = "<group>"; };
 		FA58F8EC2F1CCF81001EFB98 /* PackageInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageInfo.swift; sourceTree = "<group>"; };
+		FA58F8EE2F1CD57C001EFB98 /* TemporaryDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryDirectory.swift; sourceTree = "<group>"; };
+		FA58F8F02F1CD5E9001EFB98 /* SignalCleanup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalCleanup.swift; sourceTree = "<group>"; };
 		FAA398182F1B9FDD0053139B /* loopdown */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = loopdown; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAA3982B2F1BA1330053139B /* LoopdownServices.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LoopdownServices.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAA398342F1BA1330053139B /* LoopdownServicesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopdownServicesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -219,6 +223,8 @@
 				FA0A60A72F1C4C9E0025ED20 /* Logging.swift */,
 				FA0A60AE2F1C54020025ED20 /* PrivilegeCheck.swift */,
 				FAB048C62F1C74A0000FA556 /* ExecutionLock.swift */,
+				FA58F8EE2F1CD57C001EFB98 /* TemporaryDirectory.swift */,
+				FA58F8F02F1CD5E9001EFB98 /* SignalCleanup.swift */,
 			);
 			name = LoopdownInfrastructure;
 			path = Sources/LoopdownInfrastructure;
@@ -630,8 +636,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				FA58F8EB2F1CCD38001EFB98 /* SubprocessRunner.swift in Sources */,
+				FA58F8EF2F1CD57C001EFB98 /* TemporaryDirectory.swift in Sources */,
 				FAB048C72F1C74A0000FA556 /* ExecutionLock.swift in Sources */,
 				FA0A60AF2F1C54020025ED20 /* PrivilegeCheck.swift in Sources */,
+				FA58F8F12F1CD5E9001EFB98 /* SignalCleanup.swift in Sources */,
 				FA0A60A82F1C4C9E0025ED20 /* Logging.swift in Sources */,
 				FA58F8ED2F1CCF81001EFB98 /* PackageInfo.swift in Sources */,
 				FA58F8E52F1CC9EA001EFB98 /* SystemProfiler.swift in Sources */,
