@@ -10,11 +10,24 @@
 		2A734E57F4D44DC5869156B4 /* LoopdownCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398632F1BA16E0053139B /* LoopdownCore.framework */; };
 		594F80C8424040CBBD2934B6 /* LoopdownInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398472F1BA15A0053139B /* LoopdownInfrastructure.framework */; };
 		AB63D0C0CE3543F1A67A35EA /* LoopdownServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA3982B2F1BA1330053139B /* LoopdownServices.framework */; };
+		FA0A60A62F1C4BAE0025ED20 /* LoopdownConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60A52F1C4BAE0025ED20 /* LoopdownConstants.swift */; };
+		FA0A60A82F1C4C9E0025ED20 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60A72F1C4C9E0025ED20 /* Logging.swift */; };
+		FA0A60AB2F1C51630025ED20 /* AppLogLevel+ArgumentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60AA2F1C51630025ED20 /* AppLogLevel+ArgumentParser.swift */; };
+		FA0A60AF2F1C54020025ED20 /* PrivilegeCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60AE2F1C54020025ED20 /* PrivilegeCheck.swift */; };
+		FA0A60B12F1C54560025ED20 /* ServerArguments.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60B02F1C54560025ED20 /* ServerArguments.swift */; };
+		FA0A60B32F1C548D0025ED20 /* CommonArguments.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60B22F1C548D0025ED20 /* CommonArguments.swift */; };
+		FA0A60B52F1C54BE0025ED20 /* Deploy.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60B42F1C54BE0025ED20 /* Deploy.swift */; };
+		FA0A60B72F1C550F0025ED20 /* Download.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60B62F1C550F0025ED20 /* Download.swift */; };
+		FA0A60B92F1C55540025ED20 /* Loopdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60B82F1C55540025ED20 /* Loopdown.swift */; };
+		FA0A60BD2F1C568D0025ED20 /* ConcreteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60BC2F1C568D0025ED20 /* ConcreteApp.swift */; };
+		FA0A60C12F1C56CA0025ED20 /* AppChoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C02F1C56CA0025ED20 /* AppChoice.swift */; };
+		FA0A60C32F1C58D50025ED20 /* ValidationHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C22F1C58D50025ED20 /* ValidationHelpers.swift */; };
+		FA0A60C52F1C5A650025ED20 /* CLILogging.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C42F1C5A650025ED20 /* CLILogging.swift */; };
+		FA0A60C82F1C62AF0025ED20 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C72F1C62AF0025ED20 /* BuildInfo.swift */; };
 		FAA398352F1BA1330053139B /* LoopdownServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA3982B2F1BA1330053139B /* LoopdownServices.framework */; };
 		FAA398512F1BA15A0053139B /* LoopdownInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398472F1BA15A0053139B /* LoopdownInfrastructure.framework */; };
 		FAA3986D2F1BA16F0053139B /* LoopdownCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398632F1BA16E0053139B /* LoopdownCore.framework */; };
 		FAA639A72F1BB28B00AD5B6E /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = FAA639A62F1BB28B00AD5B6E /* ArgumentParser */; };
-		FAA639A82F1BB32700AD5B6E /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA290E662F1BADCE0090B7F7 /* main.swift */; };
 		FAC711462F1BB88400DE79BF /* LoopdownServices.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C72F1BB85500F1FB70 /* LoopdownServices.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FAC711472F1BB88900DE79BF /* LoopdownInfrastructure.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FAC711482F1BB88E00DE79BF /* LoopdownCore.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C52F1BB83C00F1FB70 /* LoopdownCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -57,8 +70,21 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FA0A60A52F1C4BAE0025ED20 /* LoopdownConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopdownConstants.swift; sourceTree = "<group>"; };
+		FA0A60A72F1C4C9E0025ED20 /* Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
+		FA0A60AA2F1C51630025ED20 /* AppLogLevel+ArgumentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppLogLevel+ArgumentParser.swift"; sourceTree = "<group>"; };
+		FA0A60AE2F1C54020025ED20 /* PrivilegeCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivilegeCheck.swift; sourceTree = "<group>"; };
+		FA0A60B02F1C54560025ED20 /* ServerArguments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerArguments.swift; sourceTree = "<group>"; };
+		FA0A60B22F1C548D0025ED20 /* CommonArguments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonArguments.swift; sourceTree = "<group>"; };
+		FA0A60B42F1C54BE0025ED20 /* Deploy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deploy.swift; sourceTree = "<group>"; };
+		FA0A60B62F1C550F0025ED20 /* Download.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Download.swift; sourceTree = "<group>"; };
+		FA0A60B82F1C55540025ED20 /* Loopdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loopdown.swift; sourceTree = "<group>"; };
+		FA0A60BC2F1C568D0025ED20 /* ConcreteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConcreteApp.swift; sourceTree = "<group>"; };
+		FA0A60C02F1C56CA0025ED20 /* AppChoice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppChoice.swift; sourceTree = "<group>"; };
+		FA0A60C22F1C58D50025ED20 /* ValidationHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationHelpers.swift; sourceTree = "<group>"; };
+		FA0A60C42F1C5A650025ED20 /* CLILogging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLILogging.swift; sourceTree = "<group>"; };
+		FA0A60C72F1C62AF0025ED20 /* BuildInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BuildInfo.swift; path = Sources/Generated/BuildInfo.swift; sourceTree = SOURCE_ROOT; };
 		FA290E632F1BADCE0090B7F7 /* LoopdownServices.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = LoopdownServices.docc; sourceTree = "<group>"; };
-		FA290E662F1BADCE0090B7F7 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		FA290E682F1BADCE0090B7F7 /* LoopdownInfrastructure.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = LoopdownInfrastructure.docc; sourceTree = "<group>"; };
 		FA290E6B2F1BADCE0090B7F7 /* LoopdownCore.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = LoopdownCore.docc; sourceTree = "<group>"; };
 		FA4A59C52F1BB83C00F1FB70 /* LoopdownCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoopdownCore.h; sourceTree = "<group>"; };
@@ -146,7 +172,15 @@
 		FA290E672F1BADCE0090B7F7 /* LoopdownCLI */ = {
 			isa = PBXGroup;
 			children = (
-				FA290E662F1BADCE0090B7F7 /* main.swift */,
+				FA0A60AA2F1C51630025ED20 /* AppLogLevel+ArgumentParser.swift */,
+				FA0A60B02F1C54560025ED20 /* ServerArguments.swift */,
+				FA0A60B22F1C548D0025ED20 /* CommonArguments.swift */,
+				FA0A60B42F1C54BE0025ED20 /* Deploy.swift */,
+				FA0A60B62F1C550F0025ED20 /* Download.swift */,
+				FA0A60B82F1C55540025ED20 /* Loopdown.swift */,
+				FA0A60C02F1C56CA0025ED20 /* AppChoice.swift */,
+				FA0A60C22F1C58D50025ED20 /* ValidationHelpers.swift */,
+				FA0A60C42F1C5A650025ED20 /* CLILogging.swift */,
 			);
 			name = LoopdownCLI;
 			path = Sources/LoopdownCLI;
@@ -157,6 +191,8 @@
 			children = (
 				FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */,
 				FA290E682F1BADCE0090B7F7 /* LoopdownInfrastructure.docc */,
+				FA0A60A72F1C4C9E0025ED20 /* Logging.swift */,
+				FA0A60AE2F1C54020025ED20 /* PrivilegeCheck.swift */,
 			);
 			name = LoopdownInfrastructure;
 			path = Sources/LoopdownInfrastructure;
@@ -165,8 +201,11 @@
 		FA290E6D2F1BADCE0090B7F7 /* LoopdownCore */ = {
 			isa = PBXGroup;
 			children = (
+				FA0A60C72F1C62AF0025ED20 /* BuildInfo.swift */,
 				FA4A59C52F1BB83C00F1FB70 /* LoopdownCore.h */,
 				FA290E6B2F1BADCE0090B7F7 /* LoopdownCore.docc */,
+				FA0A60A52F1C4BAE0025ED20 /* LoopdownConstants.swift */,
+				FA0A60BC2F1C568D0025ED20 /* ConcreteApp.swift */,
 			);
 			name = LoopdownCore;
 			path = Sources/LoopdownCore;
@@ -327,6 +366,7 @@
 			buildConfigurationList = FAA398742F1BA16F0053139B /* Build configuration list for PBXNativeTarget "LoopdownCore" */;
 			buildPhases = (
 				FAA3985E2F1BA16E0053139B /* Headers */,
+				FA0A60C62F1C5E850025ED20 /* Generate BuildInfo.swift */,
 				FAA3985F2F1BA16E0053139B /* Sources */,
 				FAA398602F1BA16E0053139B /* Frameworks */,
 				FAA398612F1BA16E0053139B /* Resources */,
@@ -379,12 +419,14 @@
 					};
 					FAA398462F1BA15A0053139B = {
 						CreatedOnToolsVersion = 15.4;
+						LastSwiftMigration = 1540;
 					};
 					FAA3984F2F1BA15A0053139B = {
 						CreatedOnToolsVersion = 15.4;
 					};
 					FAA398622F1BA16E0053139B = {
 						CreatedOnToolsVersion = 15.4;
+						LastSwiftMigration = 1540;
 					};
 					FAA3986B2F1BA16F0053139B = {
 						CreatedOnToolsVersion = 15.4;
@@ -463,12 +505,42 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		FA0A60C62F1C5E850025ED20 /* Generate BuildInfo.swift */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Generate BuildInfo.swift";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Sources/Generated/BuildInfo.swift",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\n# Ensure UTF-8 output\nexport LC_ALL=en_AU.UTF-8\nexport LANG=en_AU.UTF-8\n\necho \">>> BuildInfo script running\"\n\n# Where to write the generated file:\nOUT_DIR=\"${SRCROOT}/Sources/Generated\"\nOUT_FILE=\"${OUT_DIR}/BuildInfo.swift\"\n\nmkdir -p \"${OUT_DIR}\"\n\n# Copyright symbol\nif locale charmap 2>/dev/null | grep -qi utf-8; then\n  COPYRIGHT_SYMBOL=\"©\"\nelse\n  COPYRIGHT_SYMBOL=\"(c)\"\nfi\n\n# Semantic version: prefer Xcode MARKETING_VERSION (set it in Build Settings)\nVERSION=\"${MARKETING_VERSION:-0.0.0}\"\necho \">>> BuildInfo version: ${MARKETING_VERSION:-<unset>}\"\n\n# Build timestamp:\n# - Prefer SOURCE_DATE_EPOCH if set (reproducible builds)\n# - Otherwise use \"now\"\nif [[ -n \"${SOURCE_DATE_EPOCH:-}\" ]]; then\n  TS=\"$(date -r \"${SOURCE_DATE_EPOCH}\" +\"%Y-%m-%dT%H:%M\")\"\nelse\n  TS=\"$(date +\"%Y-%m-%dT%H:%M\")\"\nfi\n\nYEAR=\"$(date +\"%Y\")\"\nHOLDER=\"Carl Ashley\"\n\ncat > \"${OUT_FILE}\" <<EOF\npublic enum BuildInfo {\n    public static let marketingVersion: String = \"${VERSION}\"\n    public static let buildTimestamp: String = \"${TS}\"\n    public static let copyrightYear: String = \"${YEAR}\"\n    public static let copyrightHolder: String = \"${HOLDER}\"\n    public static let identifier: String = \"com.github.carlashley.loopdown\"\n\n    public static var versionLine: String {\n        \"loopdown v\\\\(marketingVersion) (\\\\(buildTimestamp)) Copyright ${COPYRIGHT_SYMBOL} \\\\(copyrightYear) \\\\(copyrightHolder). All rights reserved.\"\n    }\n}\nEOF\n\necho \"Generated: ${OUT_FILE}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		FAA398142F1B9FDD0053139B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FAA639A82F1BB32700AD5B6E /* main.swift in Sources */,
+				FA0A60C32F1C58D50025ED20 /* ValidationHelpers.swift in Sources */,
+				FA0A60AB2F1C51630025ED20 /* AppLogLevel+ArgumentParser.swift in Sources */,
+				FA0A60B12F1C54560025ED20 /* ServerArguments.swift in Sources */,
+				FA0A60B72F1C550F0025ED20 /* Download.swift in Sources */,
+				FA0A60B32F1C548D0025ED20 /* CommonArguments.swift in Sources */,
+				FA0A60C12F1C56CA0025ED20 /* AppChoice.swift in Sources */,
+				FA0A60B92F1C55540025ED20 /* Loopdown.swift in Sources */,
+				FA0A60B52F1C54BE0025ED20 /* Deploy.swift in Sources */,
+				FA0A60C52F1C5A650025ED20 /* CLILogging.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -490,6 +562,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA0A60AF2F1C54020025ED20 /* PrivilegeCheck.swift in Sources */,
+				FA0A60A82F1C4C9E0025ED20 /* Logging.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -504,6 +578,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA0A60BD2F1C568D0025ED20 /* ConcreteApp.swift in Sources */,
+				FA0A60C82F1C62AF0025ED20 /* BuildInfo.swift in Sources */,
+				FA0A60A62F1C4BAE0025ED20 /* LoopdownConstants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -788,6 +865,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -814,6 +892,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -824,6 +903,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -859,6 +939,7 @@
 		FAA3985C2F1BA15A0053139B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -873,6 +954,7 @@
 		FAA3985D2F1BA15A0053139B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -888,6 +970,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -905,7 +988,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = staticlib;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0.0swiftdev;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownCore;
@@ -913,6 +996,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -923,6 +1007,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -940,7 +1025,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = staticlib;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0.1;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownCore;
@@ -957,6 +1042,7 @@
 		FAA398782F1BA16F0053139B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -971,6 +1057,7 @@
 		FAA398792F1BA16F0053139B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
