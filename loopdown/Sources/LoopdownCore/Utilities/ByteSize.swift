@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: - Byte Size utility
 /// Represents a byte size value with human-readable formatting.
-public struct ByteSize: Comparable, Hashable, Sendable {
+public struct ByteSize: Comparable, Hashable, Sendable, CustomStringConvertible {
     public let raw: Int64
 
     public init(_ raw: Int64) {

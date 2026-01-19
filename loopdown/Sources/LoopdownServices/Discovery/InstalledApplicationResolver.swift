@@ -11,46 +11,48 @@ import LoopdownInfrastructure
 
 // MARK: - Installed application resolver
 public enum InstalledApplicationResolver {
-    /// Resolve installed audio applications that loopdown can process
+    /// Resolve installed audio applications that loopdown can process.
     public static func resolveInstalled(
         logger: CoreLogger = NullLogger()
-    ) -> [AudioApplication] {
+    ) -> AnySequence<AudioApplication> {
 
-        guard let installedApps = SystemProfiler.run(.applications, debugLog: logger.debug)
-        else {
-            return []
+        guard let installedApps = SystemProfiler.run(.applications, debugLog: logger.debug) else {
+            return AnySequence([])
         }
 
-        return installedApps.compactMap { app -> AudioApplication? in
-            guard let rawName = app["_name"] as? String else { return nil }
+        return AnySequence(
+            installedApps.lazy.compactMap { app -> AudioApplication? in
+                // system_profiler keys we care about
+                guard let rawName = app["_name"] as? String else { return nil }
 
-            let normalized = LoopdownConstants.Applications.normalizeName(rawName)
-            guard LoopdownConstants.Applications.realNames.contains(normalized) else { return nil }
+                let normalized = LoopdownConstants.Applications.normalizeName(rawName)
+                guard LoopdownConstants.Applications.realNames.contains(normalized) else { return nil }
 
-            let version = app["version"] as? String ?? ""
-            let pathString = app["path"] as? String ?? ""
-            let lastModified = app["lastModified"] as? String ?? ""
+                let version = app["version"] as? String ?? ""
+                let pathString = app["path"] as? String ?? ""
+                let lastModified = app["lastModified"] as? String ?? ""
 
-            guard !pathString.isEmpty else {
-                logger.debug("Skipping '\(rawName)': missing path")
-                return nil
+                guard !pathString.isEmpty else {
+                    logger.debug("Skipping '\(rawName)': missing path")
+                    return nil
+                }
+
+                let url = URL(fileURLWithPath: pathString, isDirectory: true)
+
+                do {
+                    return try AudioApplication(
+                        name: rawName,
+                        version: version,
+                        path: url,
+                        lastModifiedISO8601UTC: lastModified,
+                        logger: logger
+                    )
+                } catch {
+                    logger.debug("Skipping '\(rawName)': invalid lastModified '\(lastModified)': \(error)")
+                    return nil
+                }
             }
-
-            let url = URL(fileURLWithPath: pathString, isDirectory: true)
-
-            do {
-                return try AudioApplication(
-                    name: rawName,
-                    version: version,
-                    path: url,
-                    lastModifiedISO8601UTC: lastModified,
-                    logger: logger
-                )
-            } catch {
-                logger.debug("Skipping '\(rawName)': invalid lastModified '\(lastModified)'")
-                return nil
-            }
-        }
+        )
     }
 }
 

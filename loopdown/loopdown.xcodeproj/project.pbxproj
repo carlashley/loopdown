@@ -25,6 +25,7 @@
 		FA0A60C82F1C62AF0025ED20 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C72F1C62AF0025ED20 /* BuildInfo.swift */; };
 		FA239F202F1CF222007A0E75 /* InstalledApplicationResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA239F1F2F1CF222007A0E75 /* InstalledApplicationResolver.swift */; };
 		FA239F232F1CF2CA007A0E75 /* StagingDirectoryAndSignalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA239F222F1CF2CA007A0E75 /* StagingDirectoryAndSignalling.swift */; };
+		FA239F262F1E154B007A0E75 /* Collection+Enumerated.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA239F252F1E154B007A0E75 /* Collection+Enumerated.swift */; };
 		FA58F8E52F1CC9EA001EFB98 /* SystemProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8E42F1CC9EA001EFB98 /* SystemProfiler.swift */; };
 		FA58F8EB2F1CCD38001EFB98 /* SubprocessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8E92F1CCD38001EFB98 /* SubprocessRunner.swift */; };
 		FA58F8ED2F1CCF81001EFB98 /* PackageInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8EC2F1CCF81001EFB98 /* PackageInfo.swift */; };
@@ -98,6 +99,7 @@
 		FA0A60C72F1C62AF0025ED20 /* BuildInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BuildInfo.swift; path = Sources/Generated/BuildInfo.swift; sourceTree = SOURCE_ROOT; };
 		FA239F1F2F1CF222007A0E75 /* InstalledApplicationResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledApplicationResolver.swift; sourceTree = "<group>"; };
 		FA239F222F1CF2CA007A0E75 /* StagingDirectoryAndSignalling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StagingDirectoryAndSignalling.swift; sourceTree = "<group>"; };
+		FA239F252F1E154B007A0E75 /* Collection+Enumerated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Collection+Enumerated.swift"; sourceTree = "<group>"; };
 		FA290E632F1BADCE0090B7F7 /* LoopdownServices.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = LoopdownServices.docc; sourceTree = "<group>"; };
 		FA290E682F1BADCE0090B7F7 /* LoopdownInfrastructure.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = LoopdownInfrastructure.docc; sourceTree = "<group>"; };
 		FA290E6B2F1BADCE0090B7F7 /* LoopdownCore.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = LoopdownCore.docc; sourceTree = "<group>"; };
@@ -201,6 +203,14 @@
 			path = Deploy;
 			sourceTree = "<group>";
 		};
+		FA239F242F1E153A007A0E75 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				FA239F252F1E154B007A0E75 /* Collection+Enumerated.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
 		FA290E652F1BADCE0090B7F7 /* LoopdownServices */ = {
 			isa = PBXGroup;
 			children = (
@@ -249,6 +259,7 @@
 		FA290E6D2F1BADCE0090B7F7 /* LoopdownCore */ = {
 			isa = PBXGroup;
 			children = (
+				FA239F242F1E153A007A0E75 /* Extensions */,
 				FAB47FC12F1CB78300CB44A1 /* SupportProtocols */,
 				FAB47FB12F1CA84C00CB44A1 /* Models */,
 				FAB47FAC2F1C8CCE00CB44A1 /* Utilities */,
@@ -674,6 +685,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA239F262F1E154B007A0E75 /* Collection+Enumerated.swift in Sources */,
 				FAB47FAE2F1C8CE600CB44A1 /* ByteSize.swift in Sources */,
 				FAB47FC22F1CB78300CB44A1 /* LoggerProtocol.swift in Sources */,
 				FA0A60BD2F1C568D0025ED20 /* ConcreteApp.swift in Sources */,

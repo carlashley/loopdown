@@ -262,3 +262,13 @@ public final class AudioApplication: Hashable, @unchecked Sendable {
         }
     }
 }
+
+
+// MARK: - Extend AudioApplication to return .concreteAPp
+public extension AudioApplication {
+    /// The concrete app identity derived from `shortName`.
+    var concreteApp: ConcreteApp? {
+        guard let shortName else { return nil }
+        return ConcreteApp(rawValue: shortName)
+    }
+}
