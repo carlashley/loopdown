@@ -33,6 +33,7 @@ struct Deploy: ParsableCommand {
     )
 
     @OptionGroup var dry: DryRunOption
+    @OptionGroup var quiet: QuietRunOption
     @OptionGroup var logging: LoggingOptions
     @OptionGroup var apps: AppOptions
     @OptionGroup var required: RequiredContentOption
@@ -56,7 +57,8 @@ struct Deploy: ParsableCommand {
             do  {
                 let logger = CLILogging.startRun(
                     category: "Deploy",
-                    minLevel: logging.logLevel
+                    minLevel: logging.logLevel,
+                    enableConsole: !quiet.quietRun
                 )
                 
                 logger.info("Started deploy (dryRun=\(dry.dryRun))")

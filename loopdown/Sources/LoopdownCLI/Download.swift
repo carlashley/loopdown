@@ -32,6 +32,7 @@ struct Download: ParsableCommand {
     )
 
     @OptionGroup var dry: DryRunOption
+    @OptionGroup var quiet: QuietRunOption
     @OptionGroup var logging: LoggingOptions
     @OptionGroup var apps: AppOptions
     @OptionGroup var required: RequiredContentOption
@@ -47,7 +48,8 @@ struct Download: ParsableCommand {
         try CLIRunner.runLocked {
             let logger = CLILogging.startRun(
                 category: "Download",
-                minLevel: logging.logLevel
+                minLevel: logging.logLevel,
+                enableConsole: !quiet.quietRun
             )
 
             let installed = Array(InstalledApplicationResolver.resolveInstalled(logger: logger))

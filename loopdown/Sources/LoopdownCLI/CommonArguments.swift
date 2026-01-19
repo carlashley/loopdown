@@ -32,6 +32,11 @@ struct DryRunOption: ParsableArguments {
     var dryRun: Bool = false
 }
 
+struct QuietRunOption: ParsableArguments {
+    @Flag(name: [.short, .long], help: "Suppress all console output.")
+    var quietRun: Bool = false
+}
+
 struct LoggingOptions: ParsableArguments {
     @Option(name: .long)
     var logLevel: AppLogLevel = .info
