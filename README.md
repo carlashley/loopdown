@@ -4,7 +4,28 @@ This is the last version of the Python implementation of `loopdown`. This will b
 # Installation
 1. In your preferred directory: `git clone https://github.com/carlashley/loopdown`
 1. `cd loopdown/loopdown`
-1. `python3 -m loopdown -h`
+1. `./build.sh -h`
+
+## Build help
+```
+./build.sh -h
+Usage: ./build.sh [options]
+
+Options:
+  --build-python=...   Python to use for building (pip + zipapp). If omitted, uses python3 on PATH.
+                       Examples:
+                         --build-python=/opt/python/bin/python3
+                         --build-python=/usr/local/bin/python3
+
+  --interpreter=...    Interpreter string embedded in the zipapp shebang (default: /usr/bin/env python3)
+                       Examples:
+                         --interpreter=/usr/local/bin/python3
+                         --interpreter="/usr/bin/env python3"
+
+  --main=...           Zipapp entrypoint (default: loopdown.__main__:main)
+
+  -h, --help           Show help
+```
 
 # Usage
 ## Primary help
@@ -28,6 +49,7 @@ options:
 
 loopdown v2.0.20260120. Copyright © 2026 Carl Ashley. All rights reserved. Apache License Version 2.0 - http://www.apache.org/licenses/
 ```
+
 ## Download help
 ```
 python3 -m loopdown download -h
@@ -45,6 +67,7 @@ options:
   -f, --force           force the specified action
   -d, --dest [dir]      override the download directory path when '--download-only' used; default is '/tmp/loopdown'
 ```
+
 ## Deploy help
 ```
 python3 -m loopdown deploy -h
