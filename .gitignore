@@ -1,6 +1,9 @@
 # macOS cruft
 .DS_Store
 
+# our build directory
+dist/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
