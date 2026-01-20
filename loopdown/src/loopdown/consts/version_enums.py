@@ -12,7 +12,7 @@ class VersionConsts(StrEnum):
     NAME = "loopdown"
     PLATFORM = f"{platform.system()} {platform.release()}; {platform.machine()}"
     PYTHON_VERSION = platform.python_version()
-    VERSION = "1.0.20251229"
+    VERSION = "2.0.20260120"
     USER_AGENT = f"{NAME}/{VERSION} ({PLATFORM}; Python/{PYTHON_VERSION})"
 
 
