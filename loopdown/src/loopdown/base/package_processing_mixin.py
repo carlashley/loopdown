@@ -170,7 +170,6 @@ class PackageProcessingMixin:
         """Read + filter one app's packages; returns a set for easy unioning.
         :param app: Application instance"""
         pkgs_meta = app.packages
-        dest = self.args.destination
 
         # early abort
         if pkgs_meta is None:
@@ -185,7 +184,7 @@ class PackageProcessingMixin:
             if self.deploy_mode and pkg.is_installed and not self.args.force:
                 continue
 
-            if self.download_mode and dest.joinpath(pkg.download_path).exists() and not self.args.force:
+            if self.download_mode and self._already_downloaded(pkg) and not self.args.force:
                 continue
 
             if not self._add_pkg_for_processing(pkg):

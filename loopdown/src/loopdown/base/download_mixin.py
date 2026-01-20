@@ -42,6 +42,11 @@ class DownloadMixin:
         """Get the TTY column width."""
         return get_tty_column_width()
 
+    def _already_downloaded(self, pkg: AudioContentPackage) -> bool:
+        """Package has been downloaded. This is a very basic test to ensure the file exists. There are no tests
+        to confirm the file is the expected size."""
+        return self.args.destination.joinpath(pkg.download_path).exists()
+
     def _download(self, url, *, dest: Path) -> bool:
         """Download the package. Returns a bool value indicating success/failure of download. This will resume
         downloads automatically ('-C -' to automatically calculate offset).
