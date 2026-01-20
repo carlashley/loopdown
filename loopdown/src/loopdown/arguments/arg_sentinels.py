@@ -1,0 +1,2 @@
+AUTO = object()
+MISSING = object()

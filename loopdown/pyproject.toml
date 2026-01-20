@@ -1,0 +1,30 @@
+[project]
+name = "loopdown"
+requires-python = ">= 3.12"
+
+[tool.pylint.master]
+jobs = 0
+
+[tool.pylint.format]
+max-line-length = 119
+
+[tool.pylint.variables]
+ignored-argument-names = "kwargs|args"
+
+[tool.isort]
+combine_as_imports = true
+include_trailing_comma = true
+line_length = 119
+multi_line_output = 3
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+profile = "black"
+
+[tool.black]
+line-length = 119
+include = '\.pyi?$'
+
+[tool.mypy]
+python_version = "3.13"
+mypy_path = ["loopdown"]
