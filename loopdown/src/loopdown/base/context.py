@@ -6,16 +6,18 @@ from typing import Optional
 from uuid import uuid4
 
 from .audit_mixin import AuditLogMixin
-from .base_mixin import ContextMixin
+from .download_mixin import DownloadMixin
+from .install_mixin import InstallMixin
+from .package_processing_mixin import PackageProcessingMixin
 
 from ..models.package import AudioContentPackage
-from ..utils.system_utils import get_tty_column_width, resolve_installed_applications
 
 log = logging.getLogger(__name__)
 
 
-class LoopdownContext(ContextMixin, AuditLogMixin):
+class LoopdownContext(PackageProcessingMixin, DownloadMixin, InstallMixin, AuditLogMixin):
     """Context holder for loopdown."""
+
     RUN_UID = str(uuid4()).upper()
 
     def __init__(self, args: argparse.Namespace) -> None:
@@ -32,11 +34,6 @@ class LoopdownContext(ContextMixin, AuditLogMixin):
         return self.args.action == "download"
 
     @cached_property
-    def installed_apps(self) -> tuple:
-        """Applications installed on the system for which content can be downloaded/installed."""
-        return tuple(resolve_installed_applications())
-
-    @cached_property
     def packages(self) -> Optional[list[AudioContentPackage]]:
         """Packages that will need to be processed."""
         apps_to_process = tuple(app for app in self.installed_apps if app.short_name in self.args.applications)
@@ -47,16 +44,6 @@ class LoopdownContext(ContextMixin, AuditLogMixin):
 
         merged = self._gather_packages_concurrently(apps_to_process)
         return merged
-
-    @cached_property
-    def server(self) -> Optional[str]:
-        """Return the server in use."""
-        return self._resolve_server()
-
-    @cached_property
-    def tty_column_width(self) -> str:
-        """Get the TTY column width."""
-        return get_tty_column_width()
 
     def process_content(self) -> None:
         """Process content for applications."""

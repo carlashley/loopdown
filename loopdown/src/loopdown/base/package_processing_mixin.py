@@ -1,28 +1,19 @@
 import json
 import logging
-import os
 import shutil
 import sys
 
 from collections.abc import Generator, Iterator, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import lru_cache
-from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
-from ..consts.apple_enums import AppleConsts
 from ..consts.package_consts import PackageConsts
 from ..models.application import Application
 from ..models.package import AudioContentPackage
-from ..models.size import BucketStats, Size
-from ..utils.cache_utils import extract_cache_server
+from ..models.size import BucketStats
 from ..utils.date_utils import datetimestamp
-from ..utils.installer_utils import installer
-from ..utils.normalizers import normalize_caching_server_url
-from ..utils.request_utils import curl, CURL_DOWNLOAD_ARGS
-from ..utils.system_utils import disk_space_available
 from ..utils.threading_utils import max_workers_for_threads
-from ..utils.validators import validate_url
 
 log = logging.getLogger(__name__)
 filelog = logging.getLogger("loopdown.fileonly")
@@ -37,8 +28,8 @@ def _generate_audio_package_dataclass_obj(data: Mapping) -> AudioContentPackage:
     return obj
 
 
-class ContextMixin:
-    """Various internal helper methods mixin for LoopdownContext class."""
+class PackageProcessingMixin:
+    """Package processing helper methods mixin for LoopdownContext class."""
 
     def _add_pkg_for_processing(self, pkg: AudioContentPackage) -> bool:
         """Determine if a package should be added for processing based on the following criteria:
@@ -70,27 +61,6 @@ class ContextMixin:
                 except Exception as e:
                     log.warning(f"Failed to clean up working directory: {str(e)}")
                     sys.exit(2)
-
-    def _download(self, url, *, dest: Path) -> bool:
-        """Download the package. Returns a bool value indicating success/failure of download. This will resume
-        downloads automatically ('-C -' to automatically calculate offset).
-        :param url: package url
-        :param dest: Path instance of the local file destination"""
-        env = os.environ.copy()
-        env["COLUMNS"] = self.tty_column_width
-        args = list(CURL_DOWNLOAD_ARGS)
-
-        if self.args.quiet:
-            args.append("--silent")
-
-        curl(url, *args, "-o", str(dest), capture_output=False, env=env)
-
-        if not dest.exists():
-            return False
-
-        audit_payload = {"url": url, "downloaded_to": str(dest)}
-        self.audit(f"downloaded {dest.name}", data=audit_payload)
-        return True
 
     def _dry_run_summary(self, packages: Sequence[AudioContentPackage]) -> None:
         """Summary information provided at end of dry run."""
@@ -196,34 +166,6 @@ class ContextMixin:
 
         json.dump(out, sys.stdout, ensure_ascii=False, default=str)
 
-    def _generate_url_and_dest(self, pkg: AudioContentPackage) -> tuple[str, Path]:
-        """Generate the url and destination path for a given AudioContentPackage object.
-        :param pkg: AudioContentPackage instance"""
-        url = f"{self.server}/{pkg.download_path}"
-        dest = self.args.destination.joinpath(pkg.download_path)
-
-        return (url, dest)
-
-    def _has_space_available(self, packages: Sequence[AudioContentPackage]) -> Optional[tuple[bool, Size, Size]]:
-        """Check enough space is available to proceed with download or download and install."""
-        available_space = Size(disk_space_available())
-        req, opt = self._generate_bucket_stats(packages)
-        total = req + opt
-        tot_reqd_space = total.down + total.inst
-        has_space = available_space > tot_reqd_space
-
-        if not self.args.dry_run and not has_space:
-            log.error(f"Insufficient space available: {tot_reqd_space} required, {available_space} available.")
-            sys.exit(2)
-
-        log.debug("Passes free space check: %s required, %s available", tot_reqd_space, available_space)
-        return (has_space, tot_reqd_space, available_space)
-
-    def _install(self, f: Path) -> bool:
-        """Install the package.
-        :param f: path to the package file"""
-        return installer(str(f))
-
     def _iter_app_packages(self, app: Application) -> set[AudioContentPackage]:
         """Read + filter one app's packages; returns a set for easy unioning.
         :param app: Application instance"""
@@ -300,32 +242,3 @@ class ContextMixin:
             return existing if existing.mandatory else candidate
 
         return existing  # fallback to existing
-
-    def _resolve_server(self) -> Optional[str]:
-        """Server that will be used. Returns value in order of:
-        - mirror server argument
-        - caching server argument
-        - defaults to Apple content server"""
-        if not self.deploy_mode:
-            return None
-
-        if self.args.mirror_server:
-            return self.args.mirror_server
-
-        if self.args.cache_server:
-            if not self.args.cache_server == "auto":
-                return self.args.cache_server
-
-            url = extract_cache_server()
-
-            if url is not None:
-                err = validate_url(url, reqd_scheme="http", validate_port=True)
-
-                if err:
-                    raise ValueError(err)
-
-                url = normalize_caching_server_url(url)
-                return url
-
-        url = AppleConsts.CONTENT_SOURCE.value
-        return url
