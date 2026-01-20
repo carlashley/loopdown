@@ -81,27 +81,31 @@ class DownloadMixin:
         - mirror server argument
         - caching server argument
         - defaults to Apple content server"""
-        url = AppleConsts.CONTENT_SOURCE.value
+        apple_url = AppleConsts.CONTENT_SOURCE.value
 
+        # only ever retrieve content from the authorative source when downloading content
         if self.download_mode:
-            return url
-        else:
-            if self.args.mirror_server:
-                return self.args.mirror_server
+            return apple_url
 
-            if self.args.cache_server:
-                if not self.args.cache_server == "auto":
-                    return self.args.cache_server
+        # return mirror value first so we can fall back to caching server lookup
+        if self.args.mirror_server:
+            return self.args.mirror_server
 
-                url = extract_cache_server()
+        # when the server is explicitly provided, return it first
+        if self.args.cache_server is not None:
+            return self.args.cache_server
 
-                if url is not None:
-                    err = validate_url(url, reqd_scheme="http", validate_port=True)
+        # attempt extracting a cache server
+        host = extract_cache_server()
 
-                    if err:
-                        raise ValueError(err)
+        # no cache server found, so report back with the Apple source
+        if host is None:
+            log.debug("Could not resolve a caching server")
+            return apple_url
 
-                    url = normalize_caching_server_url(url)
-                    return url
+        err = validate_url(host, reqd_scheme="http", validate_port=True)
 
-            return url
+        if err:
+            raise ValueError(err)
+
+        return normalize_caching_server_url(host)

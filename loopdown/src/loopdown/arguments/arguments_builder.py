@@ -67,6 +67,7 @@ def add_shared_options_to_subparser(p: argparse.ArgumentParser) -> None:
 def build_arguments() -> argparse.Namespace:
     """Build arguments for command line use."""
     p = StrictArgumentParser(
+        prog="loopdown",
         description=(
             "Process additional content for installed audio applications, GarageBand, Logic Pro, and/or MainStage.\n"
         ),
