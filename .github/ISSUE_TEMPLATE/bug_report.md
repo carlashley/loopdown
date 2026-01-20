@@ -6,8 +6,7 @@ labels: ''
 assignees: ''
 
 ---
-
-__While I endeavour to respond to issues as quickly as I can, I maintain this on my own time, so I appreciate your patience :). I will not be taking any feature requests.
+NOTE: While I endeavour to respond to issues as quickly as I can, I maintain this on my own time, so I appreciate your patience :). I will not be taking any feature requests.
 
 **Describe the bug**
 A clear and concise description of what the bug is.
