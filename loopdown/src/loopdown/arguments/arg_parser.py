@@ -192,7 +192,7 @@ class StrictArgumentParser(argparse.ArgumentParser):
         return True
 
     def _normalize_deployment_download_path(self, ns: argparse.Namespace) -> None:
-        """Normalize the download path back to '/tmp/loopdown'. Enforced when '--download-only' is absent."""
+        """Normalize the download path back to '/tmp/loopdown'. Enforced when the 'deploy' positional is used."""
         if getattr(ns, "action", "") == "download":
             return None
 
