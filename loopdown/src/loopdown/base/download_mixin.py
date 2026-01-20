@@ -32,7 +32,10 @@ class DownloadMixin:
     @cached_property
     def server(self) -> Optional[str]:
         """Return the server in use."""
-        return self._resolve_server()
+        host = self._resolve_server()
+        log.debug(f"Resolved server to: '{host}'")
+
+        return host
 
     @cached_property
     def tty_column_width(self) -> str:
@@ -73,27 +76,27 @@ class DownloadMixin:
         - mirror server argument
         - caching server argument
         - defaults to Apple content server"""
-        if not self.deploy_mode:
-            return None
-
-        if self.args.mirror_server:
-            return self.args.mirror_server
-
-        if self.args.cache_server:
-            if not self.args.cache_server == "auto":
-                return self.args.cache_server
-
-            url = extract_cache_server()
-
-            if url is not None:
-                err = validate_url(url, reqd_scheme="http", validate_port=True)
-
-                if err:
-                    raise ValueError(err)
-
-                url = normalize_caching_server_url(url)
-                return url
-
         url = AppleConsts.CONTENT_SOURCE.value
 
-        return url
+        if self.download_mode:
+            return url
+        else:
+            if self.args.mirror_server:
+                return self.args.mirror_server
+
+            if self.args.cache_server:
+                if not self.args.cache_server == "auto":
+                    return self.args.cache_server
+
+                url = extract_cache_server()
+
+                if url is not None:
+                    err = validate_url(url, reqd_scheme="http", validate_port=True)
+
+                    if err:
+                        raise ValueError(err)
+
+                    url = normalize_caching_server_url(url)
+                    return url
+
+            return url
