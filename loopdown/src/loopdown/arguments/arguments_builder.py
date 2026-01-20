@@ -54,6 +54,15 @@ def add_shared_options_to_subparser(p: argparse.ArgumentParser) -> None:
         help="include the optional audio packages"
     )
 
+    p.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        dest="force",
+        required=False,
+        help="force the specified action",
+    )
+
 
 def build_arguments() -> argparse.Namespace:
     """Build arguments for command line use."""
@@ -146,14 +155,6 @@ def build_arguments() -> argparse.Namespace:
         help="local mirror server to use; expected format is 'https://example.org'",
     )
 
-    deploy.add_argument(
-        "--force-install",
-        action="store_true",
-        dest="force_install",
-        required=False,
-        help="force install of all audio content regardless of install state",
-    )
-
     download = subparsers.add_parser(
         "download",
         formatter_class=QuotedChoicesHelpFormatter,
@@ -162,5 +163,16 @@ def build_arguments() -> argparse.Namespace:
     )
 
     add_shared_options_to_subparser(download)
+
+    download.add_argument(
+        "-d",
+        "--dest",
+        default=ConfigurationConsts.DEFAULT_DOWNLOAD_DEST,
+        dest="destination",
+        metavar="[dir]",
+        required=False,
+        type=Path,
+        help="override the download directory path when '--download-only' used; default is %(default)s",
+    )
 
     return p.parse_args()
