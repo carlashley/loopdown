@@ -120,7 +120,8 @@ def pkg_is_signed_apple_software(fp: Path, *, pfx: str = "Status: ") -> Optional
     :param fp: package file path"""
     returncode, output = check_pkg_signature(fp)
     status = next((ln.removeprefix(pfx) for ln in output if ln.startswith(pfx)), None)
-    is_apple_software = (returncode == 0 and status == "signed Apple Software")
+    # is_apple_software = (returncode == 0 and "signed apple software" in status.casefold())
+    is_apple_software = (returncode == 0 and "signed apple" in status.casefold())
     log.debug(f"Signature status of '{str(fp)}': {status=} == {pfx=}: {is_apple_software=}")
 
     return is_apple_software
