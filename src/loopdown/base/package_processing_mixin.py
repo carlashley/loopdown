@@ -184,7 +184,13 @@ class PackageProcessingMixin:
             if self.deploy_mode and pkg.is_installed and not self.args.force:
                 continue
 
-            if self.download_mode and self._has_been_downloaded(pkg, state="existing") and not self.args.force:
+            # always skip signature check when in deploy mode during pre-processing
+            skip_sig_check = True if self.deploy_mode else self.args.skip_pre_signature_check
+            if (
+                self.download_mode
+                and self._has_been_downloaded(pkg, state="existing", skip_sig_check=skip_sig_check)
+                and not self.args.force
+            ):
                 continue
 
             if not self._add_pkg_for_processing(pkg):
