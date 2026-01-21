@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 CURL_DOWNLOAD_ARGS = [
     "--fail",
     "--retry", "3",  # max of 3 retries
-    "--retry-delay", "2",  # max no of seconds between retry
+    "--retry-delay", "5",  # max no of seconds between retry
     "--retry-all-errors",  # retry on any error, requires '--retry'
     "--connect-timeout", "20",  # allow up to 20sec before a connection timesout
     "--speed-limit", "300",  # when a transfer is slower than this (bytes per second), abort
