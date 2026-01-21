@@ -112,6 +112,17 @@ def build_arguments() -> argparse.Namespace:
         help=argparse.SUPPRESS,
     )
 
+    p.add_argument(
+        "--skip-pre-signature-check",
+        action="store_true",
+        dest="skip_pre_signature_check",
+        required=False,
+        help=(
+            "skip the signature check of each downloaded package during pre-run analysis; speeds up processing"
+            "for downloading (this is off by default in 'deploy' mode)"
+        ),
+    )
+
     # subcommands
     subparsers = p.add_subparsers(
         dest="action",
