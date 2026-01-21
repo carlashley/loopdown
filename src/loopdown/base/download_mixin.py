@@ -56,14 +56,15 @@ class DownloadMixin:
 
         curl(url, *args, "-o", str(dest), capture_output=False, env=env)
 
-        if not self._has_been_downloaded(pkg, state="completed"):
+        # explicitly check the signature with pkgutil after downloading
+        if not self._has_been_downloaded(pkg, state="completed", skip_sig_check=False):
             return False
 
         audit_payload = {"url": url, "downloaded_to": str(dest)}
         self.audit(f"downloaded {dest.name}", data=audit_payload)
         return True
 
-    def _has_been_downloaded(self, pkg: AudioContentPackage, *, state: str) -> bool:
+    def _has_been_downloaded(self, pkg: AudioContentPackage, *, state: str, skip_sig_check: bool) -> bool:
         """Use a subprocessed call to 'pkgutil' and other heuristics to determine if the file is a completed
         download.
         :param fp: path object
@@ -71,9 +72,17 @@ class DownloadMixin:
                       either 'completed' or 'existing'"""
         fp = self.args.destination.joinpath(pkg.download_path)
         exists = fp.exists()
-        signed = pkg_is_signed_apple_software(fp) or False
-        downloaded = exists and signed
-        log.debug(f"Heuristics test for {state} download appears to pass: {exists=} and {signed=} == {downloaded}")
+
+        if self.args.skip_pre_signature_check:
+            downloaded = exists
+            log.debug(
+                f"Heuristics test for {state} download appears to pass: {exists=} == {downloaded} (skipped "
+                "signature check with pkgutil)"
+            )
+        else:
+            signed = pkg_is_signed_apple_software(fp) or False
+            downloaded = exists and signed
+            log.debug(f"Heuristics test for {state} download appears to pass: {exists=} and {signed=} == {downloaded}")
 
         return downloaded
 
