@@ -83,7 +83,7 @@ def extract_cache_server(
     data = asset_cache_locator()
 
     if data is None:
-        log.debug("no data found to extract caching server values from")
+        log.debug("No data found to extract caching server values from")
         return None
 
     source_meta = data["results"].get(source, {})
@@ -91,7 +91,7 @@ def extract_cache_server(
     try:
         all_servers = source_meta["saved servers"]["all servers"]
     except KeyError as e:
-        log.debug(f"error parsing all server data: {str(e)}")
+        log.debug(f"Error parsing all server data: {str(e)}")
         return None
 
     # not sure how 'rank' is supposed to work, have seen some AssetCacheLocatorUtil results

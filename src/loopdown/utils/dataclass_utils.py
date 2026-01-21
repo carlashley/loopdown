@@ -78,6 +78,6 @@ def dataclass_to_dict(self, *, include_properties: bool = True) -> dict[str, Any
             try:
                 self_dict[attr] = getattr(self, attr)
             except Exception as e:
-                log.debug(f"property serialization failed: {type(self).__name__}.{attr}: {str(e)}")
+                log.debug(f"Property serialization failed: {type(self).__name__}.{attr}: {str(e)}")
 
     return self_dict

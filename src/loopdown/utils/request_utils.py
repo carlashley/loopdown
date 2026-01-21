@@ -17,6 +17,7 @@ CURL_DOWNLOAD_ARGS = [
     "--speed-time", "30",  # number of seconds that is used for '--speed-limit'
     "--progress-bar",  # progress bar output as %, conforms to env["COLUMNS"] value
     "--create-dirs",  # create any dirs required to save the file
+    "--remote-time",  # attempt to use the timestamp of the remote file if present and use for local time
 ]
 
 

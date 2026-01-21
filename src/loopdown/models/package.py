@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 from packaging import version as vers
 from .json_mixin import AsJsonMixin
@@ -76,3 +76,10 @@ class AudioContentPackage(AsJsonMixin):
             return vers.parse("0.0.0")
 
         return installed_pkg_version(self.package_id)
+
+    def unlink_pkg(self, basedir: Path, *, missing_ok: bool):
+        """Unlink/delete the package. Uses the base directory specified and the download_path attribute of own instance
+        to use as the file to unlink.
+        :param basedir: base directory the package is expected to be in
+        :param missing_ok: passed to the path.unlink() call"""
+        basedir.joinpath(self.download_path).unlink(missing_ok=missing_ok)

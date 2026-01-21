@@ -10,6 +10,7 @@ from ..consts.apple_enums import AppleConsts
 from ..models.package import AudioContentPackage
 from ..utils.cache_utils import extract_cache_server
 from ..utils.normalizers import normalize_caching_server_url
+from ..utils.package_utils import pkg_is_signed_apple_software
 from ..utils.request_utils import curl, CURL_DOWNLOAD_ARGS
 from ..utils.system_utils import get_tty_column_width
 from ..utils.validators import validate_url
@@ -42,31 +43,39 @@ class DownloadMixin:
         """Get the TTY column width."""
         return get_tty_column_width()
 
-    def _already_downloaded(self, pkg: AudioContentPackage) -> bool:
-        """Package has been downloaded. This is a very basic test to ensure the file exists. There are no tests
-        to confirm the file is the expected size."""
-        return self.args.destination.joinpath(pkg.download_path).exists()
-
-    def _download(self, url, *, dest: Path) -> bool:
-        """Download the package. Returns a bool value indicating success/failure of download. This will resume
-        downloads automatically ('-C -' to automatically calculate offset).
-        :param url: package url
-        :param dest: Path instance of the local file destination"""
+    def _download(self, pkg: AudioContentPackage) -> bool:
+        """Download the package. Returns a bool value indicating success/failure of download.
+        :param pkg: AudioContentPackage instance"""
         env = os.environ.copy()
         env["COLUMNS"] = self.tty_column_width
         args = list(CURL_DOWNLOAD_ARGS)
+        url, dest = self._generate_url_and_dest(pkg)
 
         if self.args.quiet:
             args.append("--silent")
 
         curl(url, *args, "-o", str(dest), capture_output=False, env=env)
 
-        if not dest.exists():
+        if not self._has_been_downloaded(pkg, state="completed"):
             return False
 
         audit_payload = {"url": url, "downloaded_to": str(dest)}
         self.audit(f"downloaded {dest.name}", data=audit_payload)
         return True
+
+    def _has_been_downloaded(self, pkg: AudioContentPackage, *, state: str) -> bool:
+        """Use a subprocessed call to 'pkgutil' and other heuristics to determine if the file is a completed
+        download.
+        :param fp: path object
+        :param state: used in the log to indicate a completed download or existing download, value should be
+                      either 'completed' or 'existing'"""
+        fp = self.args.destination.joinpath(pkg.download_path)
+        exists = fp.exists()
+        signed = pkg_is_signed_apple_software(fp) or False
+        downloaded = exists and signed
+        log.debug(f"Heuristics test for {state} download appears to pass: {exists=} and {signed=} == {downloaded}")
+
+        return downloaded
 
     def _generate_url_and_dest(self, pkg: AudioContentPackage) -> tuple[str, Path]:
         """Generate the url and destination path for a given AudioContentPackage object.

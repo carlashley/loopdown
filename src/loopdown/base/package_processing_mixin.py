@@ -184,7 +184,7 @@ class PackageProcessingMixin:
             if self.deploy_mode and pkg.is_installed and not self.args.force:
                 continue
 
-            if self.download_mode and self._already_downloaded(pkg) and not self.args.force:
+            if self.download_mode and self._has_been_downloaded(pkg, state="existing") and not self.args.force:
                 continue
 
             if not self._add_pkg_for_processing(pkg):

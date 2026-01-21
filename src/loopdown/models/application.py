@@ -60,7 +60,7 @@ class Application:
             if resource_file is None or fp.name > resource_file.name:
                 resource_file = fp
 
-        log.debug(f"found application resource file {str(resource_file)!r}")
+        log.debug(f"Found application resource file {str(resource_file)!r}")
         return resource_file
 
     def _read_metadata_source_file(self, *, mode: str = "rb") -> Optional[dict]:

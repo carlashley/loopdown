@@ -3,7 +3,6 @@ import sys
 
 from collections.abc import Sequence
 from functools import cached_property
-from pathlib import Path
 from typing import Optional
 
 from ..models.package import AudioContentPackage
@@ -38,7 +37,7 @@ class InstallMixin:
         log.debug("Passes free space check: %s required, %s available", tot_reqd_space, available_space)
         return (has_space, tot_reqd_space, available_space)
 
-    def _install(self, f: Path) -> bool:
+    def _install(self, pkg: AudioContentPackage) -> bool:
         """Install the package.
         :param f: path to the package file"""
-        return installer(str(f))
+        return installer(str(self.args.destination.joinpath(pkg.download_path)))

@@ -66,20 +66,22 @@ class LoopdownContext(PackageProcessingMixin, DownloadMixin, InstallMixin, Audit
             if self.args.dry_run:
                 continue
 
-            url, dest = self._generate_url_and_dest(pkg)
-            downloaded = self._download(url, dest=dest)
+            downloaded = self._download(pkg)
 
-            if self.download_mode or not downloaded:
-                if not downloaded:
-                    log.error(f"\t{pkg.name} was not downloaded")
-
+            if not downloaded:
+                log.error(
+                    f"\t{pkg.name} was not downloaded {'the file will not be installed' if self.deploy_mode else ''}"
+                )
                 continue
 
-            installed = self._install(dest)
+            if not self.deploy_mode:
+                continue
+
+            installed = self._install(pkg)
 
             if installed:
                 log.info(f"\tinstalled {pkg}")
-                dest.unlink(missing_ok=True)
+                pkg.unlink_pkg(self.args.destination, missing_ok=True)
             else:
                 log.error(f"\tinstall failed for {pkg}")
 
