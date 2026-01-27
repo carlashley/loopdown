@@ -10,6 +10,7 @@
 DerivedData/
 build/
 Build/
+dist/
 
 # Xcode build logs
 *.xcactivitylog
