@@ -52,6 +52,20 @@ struct Download: ParsableCommand {
                 enableConsole: !quiet.quietRun
             )
 
+            try ContentCoordinator.run(
+                mode: .download,
+                selectedApps: apps.resolvedApps,
+                includeRequired: required.required,
+                includeOptional: optional.optional,
+                destDir: destination.dest,
+                forceDeploy: false,
+                cacheServer: nil,
+                mirrorServer: nil,
+                dryRun: dry.dryRun,
+                logger: logger
+            )
+
+            /* 2026-01-27: commented out for ContentCoordinator testing
             let installed = Array(InstalledApplicationResolver.resolveInstalled(logger: logger))
             let selectedApps = apps.resolvedApps
 
@@ -98,6 +112,7 @@ struct Download: ParsableCommand {
             }
 
             // TODO: download logic
+            */
         }
     }
 }

@@ -61,6 +61,28 @@ struct Deploy: ParsableCommand {
                     enableConsole: !quiet.quietRun
                 )
                 
+                let resolvedCacheServerURL =
+                    CacheServerResolution.resolveCacheServerURL(
+                        servers.cacheServer,
+                        logger: logger
+                    )
+
+                let mirrorServerURL = servers.mirrorServer?.url
+                
+                try ContentCoordinator.run(
+                    mode: .deploy,
+                    selectedApps: apps.resolvedApps,
+                    includeRequired: required.required,
+                    includeOptional: optional.optional,
+                    destDir: LoopdownConstants.Paths.defaultDest,
+                    forceDeploy: force.forceDeploy,
+                    cacheServer: resolvedCacheServerURL,
+                    mirrorServer: mirrorServerURL,
+                    dryRun: dry.dryRun,
+                    logger: logger
+                )
+
+                /* 2026-01-27: commented out for ContentCoordinator testing
                 logger.info("Started deploy (dryRun=\(dry.dryRun))")
                 logger.info("apps: \(apps.resolvedApps.map(\.rawValue).joined(separator: ", "))")
                 
@@ -112,6 +134,7 @@ struct Deploy: ParsableCommand {
                 //     dryRun: dry.dryRun,
                 //     logger: logger
                 // )
+                */
             }
         }
     }

@@ -7,6 +7,7 @@
 
 import ArgumentParser
 import Foundation
+import LoopdownCore
 
 
 // MARK: - CacheServer arguments
@@ -23,6 +24,20 @@ enum CacheServer: ExpressibleByArgument, CustomStringConvertible, Equatable {
         self = .url(url)
     }
 
+    /// Convert CLI cache-server argument into the normalized caching server URL.
+    /// - Returns: Normalized caching server URL, or nil if `.auto`.
+    func normalizedURL(contentSourceHost: String? = nil) -> URL? {
+        switch self {
+        case .auto:
+            return nil
+        case .url(let url):
+            return DownloadURLNormalizer.normalizeCachingServerURL(
+                url,
+                contentSource: contentSourceHost
+            )
+        }
+    }
+    
     var description: String {
         switch self {
         case .auto: return "auto"
@@ -41,6 +56,13 @@ enum MirrorServer: ExpressibleByArgument, CustomStringConvertible, Equatable {
         self = .url(url)
     }
 
+    var url: URL {
+        switch self {
+        case .url(let u):
+            return u
+        }
+    }
+    
     var description: String {
         switch self {
         case .url(let url): return url.absoluteString
