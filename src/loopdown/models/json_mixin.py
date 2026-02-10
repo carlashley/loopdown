@@ -1,3 +1,5 @@
+"""JSON mixin."""
+
 import json
 
 from typing import Any

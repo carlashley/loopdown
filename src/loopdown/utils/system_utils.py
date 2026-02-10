@@ -1,3 +1,5 @@
+"""System utils."""
+
 import json
 import logging
 import shutil
@@ -75,6 +77,7 @@ def system_profiler(sp_type: str) -> Optional[dict]:
     :param sp_type: system profiler data type; for example 'SPApplicationsDataType'"""
     cmd = ["/usr/sbin/system_profiler", "-json", "-detaillevel", "full", sp_type]
 
+    # pylint: disable=duplicate-code
     try:
         p = subprocess.run(cmd, capture_output=True, check=True)
     except subprocess.CalledProcessError as e:
@@ -87,6 +90,7 @@ def system_profiler(sp_type: str) -> Optional[dict]:
         log.debug(f"JSON decode error while parsing system_profiler result: {str(e)}")
 
         return None
+    # pylint: enable=duplicate-code
 
 
 def resolve_installed_applications() -> Generator[Application, None, None]:

@@ -1,3 +1,5 @@
+"""Apple application constants and remote resource constants."""
+
 import re
 
 from enum import StrEnum
@@ -13,12 +15,16 @@ _NAME_MAPPING: dict[str, tuple[str, ...]] = {
 
 
 class AppleConsts(StrEnum):
+    """Apple remote content constants."""
+
     CONTENT_SOURCE = "https://audiocontentdownload.apple.com"
     PATH_2013 = "lp10_ms3_content_2013"
     PATH_2016 = "lp10_ms3_content_2016"
 
 
 class ApplicationConsts:
+    """Application constants. Not an enum."""
+
     SHORT_NAMES: tuple[str, ...] = tuple(_NAME_MAPPING.keys())
     REAL_NAMES: tuple[str, ...] = tuple(chain.from_iterable(_NAME_MAPPING.values()))
     META_FILE_PATTERN: re.Pattern = re.compile(r"^[a-zA-Z]+[0-9]+\.plist$")

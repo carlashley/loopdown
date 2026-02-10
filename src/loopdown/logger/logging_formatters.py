@@ -1,3 +1,5 @@
+"""Logging formatters."""
+
 import json
 import logging
 

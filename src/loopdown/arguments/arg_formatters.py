@@ -1,3 +1,5 @@
+"""Argument help formatting."""
+
 import argparse
 import textwrap
 

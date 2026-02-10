@@ -1,3 +1,5 @@
+"""Package utils."""
+
 import logging
 import plistlib
 import subprocess
@@ -18,11 +20,13 @@ def pkgutil(*args, **kwargs) -> subprocess.CompletedProcess:
     kwargs.setdefault("capture_output", True)
     kwargs.setdefault("check", True)
 
+    # pylint: disable=duplicate-code,subprocess-run-check
     try:
         return subprocess.run(cmd, **kwargs)
     except subprocess.CalledProcessError as e:
         log.debug(f"{' '.join(cmd)} exited with returncode {e.returncode}; stdout: {e.stdout}, stderr: {e.stderr}")
         return None
+    # pylint: enable=duplicate-code,subprocess-run-check
 
 
 def pkg_info(pkg_id, **kwargs) -> Optional[dict]:
@@ -31,14 +35,16 @@ def pkg_info(pkg_id, **kwargs) -> Optional[dict]:
     :param **kwargs: keyword arguments passed to the subprocess.run call"""
     p = pkgutil("--pkg-info-plist", pkg_id)
 
+    # pylint: disable=broad-exception-caught
     try:
         return plistlib.loads(p.stdout)
     except plistlib.InvalidFileException:
         log.error(f"Error reading package information for '{pkg_id}'")
         return None
-    except Exception as e:
+    except Exception as e:  # blow up for logging on any unknown exception type
         log.error(f"Unknown error occurred when reading package information for '{pkg_id}': {str(e)}")
         return None
+    # pylint: enable=broad-exception-caught
 
 
 def check_pkg_signature(fp: Path, **kwargs) -> Optional[tuple[int, str]]:
@@ -118,10 +124,11 @@ def pkg_is_signed_apple_software(fp: Path, *, pfx: str = "Status: ") -> Optional
     downloaded correctly.
 
     :param fp: package file path"""
+    # pylint: disable=not-an-iterable
     returncode, output = check_pkg_signature(fp)
     status = next((ln.removeprefix(pfx) for ln in output if ln.startswith(pfx)), None)
-    # is_apple_software = (returncode == 0 and "signed apple software" in status.casefold())
-    is_apple_software = (returncode == 0 and "signed apple" in status.casefold())
+    is_apple_software = (returncode == 0 and status is not None and "signed apple" in status.casefold())
     log.debug(f"Signature status of '{str(fp)}': {status=} == {pfx=}: {is_apple_software=}")
+    # pylint: enable=not-an-iterable
 
     return is_apple_software

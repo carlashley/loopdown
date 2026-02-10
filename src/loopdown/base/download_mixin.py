@@ -1,3 +1,5 @@
+"""Download mixin."""
+
 import logging
 import os
 
@@ -73,16 +75,17 @@ class DownloadMixin:
         fp = self.args.destination.joinpath(pkg.download_path)
         exists = fp.exists()
 
-        if self.args.skip_pre_signature_check:
+        # signature cannot be skipped after downloading if it's explicitly stated in that _download method
+        if not skip_sig_check or not self.args.skip_pre_signature_check:
+            signed = pkg_is_signed_apple_software(fp) or False
+            downloaded = exists and signed
+            log.debug(f"Heuristics test for {state} download appears to pass: {exists=} and {signed=} == {downloaded}")
+        else:
             downloaded = exists
             log.debug(
                 f"Heuristics test for {state} download appears to pass: {exists=} == {downloaded} (skipped "
                 "signature check with pkgutil)"
             )
-        else:
-            signed = pkg_is_signed_apple_software(fp) or False
-            downloaded = exists and signed
-            log.debug(f"Heuristics test for {state} download appears to pass: {exists=} and {signed=} == {downloaded}")
 
         return downloaded
 

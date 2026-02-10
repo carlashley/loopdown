@@ -1,3 +1,5 @@
+"""Request utils."""
+
 import logging
 import subprocess
 
@@ -31,9 +33,11 @@ def curl(url: str, *args, **kwargs) -> Optional[subprocess.CompletedProcess]:
     kwargs.setdefault("encoding", "utf-8")
     kwargs.setdefault("check", True)  # raise exception when curl itself has returncode != 0
 
+    # pylint: disable=duplicate-code,subprocess-run-check
     try:
         return subprocess.run(cmd, **kwargs)
     except subprocess.CalledProcessError as e:
         log.debug(f"{' '.join(cmd)} exited with returncode {e.returncode}; stdout: {e.stdout}, stderr: {e.stderr}")
 
         return None
+    # pylint: enable=duplicate-code,subprocess-run-check

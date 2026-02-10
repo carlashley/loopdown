@@ -1,3 +1,5 @@
+"""Installer utils."""
+
 import logging
 import subprocess
 

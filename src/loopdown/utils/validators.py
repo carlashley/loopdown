@@ -1,8 +1,11 @@
+"""Validation utils."""
+# pylint: disable=too-many-return-statements
+
 from typing import Optional
 from urllib.parse import urlparse
 
 
-def validate_url(url: str, *, reqd_scheme: str, validate_port: Optional[bool] = False) -> Optional[str]:
+def validate_url(url: str, *, reqd_scheme: str, validate_port: bool = False) -> Optional[str]:
     """Validate a caching server URL has the required components."""
     fmt_sfx = f"(expected {reqd_scheme}://host{':port' if validate_port else ''})"
     parsed = urlparse(url)
@@ -21,7 +24,7 @@ def validate_url(url: str, *, reqd_scheme: str, validate_port: Optional[bool] = 
         if not parsed.port:
             return generate_err_msg("missing port", sfx=fmt_sfx)
 
-        if not isinstance(parsed.port, int) or not (1 <= parsed.port <= 65535):
+        if not isinstance(parsed.port, int) or not 1 <= parsed.port <= 65535:
             return generate_err_msg("port must be an integer between 1 and 65535")
 
     if parsed.query or parsed.fragment:

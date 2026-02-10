@@ -1,6 +1,6 @@
 [project]
 name = "loopdown"
-requires-python = ">= 3.12"
+requires-python = ">= 3.11"
 
 [tool.pylint.master]
 jobs = 0
@@ -10,6 +10,12 @@ max-line-length = 119
 
 [tool.pylint.variables]
 ignored-argument-names = "kwargs|args"
+
+[tool.pylint.messages_control]
+disable = [
+    "too-few-public-methods",
+    "logging-fstring-interpolation",
+]
 
 [tool.isort]
 combine_as_imports = true

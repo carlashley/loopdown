@@ -1,4 +1,9 @@
+"""Package constants."""
+
+
 class PackageConsts:
+    """Constant class for required package attributes. Not an enum."""
+
     DATACLASS_ATTRS_MAP: dict[str, str] = {
         "DownloadName": "download_name",
         "PackageID": "package_id",

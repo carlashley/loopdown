@@ -1,3 +1,5 @@
+"""Audit messages in logs."""
+
 import logging
 
 from collections.abc import Mapping

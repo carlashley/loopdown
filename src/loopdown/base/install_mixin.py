@@ -1,3 +1,5 @@
+"""Installation mixin."""
+
 import logging
 import sys
 

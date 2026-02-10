@@ -2,7 +2,7 @@
 This is the last version of the Python implementation of `loopdown`. Future releases will be Swift implementations and will only support macOS 14+.
 
 ## Notes
-- This has been tested on Python 3.13, it should work for Python 3.10+ but no testing has been done for older Python releases.
+- This has been tested on Python 3.13, it should work for Python 3.11+ but no testing has been done for older Python releases.
 - The `zipapp` build should install the two requirements when `./build.sh` is run.
 - - See _Build help_ below for usage.
 - This is intended to be the last release of a Python version of this tool, future releases will be implemented in Swift.

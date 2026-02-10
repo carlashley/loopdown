@@ -1,3 +1,5 @@
+"""Version constants."""
+
 import platform
 
 from datetime import datetime
@@ -7,6 +9,8 @@ _C_SYMB = b'\xc2\xa9'.decode("utf-8")
 
 
 class VersionConsts(StrEnum):
+    """Version constants."""
+
     AUTHOR = "Carl Ashley"
     COPYRIGHT = f"Copyright {_C_SYMB} {datetime.now().year}"
     NAME = "loopdown"
@@ -17,6 +21,8 @@ class VersionConsts(StrEnum):
 
 
 class VersionInfo:
+    """Version info constants. Not an enum."""
+
     COPYRIGHT_STRING = f"{VersionConsts.COPYRIGHT.value} {VersionConsts.AUTHOR.value}. All rights reserved"
     LICENSE_STRING = "Apache License Version 2.0 - http://www.apache.org/licenses/"
     VERSION_STRING = f"{VersionConsts.NAME.value} v{VersionConsts.VERSION.value}. {COPYRIGHT_STRING}."

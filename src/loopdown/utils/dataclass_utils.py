@@ -1,3 +1,5 @@
+"""Dataclass utils."""
+
 import logging
 
 from collections.abc import Iterable, Mapping
@@ -75,9 +77,12 @@ def dataclass_to_dict(self, *, include_properties: bool = True) -> dict[str, Any
             if attr.startswith("_"):
                 continue  # skip hidden internal attrs
 
+            # pylint: disable=broad-exception-caught
+            # this needs to blow up for logging purposes
             try:
                 self_dict[attr] = getattr(self, attr)
             except Exception as e:
                 log.debug(f"Property serialization failed: {type(self).__name__}.{attr}: {str(e)}")
+            # pylint: enable=broad-exception-caught
 
     return self_dict

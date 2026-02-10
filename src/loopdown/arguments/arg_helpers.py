@@ -1,3 +1,6 @@
+"""Helpers specifically for arguments."""
+# pylint: disable=inconsistent-return-statements
+
 import argparse
 
 from collections.abc import Sequence

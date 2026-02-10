@@ -1,3 +1,5 @@
+"""Application model."""
+
 import logging
 import plistlib
 
@@ -72,10 +74,13 @@ class Application:
             return None
 
         with resource_file.open(mode) as f:
+            # pylint: disable=broad-exception-caught
+            # deliberately blow up on any load failures
             try:
                 data = plistlib.load(f)
             except Exception as e:
                 log.error(f"Unable to parse packages from '{str(resource_file)}': {e}")
                 return None
+            # pylint: enable=broad-exception-caught
 
         return data.get("Packages", None)

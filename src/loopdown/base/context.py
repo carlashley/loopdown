@@ -1,3 +1,5 @@
+"""Context class for orchestration use."""
+
 import argparse
 import logging
 
@@ -56,8 +58,10 @@ class LoopdownContext(PackageProcessingMixin, DownloadMixin, InstallMixin, Audit
         total_pkg_count = len(packages)
         width = len(str(total_pkg_count))
 
-        # available space check
+        # available space check, vars are unused deliberately
+        # pylint: disable=unused-variable
         has_space, tot_reqd_space, available_space = self._has_space_available(packages)  # type: ignore[misc]
+        # pylint: enable=unused-variable
 
         for idx, pkg in enumerate(packages, start=1):  # type: ignore[arg-type]
             pkg_log_sfx = self._additional_pkg_info(pkg)

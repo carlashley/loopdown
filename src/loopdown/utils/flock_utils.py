@@ -1,3 +1,5 @@
+"""File locking utils."""
+
 import fcntl
 import logging
 import os
@@ -25,7 +27,7 @@ def lock_execution(*, app_name: str) -> Iterator[None]:
     except PermissionError:
         pass
 
-    f = fp.open("a+")  # keep open for lifetime of lock
+    f = fp.open("ab+")  # keep open for lifetime of lock, open in binary mode because encoding doesn't matter here
 
     try:
         try:

@@ -1,3 +1,5 @@
+"""Main."""
+
 import logging
 import sys
 
@@ -11,6 +13,8 @@ log = logging.getLogger(__name__)
 
 
 def main():
+    """Main."""
+
     with lock_execution(app_name=__name__):
         args = build_arguments()
         configure_logging(args.log_level, path=args.log_file, quiet=args.quiet)

@@ -1,14 +1,19 @@
+"""Date utils."""
+
 from datetime import datetime, timezone, tzinfo
 from functools import lru_cache
 from typing import Optional
 
+# pylint: disable=import-error
 import tzlocal
+# pylint: enable=import-error
 
 
 @lru_cache(maxsize=1)
 def get_effective_localzone() -> tzinfo:
     """Return the system local timezone (cached for speedy reference). Fallback to UTC if the local timezone is
     non determinable."""
+    # pylint: disable=broad-exception-caught
     try:
         tz = tzlocal.get_localzone()
 
@@ -17,8 +22,9 @@ def get_effective_localzone() -> tzinfo:
             raise RuntimeError("tzlocal returned None")
 
         return tz
-    except Exception:
+    except Exception:  # deliberately fail on any exception to utc
         return timezone.utc
+    # pylint: enable=broad-exception-caught
 
 
 def get_local_tz_offset_and_sanitized_name() -> tuple[int, str]:

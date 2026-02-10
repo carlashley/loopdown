@@ -1,3 +1,7 @@
+"""Strict argument parsing providing custom formatting and handling groups where all options mutually exclusive or
+groups that have one or more options required."""
+# pylint: disable=inconsistent-return-statements
+
 import argparse
 import sys
 
@@ -104,11 +108,7 @@ class StrictArgumentParser(argparse.ArgumentParser):
         ...
 
     @overload
-    def parse_args(self, args: Sequence[str] | None, namespace: _N) -> _N:
-        ...
-
-    @overload
-    def parse_args(self, *, namespace: _N) -> _N:
+    def parse_args(self, args: Sequence[str] | None = ..., namespace: _N = ...) -> _N:
         ...
 
     def parse_args(self, args: Sequence[str] | None = None, namespace: _N | None = None) -> argparse.Namespace | _N:

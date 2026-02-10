@@ -1,3 +1,5 @@
+"""Package processing mixin."""
+
 import json
 import logging
 import shutil
@@ -55,12 +57,14 @@ class PackageProcessingMixin:
         """Clean up working directory after processing."""
         if not self.args.dry_run:
             if not self.download_mode and self.args.destination.exists():
+                # pylint: disable=broad-exception-caught
                 try:
                     shutil.rmtree(self.args.destination, ignore_errors=False)
                     log.info("Cleaned up working directory")
                 except Exception as e:
                     log.warning(f"Failed to clean up working directory: {str(e)}")
                     sys.exit(2)
+                # pylint: enable=broad-exception-caught
 
     def _dry_run_summary(self, packages: Sequence[AudioContentPackage]) -> None:
         """Summary information provided at end of dry run."""
@@ -160,7 +164,7 @@ class PackageProcessingMixin:
         out = {
             "mode": "scan",
             "generated_at": datetimestamp(),
-            "apps": [app_pkgs for app_pkgs in self._gather_packages_concurrently_by_app(apps, pkg_json=True)],
+            "apps": list(self._gather_packages_concurrently_by_app(apps, pkg_json=True)),
             "_version": "1",  # not loopdown version!
         }
 
@@ -219,6 +223,7 @@ class PackageProcessingMixin:
             for future in as_completed(futures):
                 app = futures[future]
 
+                # pylint: disable=try-except-raise
                 try:
                     pkgs = future.result()
                     log.info(f"Processed content for {app.name}")
@@ -226,6 +231,7 @@ class PackageProcessingMixin:
                 except Exception:
                     # definitely want any failures here to blow up; makes debugging very hard if they don't
                     raise
+                # pylint: enable=try-except-raise
 
     def _merge_packages_by_id(
         self,

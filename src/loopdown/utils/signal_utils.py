@@ -1,3 +1,6 @@
+"""Signalling utils."""
+# pylint: disable=unused-argument
+
 import signal
 
 from collections.abc import Callable
@@ -10,7 +13,8 @@ def install_termination_handlers(*, raise_kb_interrupt: bool = True) -> None:
     """install signal handlers so SIGTERM triggers clean shutdown.
     :param raise_kb_interrupt: SIGTERM raises 'KeyboardInterrupt' if 'True' so it follows
                                the same cleanup path as CTRL+C; if 'False', raises SystemExit(143)"""
-    def _handle_sigterm(signum: int, frame: object) -> None:
+    def _handle_sigterm(_signum: int, _frame: object) -> None:
+        # _signum and _frame intentionally unused.
         if raise_kb_interrupt:
             raise KeyboardInterrupt
 

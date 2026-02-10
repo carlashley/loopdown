@@ -1,3 +1,5 @@
+"""AssetCacheLocator utils."""
+
 import json
 import logging
 import subprocess
@@ -14,6 +16,7 @@ def asset_cache_locator() -> Optional[dict]:
     """Subprocess the '/usr/bin/AssetCacheLocatorUtil' binary."""
     cmd = ["/usr/bin/AssetCacheLocatorUtil", "--json"]
 
+    # pylint: disable=duplicate-code
     try:
         p = subprocess.run(cmd, capture_output=True, check=True)
     except subprocess.CalledProcessError as e:
@@ -27,6 +30,7 @@ def asset_cache_locator() -> Optional[dict]:
         log.debug(f"JSON decode error while resolving caching server: {str(e)}")
 
         return None
+    # pylint: enable=duplicate-code
 
 
 def is_server_healthy(

@@ -1,3 +1,5 @@
+"""File/install size model."""
+
 from dataclasses import dataclass, field
 from functools import total_ordering
 
@@ -17,6 +19,7 @@ class Size(AsJsonMixin):
 
     @property
     def human(self) -> str:
+        """Raw value converted to human friendly string."""
         return bytes2hr(self.raw)
 
     def __str__(self) -> str:
@@ -61,6 +64,7 @@ class BucketStats:
     inst: Size = field(default_factory=Size)
 
     def add(self, pkg: AudioContentPackage) -> None:
+        """Add."""
         self.count += 1
         self.down += pkg.download_size
         self.inst += pkg.installed_size

@@ -1,3 +1,6 @@
+"""Protocols for type hinting use/ensuring class conformity."""
+# pylint: disable=unnecessary-ellipsis,too-few-public-methods,ungrouped-imports
+
 import argparse
 
 from typing import Protocol, runtime_checkable
@@ -13,7 +16,9 @@ from packaging import version as vers
 @runtime_checkable
 class AsDict(Protocol):
     """Protocol for checking dataclasses have an 'as_dict' method."""
+
     def as_dict(self) -> dict[str, Any]:
+        """Return self as dictionary."""
         ...
 
 
@@ -87,6 +92,7 @@ class Size(Protocol):
 
     @property
     def human(self) -> str:
+        """Human readable size."""
         ...
 
 

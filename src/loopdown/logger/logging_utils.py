@@ -1,3 +1,5 @@
+"""Logging configuration and utils."""
+
 import logging
 import logging.config
 import logging.handlers
@@ -113,6 +115,8 @@ def human_logging_config(level: str, *, path: Path) -> dict:
 
 
 def mixed_logging_config(level: str, *, path: Path) -> dict[str, Any]:
+    """Mixed logging. Log messages are stored in JSON format while human readable messages are logged to console
+    stdout/stderr."""
     if level not in LOG_LEVELS:
         raise ValueError(f"log {level=} invalid; must be from {tuple(LOG_LEVELS.keys())}")
 
@@ -171,11 +175,14 @@ def mute_console_logging() -> None:
     """Remove all StreamHandlers (stdout/stderr) from the root logger when necessary."""
     root = logging.getLogger()
 
+    # pylint: disable=unidiomatic-typecheck
     for handler in root.handlers[:]:
         # logging.FileHandler/RotatingFileHandler subclass StreamHandler, so only remove
-        # on handlers that _are_ StreamHandler
+        # on handlers that _are_ StreamHandler; yes this could break subclassed handlers like 'RichHandler',
+        # but those aren't used, so I don't care.
         if type(handler) is StreamHandler:
             root.removeHandler(handler)
+    # pylint: enable=unidiomatic-typecheck
 
 
 def configure_logging(level: str, *, path: str | Path, quiet: bool) -> dict:

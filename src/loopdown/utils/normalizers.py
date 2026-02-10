@@ -1,3 +1,5 @@
+"""Normalization utils."""
+
 import posixpath
 
 from pathlib import Path
