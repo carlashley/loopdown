@@ -23,8 +23,6 @@ public final class TemporaryDirectory {
         self.url = dir
     }
 
-    func keep() { shouldDelete = false }
-
     public func cleanup(fileManager: FileManager = .default) {
         guard shouldDelete else { return }
         try? fileManager.removeItem(at: url)
