@@ -200,10 +200,15 @@ private extension ContentCoordinator {
             return
         }
 
-        // 2) Free space check (download + installed totals).
+        // 2) Determine which packages actually need installing.
+        // Used for both the disk space check and dry-run summaries so that
+        // already-installed packages don't inflate the required bytes or totals.
+        let pending = forceDeploy ? merged : merged.filter { packageNeedsInstall($0, debugLog: nil) }
+
+        // 3) Free space check against pending packages only.
         // NOTE: This checks the filesystem backing URLSession temp directory.
-        let totalDownload = merged.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
-        let totalInstalled = merged.reduce(Int64(0)) { $0 + $1.installedSize.raw }
+        let totalDownload = pending.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
+        let totalInstalled = pending.reduce(Int64(0)) { $0 + $1.installedSize.raw }
         let requiredBytes = totalDownload + totalInstalled
 
         let checkPath = FileManager.default.temporaryDirectory.path
@@ -219,16 +224,15 @@ private extension ContentCoordinator {
             )
         }
 
-        // 3) Dry-run: list packages then print download and install summaries.
+        // 4) Dry-run: list packages then print download and install summaries.
         if dryRun {
-            logger.notice("dry-run: no downloads or installs will occur.")
-            logMergedPackagesForDeploy(merged, dryRun: true, forceDeploy: forceDeploy, logger: logger)
-            logger.notice(dryRunDownloadSummary(for: merged))
-            logger.notice(dryRunInstallSummary(for: merged))
+            listPackagesForDryRunDeploy(merged, pending: Set(pending.map(\.packageID)), logger: logger)
+            logger.notice(dryRunDownloadSummary(for: pending))
+            logger.notice(dryRunInstallSummary(for: pending))
             return
         }
 
-        // 4) Create staging directory and install signal handlers for cleanup.
+        // 5) Create staging directory and install signal handlers for cleanup.
         let staging = try TemporaryDirectory()
 
         let signalCleanup = SignalCleanup {
@@ -241,21 +245,17 @@ private extension ContentCoordinator {
             staging.cleanup()
         }
 
-        // 5) Download into staging, verify signature, then install.
-        logMergedPackagesForDeploy(merged, dryRun: false, forceDeploy: forceDeploy, logger: logger)
-
+        // 6) Download into staging, verify signature, then install.
+        // Iterate over `pending` directly — it already contains only the packages
+        // that need installing, so no further filtering or packageNeedsInstall calls
+        // are needed here.
+        let total = pending.count
         var didInstallAny = false
-        for (idx, pkg) in merged.enumerated() {
+        for (idx, pkg) in pending.enumerated() {
             let n = idx + 1
             let remoteURL = packageRemoteURL(baseURL: baseURL, pkg: pkg)
 
-            // Skip packages whose content is already present on disk, unless --force is set.
-            if !forceDeploy && packageIsInstalled(pkg) {
-                logger.debug("already installed, skipping: \(pkg.name)")
-                continue
-            }
-
-            logger.info("\(counter(n, of: merged.count)) - downloading: \(pkg.name)")
+            logger.info("\(counter(n, of: total)) - downloading: \(pkg.name)")
 
             let tempURL = try await downloader.downloadTempFile(from: remoteURL) { prog in
                 let pct = Int(prog.fractionCompleted * 100)
@@ -272,11 +272,10 @@ private extension ContentCoordinator {
                     pkgURL: stagedURL,
                     debugLog: logger.debug
                 ) else {
-                    logger.error("\(counter(n, of: merged.count)) - signature check failed, skipping install: \(pkg.name)")
+                    logger.error("\(counter(n, of: total)) - signature check failed, skipping install: \(pkg.name)")
                     continue
                 }
             }
-
 
             didInstallAny = true
             do {
@@ -286,9 +285,9 @@ private extension ContentCoordinator {
                     debugLog: logger.debug,
                     errorLog: logger.error
                 )
-                logger.notice("\(counter(n, of: merged.count)) - installed: \(pkg.name)")
+                logger.notice("\(counter(n, of: total)) - installed: \(pkg.name)")
             } catch {
-                logger.error("\(counter(n, of: merged.count)) - failed to install: \(pkg.name) (\(error))")
+                logger.error("\(counter(n, of: total)) - failed to install: \(pkg.name) (\(error))")
             }
         }
 
@@ -297,21 +296,22 @@ private extension ContentCoordinator {
         }
     }
 
-    static func logMergedPackagesForDeploy(
+    /// List packages for a deploy dry-run, noting which would be skipped as already current.
+    ///
+    /// `pendingIDs` is the pre-computed set of package IDs that need installing, avoiding
+    /// a second round of `pkgutil` subprocess calls per package.
+    static func listPackagesForDryRunDeploy(
         _ pkgs: [AudioContentPackage],
-        dryRun: Bool,
-        forceDeploy: Bool,
+        pending pendingIDs: Set<String>,
         logger: CoreLogger
     ) {
         let total = pkgs.count
         for (idx, pkg) in pkgs.enumerated() {
             let n = idx + 1
-            if dryRun {
-                if !forceDeploy && packageIsInstalled(pkg) {
-                    logger.debug("would skip (already installed): \(pkg.name)")
-                } else {
-                    logger.info("\(counter(n, of: total)) - would download+install: \(pkg.name) (\(pkg.downloadSize) dl, \(pkg.installedSize) installed)")
-                }
+            if pendingIDs.contains(pkg.packageID) {
+                logger.info("\(counter(n, of: total)) - download+install: \(pkg.name) (\(pkg.downloadSize) dl, \(pkg.installedSize) installed)")
+            } else {
+                logger.debug("would skip (already installed): \(pkg.name)")
             }
         }
     }
@@ -369,11 +369,69 @@ private extension ContentCoordinator {
 // MARK: - Package selection/merge helpers
 private extension ContentCoordinator {
 
-    /// Determine if a package is already installed by checking whether any of its
-    /// `fileCheck` paths exist on disk. Mirrors the Python implementation's approach.
-    static func packageIsInstalled(_ pkg: AudioContentPackage) -> Bool {
-        guard !pkg.fileCheck.isEmpty else { return false }
-        return pkg.fileCheck.contains { FileManager.default.fileExists(atPath: $0) }
+    /// Determine whether a package needs to be downloaded and installed.
+    ///
+    /// 1. If `fileCheck` is empty → can't determine install state → needs install.
+    /// 2. If no `fileCheck` path exists on disk → not installed → needs install.
+    /// 3. If `fileCheck` paths exist but `pkg.version` is nil → can't version-compare
+    ///    → treat as current (skip).
+    /// 4. If `fileCheck` paths exist and `pkg.version` is set → run `pkgutil` to get
+    ///    the local version:
+    ///    - No receipt found (orphaned files) → needs install.
+    ///    - Local version ≥ remote version → up to date → skip.
+    ///    - Local version < remote version → update available → needs install.
+    static func packageNeedsInstall(
+        _ pkg: AudioContentPackage,
+        debugLog: ((String) -> Void)?
+    ) -> Bool {
+        // 1. No fileCheck paths at all — can't tell, assume needs install.
+        guard !pkg.fileCheck.isEmpty else {
+            debugLog?("\(pkg.name): no fileCheck paths, assuming needs install")
+            return true
+        }
+
+        // 2. No fileCheck path exists on disk — not installed.
+        let anyPathExists = pkg.fileCheck.contains { FileManager.default.fileExists(atPath: $0) }
+        guard anyPathExists else {
+            debugLog?("\(pkg.name): not installed (no fileCheck paths found on disk)")
+            return true
+        }
+
+        // 3. fileCheck paths exist but no remote version to compare — treat as current.
+        guard let remoteVersion = pkg.version else {
+            debugLog?("\(pkg.name): installed, no remote version to compare — treating as current")
+            return false
+        }
+
+        // 4. fileCheck paths exist and remote version is known — check pkgutil receipt.
+        do {
+            guard let receipt = try PackageReceipt.loadIfInstalled(
+                pkg.packageID,
+                debugLog: debugLog
+            ) else {
+                // Orphaned files: fileCheck paths present but no receipt — reinstall.
+                debugLog?("\(pkg.name): fileCheck paths exist but no pkgutil receipt — reinstalling")
+                return true
+            }
+
+            guard let localVersion = receipt.version else {
+                // Receipt exists but has no version — treat as needing install to be safe.
+                debugLog?("\(pkg.name): receipt has no version — reinstalling")
+                return true
+            }
+
+            let upToDate = PackageReceipt.localVersionIsCurrentOrNewer(
+                localVersion: localVersion,
+                remoteVersion: remoteVersion
+            )
+            debugLog?("\(pkg.name): local=\(localVersion) remote=\(remoteVersion) upToDate=\(upToDate)")
+            return !upToDate
+
+        } catch {
+            // pkgutil unavailable or failed — fall back to fileCheck-only (treat as current).
+            debugLog?("\(pkg.name): pkgutil error (\(error)) — treating as current")
+            return false
+        }
     }
 
     static func mergePackagesAcrossApps(
@@ -481,12 +539,12 @@ private extension ContentCoordinator {
         try ensureParentDirectoryExists(for: dst)
         try fm.moveItem(at: src, to: dst)
     }
-    
+
     // MARK: - Counter formatting helper
 
-   /// Right-pad `n` to the same width as `total` so counters stay column-aligned.
-   ///
-   /// Example with total=46:  " 8 of 46",  " 9 of 46", "10 of 46"
+    /// Right-pad `n` to the same width as `total` so counters stay column-aligned.
+    ///
+    /// Example with total=46:  " 8 of 46",  " 9 of 46", "10 of 46"
     static func counter(_ n: Int, of total: Int) -> String {
         let width = String(total).count
         return String(format: "%\(width)d of %d", n, total)
