@@ -158,7 +158,7 @@ private extension ContentCoordinator {
             }
 
             try moveReplacingIfExists(from: tempURL, to: destURL)
-
+            logger.info("\(counter(n, of: total)) - saved: \(pkg.name)")
         }
     }
 }
@@ -179,9 +179,9 @@ private extension ContentCoordinator {
         downloader: DownloadClient
     ) async throws {
 
-        logger.info("forceDeploy: \(forceDeploy)")
-        if let cacheServer { logger.info("cacheServer: \(cacheServer.absoluteString)") }
-        if let mirrorServer { logger.info("mirrorServer: \(mirrorServer.absoluteString)") }
+        logger.debug("forceDeploy: \(forceDeploy)")
+        if let cacheServer { logger.debug("cacheServer: \(cacheServer.absoluteString)") }
+        if let mirrorServer { logger.debug("mirrorServer: \(mirrorServer.absoluteString)") }
 
         let baseURL = effectiveBaseURL(cacheServer: cacheServer, mirrorServer: mirrorServer)
         logger.notice("Downloading from \(baseURL.absoluteString) and installing content")
@@ -209,10 +209,7 @@ private extension ContentCoordinator {
         let checkPath = FileManager.default.temporaryDirectory.path
         let freeBytes = try filesystemFreeBytes(atPath: checkPath)
 
-        logger.info("Total download: \(ByteSize(totalDownload))")
-        logger.info("Total installed: \(ByteSize(totalInstalled))")
-        logger.info("Total required: \(ByteSize(requiredBytes))")
-        logger.info("Free bytes at '\(checkPath)': \(ByteSize(freeBytes))")
+        logger.debug("Free bytes at '\(checkPath)': \(ByteSize(freeBytes))")
 
         if freeBytes < requiredBytes {
             throw ContentCoordinatorError.insufficientDiskSpace(
@@ -225,7 +222,7 @@ private extension ContentCoordinator {
         // 3) Dry-run: list packages then print download and install summaries.
         if dryRun {
             logger.notice("dry-run: no downloads or installs will occur.")
-            logMergedPackagesForDeploy(merged, dryRun: true, logger: logger)
+            logMergedPackagesForDeploy(merged, dryRun: true, forceDeploy: forceDeploy, logger: logger)
             logger.notice(dryRunDownloadSummary(for: merged))
             logger.notice(dryRunInstallSummary(for: merged))
             return
@@ -245,11 +242,18 @@ private extension ContentCoordinator {
         }
 
         // 5) Download into staging, verify signature, then install.
-        logMergedPackagesForDeploy(merged, dryRun: false, logger: logger)
+        logMergedPackagesForDeploy(merged, dryRun: false, forceDeploy: forceDeploy, logger: logger)
 
+        var didInstallAny = false
         for (idx, pkg) in merged.enumerated() {
             let n = idx + 1
             let remoteURL = packageRemoteURL(baseURL: baseURL, pkg: pkg)
+
+            // Skip packages whose content is already present on disk, unless --force is set.
+            if !forceDeploy && packageIsInstalled(pkg) {
+                logger.debug("already installed, skipping: \(pkg.name)")
+                continue
+            }
 
             logger.info("\(counter(n, of: merged.count)) - downloading: \(pkg.name)")
 
@@ -274,31 +278,40 @@ private extension ContentCoordinator {
             }
 
 
-            logger.info("\(counter(n, of: merged.count)) - installing: \(pkg.name)")
+            didInstallAny = true
+            do {
+                try PackageInstaller.install(
+                    pkgURL: stagedURL,
+                    packageName: pkg.name,
+                    debugLog: logger.debug,
+                    errorLog: logger.error
+                )
+                logger.notice("\(counter(n, of: merged.count)) - installed: \(pkg.name)")
+            } catch {
+                logger.error("\(counter(n, of: merged.count)) - failed to install: \(pkg.name) (\(error))")
+            }
+        }
 
-            try PackageInstaller.install(
-                pkgURL: stagedURL,
-                packageName: pkg.name,
-                debugLog: logger.debug,
-                errorLog: logger.error
-            )
-
-            logger.notice("\(counter(n, of: merged.count)) - installed: \(pkg.name)")
+        if !didInstallAny {
+            logger.notice("All packages are already installed.")
         }
     }
 
     static func logMergedPackagesForDeploy(
         _ pkgs: [AudioContentPackage],
         dryRun: Bool,
+        forceDeploy: Bool,
         logger: CoreLogger
     ) {
         let total = pkgs.count
         for (idx, pkg) in pkgs.enumerated() {
             let n = idx + 1
             if dryRun {
-                logger.info("\(counter(n, of: total)) - download+install: \(pkg.name) (\(pkg.downloadSize) dl, \(pkg.installedSize) installed)")
-            } else {
-                logger.info("\(counter(n, of: total)) - download+install: \(pkg.name) (\(pkg.downloadSize) dl, \(pkg.installedSize) installed)")
+                if !forceDeploy && packageIsInstalled(pkg) {
+                    logger.debug("would skip (already installed): \(pkg.name)")
+                } else {
+                    logger.info("\(counter(n, of: total)) - would download+install: \(pkg.name) (\(pkg.downloadSize) dl, \(pkg.installedSize) installed)")
+                }
             }
         }
     }
@@ -355,6 +368,13 @@ private extension ContentCoordinator {
 
 // MARK: - Package selection/merge helpers
 private extension ContentCoordinator {
+
+    /// Determine if a package is already installed by checking whether any of its
+    /// `fileCheck` paths exist on disk. Mirrors the Python implementation's approach.
+    static func packageIsInstalled(_ pkg: AudioContentPackage) -> Bool {
+        guard !pkg.fileCheck.isEmpty else { return false }
+        return pkg.fileCheck.contains { FileManager.default.fileExists(atPath: $0) }
+    }
 
     static func mergePackagesAcrossApps(
         apps: [AudioApplication],

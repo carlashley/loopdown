@@ -48,8 +48,6 @@ struct Deploy: AsyncParsableCommand {
     }
 
     func run() async throws {
-        // NOTE: CLIRunner currently only supports sync closures. Since Download/Deploy now needs async,
-        // we acquire the lock directly here.
         try await ExecutionLock.withLockAsync {
             let logger = CLILogging.startRun(
                 category: "Deploy",

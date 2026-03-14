@@ -17,8 +17,8 @@ public struct ByteSize: Comparable, Hashable, Sendable, CustomStringConvertible 
         self.raw = raw
     }
 
-    /// Human readable size using 1024-based units with decimal suffixes:
-    /// B, KiB, MiB, GiB, TiB, PiB.
+    /// Human readable size using 1000-based units with decimal suffixes:
+    /// B, KB, MB, GB, TB, PB.
     public var human: String {
         var v = Double(raw)
         var idx = 0

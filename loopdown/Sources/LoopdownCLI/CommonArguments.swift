@@ -22,7 +22,8 @@ struct AppOptions: ParsableArguments {
     )
     var app: [ConcreteApp] = []
 
-    var resolvedApps: [ConcreteApp] { app.isEmpty ? ConcreteApp.allCases : app }
+    // An empty selection means "all installed apps"; ContentCoordinator handles that case directly.
+    var resolvedApps: [ConcreteApp] { app }
 
 }
 
