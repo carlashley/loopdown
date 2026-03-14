@@ -3,7 +3,7 @@
 //
 // Created on 18/1/2026
 //
-    
+
 import Foundation
 import LoopdownCore
 import LoopdownInfrastructure
@@ -30,7 +30,6 @@ public enum InstalledApplicationResolver {
 
                 let version = app["version"] as? String ?? ""
                 let pathString = app["path"] as? String ?? ""
-                let lastModified = app["lastModified"] as? String ?? ""
 
                 guard !pathString.isEmpty else {
                     logger.debug("Skipping '\(rawName)': missing path")
@@ -39,33 +38,13 @@ public enum InstalledApplicationResolver {
 
                 let url = URL(fileURLWithPath: pathString, isDirectory: true)
 
-                do {
-                    return try AudioApplication(
-                        name: rawName,
-                        version: version,
-                        path: url,
-                        lastModifiedISO8601UTC: lastModified,
-                        logger: logger
-                    )
-                } catch {
-                    logger.debug("Skipping '\(rawName)': invalid lastModified '\(lastModified)': \(error)")
-                    return nil
-                }
+                return AudioApplication(
+                    name: rawName,
+                    version: version,
+                    path: url,
+                    logger: logger
+                )
             }
         )
     }
 }
-
-
-/*
- usage:
- In CLI:
- let installed = InstalledApplicationResolver.resolveInstalled(logger: logger)
- Then filter based on -a/--app:
- let selectedApps = apps.resolvedApps
-
- let targetApps = selectedApps.isEmpty
-     ? installed
-     : installed.filter { selectedApps.contains($0.concreteApp) }
- This keeps selection policy in CLI and discovery in Services.
- */

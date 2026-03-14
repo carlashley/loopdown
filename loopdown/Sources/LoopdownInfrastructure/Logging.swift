@@ -3,7 +3,6 @@
 //
 // Created on 18/1/2026
 //
-    
 
 import Foundation
 
@@ -119,6 +118,10 @@ public final class FileLogSink {
     }
 
     deinit {
+        // Drain all pending async writes before closing the handle.
+        // Without this, in-flight queue blocks can write to a closed
+        // file handle during process teardown, causing a segfault.
+        queue.sync {}
         try? fileHandle.close()
     }
 

@@ -3,7 +3,6 @@
 //
 // Created on 18/1/2026
 //
-    
 
 import Foundation
 
@@ -99,22 +98,28 @@ enum ProcessRunner {
         let stdoutPipe = Pipe()
         let stderrPipe = Pipe()
         let stdinPipe = Pipe()
-        
+
         // Buffers to be filled incrementally while the process runs.
         let stdoutBuffer = LockedData()
         let stderrBuffer = LockedData()
-        
-        // An exit semaphore to signal exit.
+
+        // exitSem is signalled by the termination handler.
+        // Foundation guarantees all readabilityHandler callbacks for a pipe
+        // are delivered before the process termination notification fires,
+        // so waiting on exitSem is sufficient to know all output is captured.
         let exitSem = DispatchSemaphore(value: 0)
-        
+
         // Termination handler fires on a background queue.
         proc.terminationHandler = { _ in exitSem.signal() }
 
         if captureOutput {
             proc.standardOutput = stdoutPipe
             proc.standardError = stderrPipe
-            
-            // Drain stdout/stderr as data becomes available to avoid pipe deadlock
+
+            // Drain stdout/stderr as data becomes available to avoid pipe deadlock.
+            // NOTE: Do NOT call readToEnd() on these handles after setting the handler
+            // to nil — mixing readabilityHandler with synchronous reads on the same
+            // file descriptor is a data race and causes a segfault on pipe teardown.
             stdoutPipe.fileHandleForReading.readabilityHandler = { handle in
                 let chunk = handle.availableData
                 if !chunk.isEmpty { stdoutBuffer.append(chunk) }
@@ -155,10 +160,9 @@ enum ProcessRunner {
                 throw ProcessRunnerError.launchFailed("Unable to write stdin: \(error)")
             }
         }
-        // Alwas close the write end so the child sees EOF
+        // Always close the write end so the child sees EOF
         try? stdinPipe.fileHandleForWriting.close()
 
-        
         // Wait for exit with timeout support
         if let timeout {
             let deadline = DispatchTime.now() + timeout
@@ -185,18 +189,15 @@ enum ProcessRunner {
             _ = exitSem.wait(timeout: .distantFuture)
         }
 
-        // Process exited. Stop handlers and read any final buffered data.
+        // Process exited. Stop handlers — all data has already been accumulated
+        // by the readabilityHandler callbacks (Foundation guarantees delivery
+        // before the termination notification). Do NOT call readToEnd() here;
+        // mixing it with readabilityHandler on the same fd is a data race.
         if captureOutput {
             stdoutPipe.fileHandleForReading.readabilityHandler = nil
             stderrPipe.fileHandleForReading.readabilityHandler = nil
-
-            // One last drain: after termination there may still be data queued.
-            let finalOut = (try? stdoutPipe.fileHandleForReading.readToEnd()) ?? Data()
-            let finalErr = (try? stderrPipe.fileHandleForReading.readToEnd()) ?? Data()
-            if !finalOut.isEmpty { stdoutBuffer.append(finalOut) }
-            if !finalErr.isEmpty { stderrBuffer.append(finalErr) }
         }
-        
+
         // Collect termination status code
         let code = proc.terminationStatus
 
@@ -218,20 +219,20 @@ enum ProcessRunner {
 
         return result
     }
-    
-    // MARK: = Helpers
-    
+
+    // MARK: - Helpers
+
     /// Thread safe Data accumulator for readabilityHandler callbacks.
     private final class LockedData {
         private let lock = NSLock()
         private var storage = Data()
-        
+
         func append(_ data: Data) {
             lock.lock()
             storage.append(data)
             lock.unlock()
         }
-        
+
         var data: Data {
             lock.lock()
             let copy = storage

@@ -9,7 +9,7 @@ import ArgumentParser
 import LoopdownCore
 
 @main
-struct Loopdown: ParsableCommand {
+struct Loopdown: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "loopdown",
         abstract: "Manage additional content for Apple's audio applications, GarageBand, Logic Pro, and/or MainStage.",

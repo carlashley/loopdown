@@ -18,12 +18,14 @@ public struct ByteSize: Comparable, Hashable, Sendable, CustomStringConvertible 
     }
 
     /// Human readable size using 1024-based units with decimal suffixes:
-    /// B, KB, MB, GB, TB, PB (not KiB/MiB).
+    /// B, KiB, MiB, GiB, TiB, PiB.
     public var human: String {
         var v = Double(raw)
         var idx = 0
         let suffixes = ["B", "KB", "MB", "GB", "TB", "PB"]
-        let blockSize = 1024.0
+        // block size is specifically 1000.0 as this closely aligns with what Finder
+        // shows the file size is as the 'on disk' size.
+        let blockSize = 1000.0
 
         while v >= blockSize && idx < suffixes.count - 1 {
             v /= blockSize

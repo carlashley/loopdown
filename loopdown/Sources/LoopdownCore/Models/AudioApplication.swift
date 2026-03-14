@@ -3,15 +3,8 @@
 //
 // Created on 18/1/2026
 //
-    
 
 import Foundation
-
-
-// MARK: - Audio Application errors
-public enum ApplicationError: Error {
-    case invalidDateString(String)
-}
 
 
 // MARK: AudioApplication model
@@ -24,7 +17,6 @@ public final class AudioApplication: Hashable, @unchecked Sendable {
     public let name: String
     public let version: String
     public let path: URL
-    public let lastModified: Date
     public let shortName: String?
 
     /// Raw 'Packages' dictionary from the metadata property list file.
@@ -60,33 +52,13 @@ public final class AudioApplication: Hashable, @unchecked Sendable {
         name: String,
         version: String,
         path: URL,
-        lastModified: Date,
         logger: CoreLogger = NullLogger()
     ) {
         self.name = name
         self.version = version
         self.path = path
-        self.lastModified = lastModified
         self.shortName = LoopdownConstants.Applications.shortName(for: name)
         self.logger = logger
-    }
-
-    /// Convenience init that accepts an ISO-8601 UTC string like: "2025-01-02T03:04:05Z"
-    public convenience init(
-        name: String,
-        version: String,
-        path: URL,
-        lastModifiedISO8601UTC: String,
-        logger: CoreLogger = NullLogger()
-    ) throws {
-        let iso = ISO8601DateFormatter()
-        iso.formatOptions = [.withInternetDateTime]
-
-        guard let date = iso.date(from: lastModifiedISO8601UTC) else {
-            throw ApplicationError.invalidDateString(lastModifiedISO8601UTC)
-        }
-
-        self.init(name: name, version: version, path: path, lastModified: date, logger: logger)
     }
 
 
@@ -96,7 +68,6 @@ public final class AudioApplication: Hashable, @unchecked Sendable {
         lhs.name == rhs.name &&
         lhs.version == rhs.version &&
         lhs.path == rhs.path &&
-        lhs.lastModified == rhs.lastModified &&
         lhs.shortName == rhs.shortName
     }
 
@@ -104,7 +75,6 @@ public final class AudioApplication: Hashable, @unchecked Sendable {
         hasher.combine(name)
         hasher.combine(version)
         hasher.combine(path)
-        hasher.combine(lastModified)
         hasher.combine(shortName)
     }
 
@@ -264,7 +234,7 @@ public final class AudioApplication: Hashable, @unchecked Sendable {
 }
 
 
-// MARK: - Extend AudioApplication to return .concreteAPp
+// MARK: - Extend AudioApplication to return .concreteApp
 public extension AudioApplication {
     /// The concrete app identity derived from `shortName`.
     var concreteApp: ConcreteApp? {

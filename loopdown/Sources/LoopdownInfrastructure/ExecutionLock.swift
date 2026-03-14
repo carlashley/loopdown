@@ -3,7 +3,6 @@
 //
 // Created on 18/1/2026
 //
-    
 
 import Foundation
 #if canImport(Darwin)
@@ -54,8 +53,11 @@ public enum ExecutionLock {
             throw LockError.alreadyRunning
         }
 
-        // Hold fd open for the lifetime of body
+        // Hold fd open for the lifetime of body, then clean up.
+        // unlink() is called while the lock is still held to avoid a race where
+        // another process opens the path between our LOCK_UN and our unlink.
         defer {
+            unlink(lockPath)
             flock(fd, LOCK_UN)
             close(fd)
         }

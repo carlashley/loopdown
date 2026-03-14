@@ -3,7 +3,6 @@
 //
 // Created on 18/1/2026
 //
-    
 
 import Foundation
 
@@ -97,11 +96,79 @@ struct PackageReceipt: Hashable {
     }
 }
 
+
+// MARK: - Package Signature Checker
+/// Verifies a downloaded `.pkg` file is signed Apple software using
+/// `/usr/sbin/pkgutil --check-signature`.
+///
+/// A non-zero exit code or a status line that does not contain "signed apple"
+/// indicates the file is corrupt, incomplete, or not a genuine Apple package.
+public enum PackageSignatureChecker {
+
+    private static let pkgutil = "/usr/sbin/pkgutil"
+    private static let statusPrefix = "Status: "
+
+    /// Returns `true` if the package at `pkgURL` is signed Apple software.
+    ///
+    /// - Parameters:
+    ///   - pkgURL: File URL of the `.pkg` to check.
+    ///   - debugLog: Optional closure receiving debug-level messages.
+    /// - Returns: `true` if signed Apple software, `false` otherwise.
+    public static func isSignedAppleSoftware(
+        pkgURL: URL,
+        debugLog: ((String) -> Void)? = nil
+    ) -> Bool {
+        guard FileManager.default.isExecutableFile(atPath: pkgutil) else {
+            debugLog?("pkgutil not found at \(pkgutil); skipping signature check")
+            return false
+        }
+
+        let cmd = [pkgutil, "--check-signature", pkgURL.path]
+
+        let result: CompletedProcess
+        do {
+            result = try ProcessRunner.run(
+                cmd,
+                captureOutput: true,
+                check: false,       // non-zero exit is expected for invalid/incomplete packages
+                debugLog: debugLog
+            )
+        } catch {
+            debugLog?("Error running pkgutil --check-signature for '\(pkgURL.lastPathComponent)': \(error)")
+            return false
+        }
+
+        // Collect stdout lines, falling back to stderr if stdout is empty.
+        let rawOutput = result.stdoutString.isEmpty ? result.stderrString : result.stdoutString
+        let lines = rawOutput
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+
+        // Find the "Status: ..." line and check it contains "signed apple".
+        let status = lines.first(where: { $0.hasPrefix(statusPrefix) })
+            .map { String($0.dropFirst(statusPrefix.count)) }
+
+        let isSigned = result.returnCode == 0
+            && status != nil
+            && status!.lowercased().contains("signed apple")
+
+        debugLog?("Signature check '\(pkgURL.lastPathComponent)': status='\(status ?? "<none>")' signed=\(isSigned)")
+
+        return isSigned
+    }
+}
+
 /*
  Usage:
  let logger = Log.category("Receipts")
  let receipt = try PackageReceipt.loadIfInstalled(
      "com.apple.pkg.GarageBand10Content",
+     debugLog: { logger.debug($0) }
+ )
+
+ let ok = PackageSignatureChecker.isSignedAppleSoftware(
+     pkgURL: stagedURL,
      debugLog: { logger.debug($0) }
  )
  */

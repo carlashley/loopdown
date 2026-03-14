@@ -3,13 +3,11 @@
 //
 // Created on 18/1/2026
 //
-    
 
 import ArgumentParser
 import LoopdownInfrastructure
 import LoopdownCore
 import LoopdownServices
-
 
 // MARK: Deploy only arguments
 struct ForceDeployOption: ParsableArguments {
@@ -17,16 +15,15 @@ struct ForceDeployOption: ParsableArguments {
     var forceDeploy: Bool = false
 }
 
-
 // MARK: Deploy argument
-struct Deploy: ParsableCommand {
+struct Deploy: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Install content for selected apps; requires root level privilege.",
         discussion: """
         By default, content for all installed applications is processed. Provide the '-a/--app` argument to only target specific applications.
-        
+
         Root privileges are required unless '-n/--dry-run' is specified.
-        
+
         If you need to download the content for use in a local mirror, use the 'download' command instead of 'deploy'.
         See 'loopdown download --help' for more information.
         """
@@ -40,103 +37,47 @@ struct Deploy: ParsableCommand {
     @OptionGroup var optional: OptionalContentOption
     @OptionGroup var force: ForceDeployOption
     @OptionGroup var servers: ServerOptions
+    @OptionGroup var signatureCheck: SkipSignatureCheckOption
 
     func validate() throws {
-        // Enforce content selection
         try validateContentSelection(required: required.required, optional: optional.optional)
-        
-        // Validate root privileges when performing actual deploy run
+
         if !dry.dryRun && !PrivilegeCheck.isRoot {
             throw ValidationError("You must be root to use this command; re-run with sudo or use '-n/--dry-run'.")
         }
     }
-    
-    
-    func run() throws {
-        try CLIRunner.runLocked {
-            do  {
-                let logger = CLILogging.startRun(
-                    category: "Deploy",
-                    minLevel: logging.logLevel,
-                    enableConsole: !quiet.quietRun
-                )
-                
-                let resolvedCacheServerURL =
-                    CacheServerResolution.resolveCacheServerURL(
-                        servers.cacheServer,
-                        logger: logger
-                    )
 
-                let mirrorServerURL = servers.mirrorServer?.url
-                
-                try ContentCoordinator.run(
-                    mode: .deploy,
-                    selectedApps: apps.resolvedApps,
-                    includeRequired: required.required,
-                    includeOptional: optional.optional,
-                    destDir: LoopdownConstants.Paths.defaultDest,
-                    forceDeploy: force.forceDeploy,
-                    cacheServer: resolvedCacheServerURL,
-                    mirrorServer: mirrorServerURL,
-                    dryRun: dry.dryRun,
+    func run() async throws {
+        // NOTE: CLIRunner currently only supports sync closures. Since Download/Deploy now needs async,
+        // we acquire the lock directly here.
+        try await ExecutionLock.withLockAsync {
+            let logger = CLILogging.startRun(
+                category: "Deploy",
+                minLevel: logging.logLevel,
+                enableConsole: !quiet.quietRun
+            )
+
+            let resolvedCacheServerURL =
+                CacheServerResolution.resolveCacheServerURL(
+                    servers.cacheServer,
                     logger: logger
                 )
 
-                /* 2026-01-27: commented out for ContentCoordinator testing
-                logger.info("Started deploy (dryRun=\(dry.dryRun))")
-                logger.info("apps: \(apps.resolvedApps.map(\.rawValue).joined(separator: ", "))")
-                
-                if let cache = servers.cacheServer {
-                    logger.info("cacheServer: \(cache)")
-                }
-                if let mirror = servers.mirrorServer {
-                    logger.info("mirrorServer: \(mirror)")
-                }
-                
-                // Decide staging destination.
-                // - dryRun: do not create anything; just use the conventional path for display/planning.
-                // - real run: create a unique temp staging directory and guarantee cleanup.
-                let staging: TemporaryDirectory?
-                let signalCleanup: SignalCleanup?
-                
-                if dry.dryRun {
-                    staging = nil
-                    signalCleanup = nil
-                } else {
-                    let tmp = try TemporaryDirectory(prefix: "loopdown-staging-")
-                    staging = tmp
-                    logger.info("staging: \(tmp.url.path)")
-                    
-                    let sc = SignalCleanup { tmp.cleanup() }
-                    sc.install()
-                    signalCleanup = sc
-                }
-                
-                defer {
-                    // Restore signals and cleanup on normal exit.
-                    signalCleanup?.uninstall()
-                    staging?.cleanup()
-                }
-                
-                // Temporary: ensure scope doesn't end immediately
-                logger.debug("Deploy logic not implemented yet...")
-                // TODO: deploy logic
-                // Use destPath as the staging directory for downloads/unpacks/etc.
-                //
-                // try DeployController.deploy(
-                //     apps: apps.resolvedApps,
-                //     required: required.required,
-                //     optional: optional.optional,
-                //     force: force.forceDeploy,
-                //     cacheServer: servers.cacheServer,
-                //     mirrorServer: servers.mirrorServer,
-                //     stagingDir: destPath,
-                //     dryRun: dry.dryRun,
-                //     logger: logger
-                // )
-                */
-            }
+            let mirrorServerURL = servers.mirrorServer?.url
+
+            try await ContentCoordinator.run(
+                mode: .deploy,
+                selectedApps: apps.resolvedApps,
+                includeRequired: required.required,
+                includeOptional: optional.optional,
+                destDir: LoopdownConstants.Paths.defaultDest,
+                forceDeploy: force.forceDeploy,
+                skipSignatureCheck: signatureCheck.skipSignatureCheck,
+                cacheServer: resolvedCacheServerURL,
+                mirrorServer: mirrorServerURL,
+                dryRun: dry.dryRun,
+                logger: logger
+            )
         }
     }
-
 }

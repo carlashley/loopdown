@@ -44,7 +44,7 @@ enum CLILogging {
 
         configureBase(minLevel: minLevel)
 
-        let runLogURL = Log.startRunLogging(
+        Log.startRunLogging(
             keepLatestCopy: keepLatestLog,
             keepMostRecentRuns: keepMostRecentRuns
         )
@@ -53,11 +53,6 @@ enum CLILogging {
             Log.enableConsoleOutput()
         }
 
-        let logger = Log.category(category)
-        if let runLogURL {
-            logger.notice("Log file: \(runLogURL.path)")
-        }
-
-        return logger
+        return Log.category(category)
     }
 }

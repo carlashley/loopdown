@@ -23,6 +23,7 @@
 		FA0A60C32F1C58D50025ED20 /* ValidationHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C22F1C58D50025ED20 /* ValidationHelpers.swift */; };
 		FA0A60C52F1C5A650025ED20 /* CLILogging.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C42F1C5A650025ED20 /* CLILogging.swift */; };
 		FA0A60C82F1C62AF0025ED20 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C72F1C62AF0025ED20 /* BuildInfo.swift */; };
+		FA1D6C162F64FB4E00C22204 /* PackageInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA1D6C152F64FB4E00C22204 /* PackageInstaller.swift */; };
 		FA239F202F1CF222007A0E75 /* InstalledApplicationResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA239F1F2F1CF222007A0E75 /* InstalledApplicationResolver.swift */; };
 		FA239F232F1CF2CA007A0E75 /* StagingDirectoryAndSignalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA239F222F1CF2CA007A0E75 /* StagingDirectoryAndSignalling.swift */; };
 		FA239F262F1E154B007A0E75 /* Collection+Enumerated.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA239F252F1E154B007A0E75 /* Collection+Enumerated.swift */; };
@@ -32,6 +33,8 @@
 		FA7D5B522F28A89E0049BB47 /* ContentCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7D5B512F28A89E0049BB47 /* ContentCoordinator.swift */; };
 		FA7D5B542F28BF7C0049BB47 /* AssetCacheLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7D5B532F28BF7C0049BB47 /* AssetCacheLocator.swift */; };
 		FA7D5B572F28CA270049BB47 /* CacheServerResolution.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7D5B562F28CA270049BB47 /* CacheServerResolution.swift */; };
+		FA9C3A862F3485140079758A /* DownloadClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9C3A852F3485140079758A /* DownloadClient.swift */; };
+		FA9C3A882F34AF840079758A /* ExecutionLock+Async.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9C3A872F34AF840079758A /* ExecutionLock+Async.swift */; };
 		FAA398352F1BA1330053139B /* LoopdownServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA3982B2F1BA1330053139B /* LoopdownServices.framework */; };
 		FAA398512F1BA15A0053139B /* LoopdownInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398472F1BA15A0053139B /* LoopdownInfrastructure.framework */; };
 		FAA3986D2F1BA16F0053139B /* LoopdownCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398632F1BA16E0053139B /* LoopdownCore.framework */; };
@@ -100,6 +103,7 @@
 		FA0A60C22F1C58D50025ED20 /* ValidationHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationHelpers.swift; sourceTree = "<group>"; };
 		FA0A60C42F1C5A650025ED20 /* CLILogging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLILogging.swift; sourceTree = "<group>"; };
 		FA0A60C72F1C62AF0025ED20 /* BuildInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BuildInfo.swift; path = Sources/Generated/BuildInfo.swift; sourceTree = SOURCE_ROOT; };
+		FA1D6C152F64FB4E00C22204 /* PackageInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageInstaller.swift; sourceTree = "<group>"; };
 		FA239F1F2F1CF222007A0E75 /* InstalledApplicationResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledApplicationResolver.swift; sourceTree = "<group>"; };
 		FA239F222F1CF2CA007A0E75 /* StagingDirectoryAndSignalling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StagingDirectoryAndSignalling.swift; sourceTree = "<group>"; };
 		FA239F252F1E154B007A0E75 /* Collection+Enumerated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Collection+Enumerated.swift"; sourceTree = "<group>"; };
@@ -115,6 +119,8 @@
 		FA7D5B512F28A89E0049BB47 /* ContentCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentCoordinator.swift; sourceTree = "<group>"; };
 		FA7D5B532F28BF7C0049BB47 /* AssetCacheLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetCacheLocator.swift; sourceTree = "<group>"; };
 		FA7D5B562F28CA270049BB47 /* CacheServerResolution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheServerResolution.swift; sourceTree = "<group>"; };
+		FA9C3A852F3485140079758A /* DownloadClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadClient.swift; sourceTree = "<group>"; };
+		FA9C3A872F34AF840079758A /* ExecutionLock+Async.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExecutionLock+Async.swift"; sourceTree = "<group>"; };
 		FAA398182F1B9FDD0053139B /* loopdown */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = loopdown; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAA3982B2F1BA1330053139B /* LoopdownServices.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LoopdownServices.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAA398342F1BA1330053139B /* LoopdownServicesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoopdownServicesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -253,6 +259,7 @@
 		FA290E6A2F1BADCE0090B7F7 /* LoopdownInfrastructure */ = {
 			isa = PBXGroup;
 			children = (
+				FA9C3A812F346F490079758A /* Networking */,
 				FA58F8EA2F1CCD38001EFB98 /* Subprocess */,
 				FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */,
 				FA290E682F1BADCE0090B7F7 /* LoopdownInfrastructure.docc */,
@@ -288,6 +295,7 @@
 				FA58F8E42F1CC9EA001EFB98 /* SystemProfiler.swift */,
 				FA58F8EC2F1CCF81001EFB98 /* PackageInfo.swift */,
 				FA7D5B532F28BF7C0049BB47 /* AssetCacheLocator.swift */,
+				FA1D6C152F64FB4E00C22204 /* PackageInstaller.swift */,
 			);
 			path = Subprocess;
 			sourceTree = "<group>";
@@ -304,8 +312,17 @@
 			isa = PBXGroup;
 			children = (
 				FA7D5B562F28CA270049BB47 /* CacheServerResolution.swift */,
+				FA9C3A872F34AF840079758A /* ExecutionLock+Async.swift */,
 			);
 			path = Helpers;
+			sourceTree = "<group>";
+		};
+		FA9C3A812F346F490079758A /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				FA9C3A852F3485140079758A /* DownloadClient.swift */,
+			);
+			path = Networking;
 			sourceTree = "<group>";
 		};
 		FAA3980F2F1B9FDD0053139B = {
@@ -659,6 +676,7 @@
 				FA0A60C32F1C58D50025ED20 /* ValidationHelpers.swift in Sources */,
 				FA0A60AB2F1C51630025ED20 /* AppLogLevel+ArgumentParser.swift in Sources */,
 				FA0A60B12F1C54560025ED20 /* ServerArguments.swift in Sources */,
+				FA9C3A882F34AF840079758A /* ExecutionLock+Async.swift in Sources */,
 				FA0A60B72F1C550F0025ED20 /* Download.swift in Sources */,
 				FAB048CB2F1C7A74000FA556 /* CLIRunner.swift in Sources */,
 				FAB048C52F1C6F4B000FA556 /* ConcreteApp+ArgumentParser.swift in Sources */,
@@ -692,11 +710,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA1D6C162F64FB4E00C22204 /* PackageInstaller.swift in Sources */,
 				FA58F8EB2F1CCD38001EFB98 /* SubprocessRunner.swift in Sources */,
 				FAB048C72F1C74A0000FA556 /* ExecutionLock.swift in Sources */,
 				FA0A60AF2F1C54020025ED20 /* PrivilegeCheck.swift in Sources */,
 				FA7D5B542F28BF7C0049BB47 /* AssetCacheLocator.swift in Sources */,
 				FA0A60A82F1C4C9E0025ED20 /* Logging.swift in Sources */,
+				FA9C3A862F3485140079758A /* DownloadClient.swift in Sources */,
 				FA58F8ED2F1CCF81001EFB98 /* PackageInfo.swift in Sources */,
 				FA58F8E52F1CC9EA001EFB98 /* SystemProfiler.swift in Sources */,
 			);
@@ -821,7 +841,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -878,7 +898,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;

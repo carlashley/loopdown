@@ -3,7 +3,6 @@
 //
 // Created on 18/1/2026
 //
-    
 
 import ArgumentParser
 import LoopdownInfrastructure
@@ -52,6 +51,11 @@ struct OptionalContentOption: ParsableArguments {
     var optional: Bool = false
 }
 
+struct SkipSignatureCheckOption: ParsableArguments {
+    @Flag(name: .long, help: "Skip the pkgutil signature check on downloaded packages.")
+    var skipSignatureCheck: Bool = false
+}
+
 struct ServerOptions: ParsableArguments {
     @Option(help: "Caching server to use; 'auto' or http://host:port")
     var cacheServer: CacheServer?
@@ -86,4 +90,3 @@ struct ServerOptions: ParsableArguments {
         }
     }
 }
-
