@@ -7,12 +7,6 @@
 import Foundation
 
 
-// MARK: - Output truncate helper
-func truncateOutput(_ s: String, limit: Int = 4096) -> String {
-    s.count > limit ? String(s.prefix(limit)) + "...<truncated>" : s
-}
-
-
 // MARK: - Types
 
 /// Similar to Python's CompletedProcess.
@@ -51,9 +45,6 @@ enum ProcessRunnerError: Error, CustomStringConvertible {
 
 // MARK: - Runner
 
-// debugLog usage in other files:
-// let logger = Log.category("Subprocess")
-// let result = try ProcessRunner.run(cmd, check: true, debugLog: { logger.debug($0) })
 enum ProcessRunner {
     /// Rough analogue to Python's subprocess.run().
     ///
@@ -240,31 +231,6 @@ enum ProcessRunner {
             return copy
         }
     }
-
-    /// Convenience for text stdin.
-    @discardableResult
-    static func runText(
-        _ args: [String],
-        cwd: URL? = nil,
-        env: [String: String]? = nil,
-        stdin: String,
-        captureOutput: Bool = true,
-        check: Bool = false,
-        timeout: TimeInterval? = nil,
-        debugLog: ((String) -> Void)? = nil
-    ) throws -> CompletedProcess {
-        try run(
-            args,
-            cwd: cwd,
-            env: env,
-            stdin: stdin.data(using: .utf8),
-            captureOutput: captureOutput,
-            check: check,
-            timeout: timeout,
-            debugLog: debugLog
-        )
-    }
-
 }
 
 private extension Process {
@@ -279,16 +245,3 @@ private extension Process {
         #endif
     }
 }
-
-
-/*
- usage:
- let logger = Log.category("Subprocess")
- let result = try ProcessRunner.runText(
-     cmd,
-     stdin: "hello",
-     check: true,
-     debugLog: { logger.debug($0) }
- )
-
- */

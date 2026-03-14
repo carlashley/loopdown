@@ -9,17 +9,17 @@ import Foundation
 
 // MARK: - Package Info
 /// Receipt info for an installed package (from `/usr/sbin/pkgutil --pkg-info-plist <packageID>`).
-struct PackageReceipt: Hashable {
-    let packageID: String
-    let version: String?
+public struct PackageReceipt: Hashable {
+    public let packageID: String
+    public let version: String?
 
-    enum ReceiptError: Error, CustomStringConvertible {
+    public enum ReceiptError: Error, CustomStringConvertible {
         case pkgutilNotFound
         case receiptNotFound(String)
         case invalidPlistRoot(String)
         case missingIdentifier
 
-        var description: String {
+        public var description: String {
             switch self {
             case .pkgutilNotFound:
                 return "binary not found at '/usr/sbin/pkgutil'"
@@ -33,13 +33,47 @@ struct PackageReceipt: Hashable {
         }
     }
 
+    // MARK: - Version comparison
+
+    /// Compare two version strings component-by-component as integers,
+    /// padding the shorter version with zeros.
+    ///
+    /// Handles the common case where the remote version is a single integer
+    /// (e.g. `"2"`) and the local version is a multi-component string
+    /// (e.g. `"2.1.5"`). Under this scheme `"2"` == `"2.0.0"`.
+    ///
+    /// Non-numeric components are treated as `0`.
+    ///
+    /// - Returns: `true` if `localVersion` is greater than or equal to `remoteVersion`.
+    public static func localVersionIsCurrentOrNewer(
+        localVersion: String,
+        remoteVersion: String
+    ) -> Bool {
+        let local  = components(of: localVersion)
+        let remote = components(of: remoteVersion)
+        let length = max(local.count, remote.count)
+
+        for i in 0..<length {
+            let l = i < local.count  ? local[i]  : 0
+            let r = i < remote.count ? remote[i] : 0
+            if l < r { return false }
+            if l > r { return true }
+        }
+        return true  // equal
+    }
+
+    /// Split a version string on `.` and parse each component as Int (0 for non-numeric).
+    private static func components(of version: String) -> [Int] {
+        version.split(separator: ".").map { Int($0) ?? 0 }
+    }
+
     /// Load receipt info by running `/usr/sbin/pkgutil`.
     ///
     /// - Parameters:
     ///   - packageID: The package identifier to query.
     ///   - debugLog: Optional debug logger closure.
     /// - Returns: A receipt if installed, otherwise nil.
-    static func loadIfInstalled(
+    public static func loadIfInstalled(
         _ packageID: String,
         debugLog: ((String) -> Void)? = nil
     ) throws -> PackageReceipt? {
@@ -158,17 +192,3 @@ public enum PackageSignatureChecker {
         return isSigned
     }
 }
-
-/*
- Usage:
- let logger = Log.category("Receipts")
- let receipt = try PackageReceipt.loadIfInstalled(
-     "com.apple.pkg.GarageBand10Content",
-     debugLog: { logger.debug($0) }
- )
-
- let ok = PackageSignatureChecker.isSignedAppleSoftware(
-     pkgURL: stagedURL,
-     debugLog: { logger.debug($0) }
- )
- */

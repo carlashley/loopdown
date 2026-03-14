@@ -7,6 +7,11 @@
 
 import Foundation
 
+// MARK: - Output truncate helper
+private func truncateOutput(_ s: String, limit: Int = 4096) -> String {
+    s.count > limit ? String(s.prefix(limit)) + "...<truncated>" : s
+}
+
 
 // MARK: - System Profiler
 public enum SystemProfilerDataType: String {
