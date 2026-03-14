@@ -78,11 +78,6 @@ public enum LoopdownConstants {
         public static let defaultSubsystem = "com.github.carlashley.loopdown"
     }
     
-    public enum Logging {
-        /// Where loopdown writes logs (old project used /Users/Shared/loopdown).
-        public static let logDirectoryURL = URL(fileURLWithPath: "/Users/Shared/loopdown", isDirectory: true)
-    }
-    
     public enum Paths {
         /// Default destination for downloaded/staged content.
         public static let defaultDest = "/tmp/loopdown"
