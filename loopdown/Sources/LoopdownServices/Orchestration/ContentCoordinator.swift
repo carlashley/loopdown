@@ -232,7 +232,13 @@ private extension ContentCoordinator {
             return
         }
 
-        // 5) Create staging directory and install signal handlers for cleanup.
+        // 5) Early exit if nothing needs installing (all packages already up to date).
+        if pending.isEmpty {
+            logger.notice("All packages are already installed.")
+            return
+        }
+
+        // 6) Create staging directory and install signal handlers for cleanup.
         let staging = try TemporaryDirectory()
 
         let signalCleanup = SignalCleanup {
@@ -245,12 +251,11 @@ private extension ContentCoordinator {
             staging.cleanup()
         }
 
-        // 6) Download into staging, verify signature, then install.
+        // 7) Download into staging, verify signature, then install.
         // Iterate over `pending` directly — it already contains only the packages
         // that need installing, so no further filtering or packageNeedsInstall calls
         // are needed here.
         let total = pending.count
-        var didInstallAny = false
         for (idx, pkg) in pending.enumerated() {
             let n = idx + 1
             let remoteURL = packageRemoteURL(baseURL: baseURL, pkg: pkg)
@@ -277,7 +282,6 @@ private extension ContentCoordinator {
                 }
             }
 
-            didInstallAny = true
             do {
                 try PackageInstaller.install(
                     pkgURL: stagedURL,
@@ -285,15 +289,12 @@ private extension ContentCoordinator {
                     debugLog: logger.debug,
                     errorLog: logger.error
                 )
-                logger.notice("\(counter(n, of: total)) - installed: \(pkg.name)")
+                logger.notice("\(String(repeating: " ", count: counter(n, of: total).count + 3))installed: \(pkg.name)")
             } catch {
-                logger.error("\(counter(n, of: total)) - failed to install: \(pkg.name) (\(error))")
+                logger.error("\(String(repeating: " ", count: counter(n, of: total).count + 3))failed to install: \(pkg.name) (\(error))")
             }
         }
 
-        if !didInstallAny {
-            logger.notice("All packages are already installed.")
-        }
     }
 
     /// List packages for a deploy dry-run, noting which would be skipped as already current.
