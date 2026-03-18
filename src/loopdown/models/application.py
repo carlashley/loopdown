@@ -83,4 +83,8 @@ class Application:
                 return None
             # pylint: enable=broad-exception-caught
 
+        content = data.get("Packages", None)
+        log.debug("%s raw content". self.name)
+        log.debug(content)
+
         return data.get("Packages", None)
