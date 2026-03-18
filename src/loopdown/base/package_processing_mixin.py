@@ -174,6 +174,7 @@ class PackageProcessingMixin:
         """Read + filter one app's packages; returns a set for easy unioning.
         :param app: Application instance"""
         pkgs_meta = app.packages
+        skip_sig_check = True if self.deploy_mode or self.args.dry_run else self.args.skip_pre_signature_check
 
         # early abort
         if pkgs_meta is None:
@@ -184,24 +185,17 @@ class PackageProcessingMixin:
 
         for pkg_data in pkgs_meta.values():
             pkg = _generate_audio_package_dataclass_obj(pkg_data)
+            existing = by_id.get(pkg.package_id, None)
+            has_been_downloaded = self._has_been_downloaded(pkg, state="existing", skip_sig_check=skip_sig_check)
 
             if self.deploy_mode and pkg.is_installed and not self.args.force:
                 continue
 
-            # always skip signature check when in deploy mode during pre-processing
-            skip_sig_check = True if self.deploy_mode else self.args.skip_pre_signature_check
-            if (
-                self.download_mode
-                and self._has_been_downloaded(pkg, state="existing", skip_sig_check=skip_sig_check)
-                and not self.args.force
-            ):
+            if self.download_mode and has_been_downloaded and not self.args.force:
                 continue
 
             if not self._add_pkg_for_processing(pkg):
                 continue
-
-            # testing preferred state
-            existing = by_id.get(pkg.package_id)
 
             if existing is None:
                 by_id[pkg.package_id] = pkg
