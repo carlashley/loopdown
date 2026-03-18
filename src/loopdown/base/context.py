@@ -39,12 +39,18 @@ class LoopdownContext(PackageProcessingMixin, DownloadMixin, InstallMixin, Audit
     def packages(self) -> Optional[list[AudioContentPackage]]:
         """Packages that will need to be processed."""
         apps_to_process = tuple(app for app in self.installed_apps if app.short_name in self.args.applications)
+        log.debug("apps to process")
+        log.debug(apps_to_process)
 
         # early abort if no apps
         if not apps_to_process:
+            log.debug("aborted early; no apps found")
             return None
 
         merged = self._gather_packages_concurrently(apps_to_process)
+        log.debug("merged packages to process")
+        log.debug(merged)
+
         return merged
 
     def process_content(self) -> None:
