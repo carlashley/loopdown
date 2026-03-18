@@ -15,8 +15,21 @@ from ..consts.config_consts import ConfigurationConsts
 from ..consts.version_enums import VersionInfo
 
 
-def add_shared_options_to_subparser(p: argparse.ArgumentParser) -> None:
-    """Adds options shared by both 'deploy' and 'download' subparsers."""
+    def add_shared_options_to_subparser(
+    p: argparse.ArgumentParser, *, main: StrictArgumentParser, pkg_group_registered: list[bool]
+) -> None:
+    """Adds options shared by both 'deploy' and 'download' subparsers.
+    'main' is the top level StrictArgumentParser class; the package selection group is registered on it exactly once
+    (controlled by 'pkg_group_registered') so that '_validate_any_required_groups' only runs a single check regardless
+    of how many subparsers share those options.
+    :param p: argparse.ArgumentParser object
+    :param main: the top level StrictArgumentParser object
+    :param pkg_group_registered: list of bools when 'any of required' type arguments are registered"""
+    pkg_grp = p.add_argument_group(
+        "package selection",
+        description="at least one of -r/--req or -o/--opt is required",
+    )
+
     p.add_argument(
         "-n",
         "--dry-run",
@@ -41,22 +54,6 @@ def add_shared_options_to_subparser(p: argparse.ArgumentParser) -> None:
     )
 
     p.add_argument(
-        "-r",
-        "--req",
-        action="store_true",
-        dest="required",
-        help="include the required audio packages",
-    )
-
-    p.add_argument(
-        "-o",
-        "--opt",
-        action="store_true",
-        dest="optional",
-        help="include the optional audio packages"
-    )
-
-    p.add_argument(
         "-f",
         "--force",
         action="store_true",
@@ -64,6 +61,35 @@ def add_shared_options_to_subparser(p: argparse.ArgumentParser) -> None:
         required=False,
         help="force the specified action",
     )
+
+    req_action = pkg_grp.add_argument(
+        "-r",
+        "--req",
+        action="store_true",
+        dest="required",
+        help="include the required audio packages",
+    )
+
+    opt_action = pkg_grp.add_argument(
+        "-o",
+        "--opt",
+        action="store_true",
+        dest="optional",
+        help="include the optional audio packages"
+    )
+
+    # register any-of-required constrain on the main parser _once_. validation runs there because argparse
+    # dispatches subparser parsing internally, bypassing our overridden parse_args on the subparser instance
+    if not pkg_group_registered[0]:
+        main.add_any_required_group(
+            "package selection",
+            description="at least one of -r/--req or -o/--opt is required",
+        )
+
+        # directly assign the actions capture from the first subparser's add_argument calls above;
+        # both subparsers share teh same dest names so either set works
+        main._any_required_groups[-1].actions = [req_action, opt_action]
+        pkg_group_registered[0] = True
 
 
 def build_arguments() -> argparse.Namespace:
@@ -133,6 +159,10 @@ def build_arguments() -> argparse.Namespace:
         help="use %(metavar)s -h for further help",
     )
 
+    # sentinel used to ensure any-of-required group for -r/--req and -o/--opt is registered on the main parser
+    # once, even though add_shared_options_to_subparser is called once per subparser
+    pkg_group_registered: list[bool] = [False]
+
     deploy = subparsers.add_parser(
         "deploy",
         formatter_class=QuotedChoicesHelpFormatter,
@@ -140,7 +170,7 @@ def build_arguments() -> argparse.Namespace:
         description="Deploy audio content packages locally (requires elevated permission when not performing dry-run)",
     )
 
-    add_shared_options_to_subparser(deploy)
+    add_shared_options_to_subparser(deploy, main=p, pkg_group_registered=pkg_group_registered)
 
     deploy.add_argument(
         "-c",
@@ -176,7 +206,7 @@ def build_arguments() -> argparse.Namespace:
         description="Download audio content packages locally"
     )
 
-    add_shared_options_to_subparser(download)
+    add_shared_options_to_subparser(download, main=p, pkg_group_registered=pkg_group_registered)
 
     download.add_argument(
         "-d",
