@@ -56,6 +56,12 @@ class DownloadMixin:
         if self.args.quiet:
             args.append("--silent")
 
+        # when in deploy mode, check if the package already exists and is valid so we don't have to download
+        if self.deploy_mode and not self.args.dry_run:
+            if self._has_been_downloaded(pkg, state="completed", skip_sig_check=False):
+                log.debug("pre-stashed package '%s' exists; using this as source", pkg)
+                return True
+
         curl(url, *args, "-o", str(dest), capture_output=False, env=env)
 
         # explicitly check the signature with pkgutil after downloading
@@ -73,21 +79,25 @@ class DownloadMixin:
         :param state: used in the log to indicate a completed download or existing download, value should be
                       either 'completed' or 'existing'"""
         fp = self.args.destination.joinpath(pkg.download_path)
+        skip_check = skip_sig_check or self.args.skip_pre_signature_check
         exists = fp.exists()
 
-        # signature cannot be skipped after downloading if it's explicitly stated in that _download method
-        if not skip_sig_check or not self.args.skip_pre_signature_check:
+        if not skip_check and exists:
             signed = pkg_is_signed_apple_software(fp) or False
-            downloaded = exists and signed
-            log.debug(f"Heuristics test for {state} download appears to pass: {exists=} and {signed=} == {downloaded}")
         else:
-            downloaded = exists
-            log.debug(
-                f"Heuristics test for {state} download appears to pass: {exists=} == {downloaded} (skipped "
-                "signature check with pkgutil)"
-            )
+            signed = None
 
-        return downloaded
+        if self.args.dry_run:
+            if not skip_sig_check:
+                return exists
+            return signed and exists
+
+        if signed is not None:
+            log.debug(f"Heuristics test for {state} download (signature check + file exists): {exists=} and {signed=}")
+            return signed and exists
+
+        log.debug(f"Heuristics test fall back to file exists only for {state} download: {exists=}")
+        return exists
 
     def _generate_url_and_dest(self, pkg: AudioContentPackage) -> tuple[str, Path]:
         """Generate the url and destination path for a given AudioContentPackage object.
