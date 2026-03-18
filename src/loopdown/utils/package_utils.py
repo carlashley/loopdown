@@ -81,9 +81,7 @@ def found_sentinel_files(files: list[str]) -> bool:
     exists as output from the 'pkginfo' only confirms the package WAS installed and not IS installed.
     This method is used in the models.package.AudioContentPackage dataclass.
     :param files: a list of string values representing each sentinel file to test"""
-    files_exist = any(Path(f).expanduser().exists() for f in files)
-
-    return files_exist
+    return any(Path(f).expanduser().exists() for f in files)
 
 
 def installed_version_satisfies_required_version(*, installed: vers.Version, required: vers.Version) -> bool:
