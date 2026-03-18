@@ -9,16 +9,16 @@ from typing import Optional
 from ..consts.apple_enums import AppleConsts
 
 
-def bytes2hr(v: str | int | float, *, bs: int = 1024) -> str:
-    """Convert bytes size value to human readable value. For example: 10000000bytes > 10MB.
+def bytes2hr(v: str | int | float, *, bs: float = 1000.0) -> str:
+    """Convert bytes size value to human readable value. Returns SI Unit style suffixes (KB, MB, GB, etc).
     :param v: value
-    :param bs: block size; default is 1024"""
+    :param bs: block size; default is 1000 (closest match to Apple behaviour for human friendly file sizes)"""
     v, idx = float(v), 0  # convert v to int, and set default index starting point
     suffixes = ("B", "KB", "MB", "GB", "TB", "PB")
 
     while v > bs and idx < len(suffixes) - 1:
         idx += 1
-        v /= float(bs)
+        v /= bs
 
     return f"{v:.2f}{suffixes[idx]}"
 
