@@ -15,7 +15,7 @@ from ..consts.config_consts import ConfigurationConsts
 from ..consts.version_enums import VersionInfo
 
 
-    def add_shared_options_to_subparser(
+def add_shared_options_to_subparser(
     p: argparse.ArgumentParser, *, main: StrictArgumentParser, pkg_group_registered: list[bool]
 ) -> None:
     """Adds options shared by both 'deploy' and 'download' subparsers.
