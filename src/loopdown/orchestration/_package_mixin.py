@@ -81,6 +81,10 @@ class PackageProcessingMixin:
 
         for data in metadata.values():
             pkg = AudioContentPackage.from_dict(data)
+
+            if pkg is None:
+                continue
+
             existing = pkgs_by_id.get(pkg.package_id)
 
             if self.ctx.deploy_mode and pkg.is_installed and not self.ctx.args.force:

@@ -51,5 +51,9 @@ class ApplicationDiscoveryMixin:
                 continue
 
             obj = Application.from_dict(app)
+
+            if obj is None:
+                continue
+
             log.debug("Found installed application %s", obj)
             yield obj

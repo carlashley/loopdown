@@ -90,11 +90,16 @@ class Application:
     short_name: Optional[str] = field(default=None)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Application":
+    def from_dict(cls, data: dict[str, Any]) -> Optional["Application"]:
         """Emits an instance of 'Application' from mapping data.
         :param data: raw mapping of application keys to values"""
         values = {mapped_attr: data.get(attr) for attr, mapped_attr in DATACLASS_ATTRS_MAP.items()}
-        return cls(**values)
+
+        try:
+            return cls(**values)
+        except Exception as e:
+            log.error("Failed to create %s from data: %s", cls.__name__, str(e))
+            return None
 
     def __post_init__(self) -> None:
         """Normalize fields after init to expected data types and update empty attributes once we have data."""

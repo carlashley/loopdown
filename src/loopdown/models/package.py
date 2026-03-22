@@ -1,5 +1,6 @@
 """Package model."""
 # pylint: disable=too-many-instance-attributes
+import logging
 import posixpath
 
 from collections.abc import Mapping
@@ -12,6 +13,8 @@ from packaging import version as vers
 
 from .size import Size
 from ..utils.package_utils import get_pkg_info
+
+log = logging.getLogger(__name__)
 
 DATACLASS_ATTRS_MAP: dict[str, str] = {
     "DownloadName": "download_name",
@@ -107,12 +110,16 @@ class AudioContentPackage:
     download_path: Optional[str] = nohash_fld(default=None)
 
     @classmethod
-    def from_dict(cls, data: Mapping) -> "AudioContentPackage":
+    def from_dict(cls, data: Mapping) -> Optional["AudioContentPackage"]:
         """Emits an instance of 'AudioContentPackage' from mapping data.
         :param data: raw mapping of package metadata keys to values"""
         values = {mapped_attr: data.get(attr) for attr, mapped_attr in DATACLASS_ATTRS_MAP.items()}
 
-        return cls(**values)
+        try:
+            return cls(**values)
+        except Exception as e:
+            log.error("Failed to create %s from data: %s", cls.__name__, str(e))
+            return None
 
     def __post_init__(self) -> None:
         """Normalizes attributes after initializing."""
