@@ -119,6 +119,14 @@ def build_arguments() -> argparse.Namespace:
     )
 
     p.add_argument(
+        "--no-proxy",
+        action="store_true",
+        dest="no_proxy",
+        help="ignore proxies for '*' in all curl subprocess calls",
+        required=False,
+    )
+
+    p.add_argument(
         "--skip-signature-check",
         action="store_true",
         dest="skip_sig_check",

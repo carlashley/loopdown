@@ -62,6 +62,9 @@ class DownloadMixin:
         if self.ctx.args.quiet:
             cmd_args.append("--silent")
 
+        if self.ctx.args.no_proxy:
+            cmd_args.extend(["--noproxy", "'*'"])
+
         # use existing package if present when in deploy mode
         if self.ctx.deploy_mode and not self.ctx.args.dry_run:
             if self.pkg_is_downloaded(dest, state="existing", skip_sig_check=False):
