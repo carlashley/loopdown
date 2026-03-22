@@ -1,14 +1,32 @@
-"""File locking utils."""
+"""File locking and signal handler utils."""
 
 import fcntl
 import logging
 import os
+import signal
 
+from collections.abc import Callable
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
 log = logging.getLogger(__name__)
+
+Handler = Callable[[int, object], None]
+
+
+def install_termination_handlers(*, raise_kb_interrupt: bool = True) -> None:
+    """install signal handlers so SIGTERM triggers clean shutdown.
+    :param raise_kb_interrupt: SIGTERM raises 'KeyboardInterrupt' if 'True' so it follows
+                               the same cleanup path as CTRL+C; if 'False', raises SystemExit(143)"""
+    def _handle_sigterm(_signum: int, _frame: object) -> None:
+        # _signum and _frame intentionally unused.
+        if raise_kb_interrupt:
+            raise KeyboardInterrupt
+
+        raise SystemExit(143)
+
+    signal.signal(signal.SIGTERM, _handle_sigterm)
 
 
 class AlreadyRunningError(RuntimeError):
@@ -33,7 +51,7 @@ def lock_execution(*, app_name: str) -> Iterator[None]:
         try:
             fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
-            log.error(f"Another instance of {app_name} is already running.")
+            log.error("Another instance of %s is already running.", app_name)
             raise AlreadyRunningError from None
 
         yield

@@ -1,27 +1,98 @@
 """Package model."""
 # pylint: disable=too-many-instance-attributes
+import posixpath
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
 from typing import Optional
 
 from packaging import version as vers
-from .json_mixin import AsJsonMixin
+
 from .size import Size
-from ..utils.normalizers import normalize_file_check_value, normalize_package_download_path
-from ..utils.package_utils import (
-    found_sentinel_files,
-    installed_pkg_version,
-    installed_version_satisfies_required_version,
-)
+from ..utils.package_utils import get_pkg_info
+
+DATACLASS_ATTRS_MAP: dict[str, str] = {
+    "DownloadName": "download_name",
+    "PackageID": "package_id",
+    "DownloadSize": "download_size",
+    "FileCheck": "file_check",
+    "InstalledSize": "installed_size",
+    "IsMandatory": "mandatory",
+    "PackageVersion": "version",
+}
 
 nohash_fld = partial(field, hash=False, compare=False)
 hashed_fld = partial(field, hash=True, compare=True)
 
 
+def found_sentinel_files(v: list[str]) -> bool:
+    """Any of the sentinel files were or were not found at the 'file_check' locations.
+    :param v: sentinel file values"""
+    return any(Path(f).expanduser().exists() for f in v)
+
+
+def get_installed_pkg_version(pkg_id: str) -> vers.Version:
+    """Get the installed version of a package from the package id.
+    :param pkg_id: package id"""
+    pkginfo = get_pkg_info(pkg_id)
+
+    if pkginfo is None:
+        return vers.parse("0.0.0")
+
+    return vers.parse(pkginfo.get("pkg-version", "0.0.0"))
+
+
+def installed_vers_satisfies_reqd_vers(inst: vers.Version, reqd: vers.Version) -> bool:
+    """Use prefix-floor semantics to ensure the installed version satisfies the required version.
+    For example, installed=2.1.0.0.1235, required=2.1; installed version satisfies required version.
+    :param inst: vers.Version object representing installed version
+    :param reqd: vers.Version object representing required version"""
+    reqd_rel = reqd.release
+    inst_rel = inst.release
+
+    if not reqd_rel:
+        return True  # required version is 'odd'; treat as 'no minimum'
+
+    # when installed has fewer components than required, pad with zeroes
+    if len(inst_rel) < len(reqd_rel):
+        inst_pfx = inst_rel + (0,) * (len(reqd_rel) - len(inst_rel))
+    else:
+        inst_pfx = inst_rel[: len(reqd_rel)]
+
+    return inst_pfx >= reqd_rel
+
+
+def normalize_file_check(v: str | list[str]) -> list[str]:
+    """Normalize the 'file_check' attribute to always be a list[str]. The metadata mixes these values in each package
+    meta object as either a string or an array of strings.
+    :param v: value"""
+    if isinstance(v, str):
+        return [v]
+
+    return v
+
+
+def normalize_url_path(p: str) -> str:
+    """Normalize a path of a URL; collapse multiple slashes in paths and resolve '../' type paths to natural path.
+    This presumes that the standard top path component is 'lp10_ms3_content_2016' so it is always pre-pended to the
+    path (current behaviour in the metadata files does not include that path component, but always includes the
+    '../lp10_ms3_content_2013' component in the download name, suggesting that Apple's software always pre-pends the
+    2016 component).
+    :param p: path value"""
+    path = f"lp10_ms3_content_2016/{p}"
+    normalized = posixpath.normpath(path)
+
+    # ensure trailing slash is preserved, not likely to need this though
+    if p.endswith("/") and not normalized.endswith("/"):
+        normalized += "/"
+
+    return normalized
+
+
 @dataclass(eq=True, unsafe_hash=True, frozen=False)
-class AudioContentPackage(AsJsonMixin):
+class AudioContentPackage:
     """Audio content package."""
 
     download_name: str = nohash_fld()
@@ -35,19 +106,21 @@ class AudioContentPackage(AsJsonMixin):
     version: Optional[vers.Version] = nohash_fld(default=None)
     download_path: Optional[str] = nohash_fld(default=None)
 
+    @classmethod
+    def from_dict(cls, data: Mapping) -> "AudioContentPackage":
+        """Emits an instance of 'AudioContentPackage' from mapping data.
+        :param data: raw mapping of package metadata keys to values"""
+        values = {mapped_attr: data.get(attr) for attr, mapped_attr in DATACLASS_ATTRS_MAP.items()}
+
+        return cls(**values)
+
     def __post_init__(self) -> None:
-        """Normalize fields after init to expected data types and set empty attributes when we have data.
-            - convert 'download_name' into a basename value in its own attribute 'name'
-            - clean up extra characters in the 'package_id' value
-            - normalize the 'download_name' by removing paths (../<dir>/)
-            - normalize 'file_check' into a consistent list[str] instead of inconsistent str/list[str] the
-              source metadata flops between
-            - convert size values to instances of 'Size' for easy compute + str representation"""
+        """Normalizes attributes after initializing."""
         self.name = Path(self.download_name).name
         self.package_id = self.package_id.strip()
-        self.download_path = normalize_package_download_path(self.download_name)
+        self.download_path = normalize_url_path(self.download_name)
         self.download_size = Size(self.download_size)  # type: ignore[arg-type]
-        self.file_check = normalize_file_check_value(self.file_check)  # self._set_file_check_value()
+        self.file_check = normalize_file_check(self.file_check)
         self.installed_size = Size(self.installed_size)  # type: ignore[arg-type]
         self.mandatory = bool(self.mandatory)  # not all packages have 'mandatory'; default to False
 
@@ -56,7 +129,7 @@ class AudioContentPackage(AsJsonMixin):
 
     def __str__(self) -> str:
         """Custom string representation."""
-        return f"{self.name}"
+        return self.name
 
     @property
     def has_sentinel_files(self) -> bool:
@@ -70,7 +143,7 @@ class AudioContentPackage(AsJsonMixin):
         if self.version is None:
             return self.has_sentinel_files
 
-        return installed_version_satisfies_required_version(installed=self.installed_version, required=self.version)
+        return installed_vers_satisfies_reqd_vers(self.installed_version, self.version)
 
     @property
     def installed_version(self) -> vers.Version:
@@ -78,11 +151,11 @@ class AudioContentPackage(AsJsonMixin):
         if not self.has_sentinel_files:
             return vers.parse("0.0.0")
 
-        return installed_pkg_version(self.package_id)
+        return get_installed_pkg_version(self.package_id)
 
-    def unlink_pkg(self, basedir: Path, *, missing_ok: bool):
-        """Unlink/delete the package. Uses the base directory specified and the download_path attribute of own instance
-        to use as the file to unlink.
-        :param basedir: base directory the package is expected to be in
-        :param missing_ok: passed to the path.unlink() call"""
-        basedir.joinpath(self.download_path).unlink(missing_ok=missing_ok)
+    def unlink(self, basedir: Path, *, missing_ok: bool) -> None:
+        """Unlink (delete) the package.
+        :param basedir: base directory where the package should be located (package download path added to this value)
+        :param missing_ok: don't raise an error if the file is missing when True"""
+        if self.download_path is not None:
+            basedir.joinpath(self.download_path).unlink(missing_ok=missing_ok)

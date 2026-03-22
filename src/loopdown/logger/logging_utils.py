@@ -6,10 +6,8 @@ import logging.handlers
 
 from logging import StreamHandler
 from pathlib import Path
-from typing import Any
 
-from .logger_filter_utils import AnyOfLevelsFilter, ExactLevelFilter
-from .logging_formatters import JsonFormatter
+from .logger_filter_utils import AnyOfLevelsFilter, ExactLevelFilter, FileOnlyFilter
 
 log = logging.getLogger(__name__)
 
@@ -35,14 +33,15 @@ def rollover_log_files(handler: logging.handlers.RotatingFileHandler) -> bool:
     try:
         if not base.exists() or base.stat().st_size == 0:
             return False
-    except OSError:
+    except OSError as e:
+        log.debug("Error rolling over log files: %s", str(e))
         return False
 
     handler.doRollover()
     return True
 
 
-def human_logging_config(level: str, *, path: Path) -> dict:
+def logging_config(level: str, *, path: Path) -> dict:
     """Returns a dictionary for logging configuration.
     :param level: log level; for example 'info'
     :param path: log file path; for example '/Users/Shared/loopdown/loopdown.log'"""
@@ -64,6 +63,7 @@ def human_logging_config(level: str, *, path: Path) -> dict:
                 "()": AnyOfLevelsFilter,
                 "levelnos": [logging.WARNING, logging.ERROR],
             },
+            "not_file_only": {"()": FileOnlyFilter},
         },
         "formatters": {
             "file": {
@@ -90,14 +90,14 @@ def human_logging_config(level: str, *, path: Path) -> dict:
                 "class": "logging.StreamHandler",
                 "level": "NOTSET",
                 "formatter": "console",
-                "filters": ["only_info"],
+                "filters": ["not_file_only", "only_info"],
                 "stream": "ext://sys.stdout",
             },
             "stderr": {
                 "class": "logging.StreamHandler",
                 "level": "NOTSET",
                 "formatter": "console",
-                "filters": ["warn_or_error"],
+                "filters": ["not_file_only", "warn_or_error"],
                 "stream": "ext://sys.stderr",
             },
         },
@@ -106,66 +106,7 @@ def human_logging_config(level: str, *, path: Path) -> dict:
             "handlers": ["file", "stdout", "stderr"],
         },
         "loggers": {
-            "loopdown.fileonly": {"level": "INFO", "propagate": False, "handlers": ["file"]},
             "requests": {"level": "WARNING", "propagate": False, "handlers": []},
-            "tzlocal": {"level": "WARNING", "propagate": False, "handlers": []},
-            "urllib3": {"level": "WARNING", "propagate": False, "handlers": []},
-        },
-    }
-
-
-def mixed_logging_config(level: str, *, path: Path) -> dict[str, Any]:
-    """Mixed logging. Log messages are stored in JSON format while human readable messages are logged to console
-    stdout/stderr."""
-    if level not in LOG_LEVELS:
-        raise ValueError(f"log {level=} invalid; must be from {tuple(LOG_LEVELS.keys())}")
-
-    return {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "filters": {
-            "only_info": {"()": ExactLevelFilter, "levelno": logging.INFO},
-            "warn_or_error": {"()": AnyOfLevelsFilter, "levelnos": [logging.WARNING, logging.ERROR]},
-        },
-        "formatters": {
-            "console": {"format": "%(message)s"},
-            "json": {"()": JsonFormatter},
-        },
-        "handlers": {
-            "file_json": {
-                "class": "logging.handlers.RotatingFileHandler",
-                "level": "NOTSET",
-                "formatter": "json",
-                "filename": str(path),
-                "maxBytes": MAX_BYTES,
-                "backupCount": BACKUP_COUNT,
-                "encoding": "utf-8",
-                "delay": True,
-            },
-            "stdout": {
-                "class": "logging.StreamHandler",
-                "level": "NOTSET",
-                "formatter": "console",
-                "filters": ["only_info"],
-                "stream": "ext://sys.stdout",
-            },
-            "stderr": {
-                "class": "logging.StreamHandler",
-                "level": "NOTSET",
-                "formatter": "console",
-                "filters": ["warn_or_error"],
-                "stream": "ext://sys.stderr",
-            },
-        },
-        "root": {
-            "level": LOG_LEVELS[level],
-            "handlers": ["file_json", "stdout", "stderr"],
-        },
-        "loggers": {
-            # file-only structured/audit logger
-            "loopdown.audit": {"level": LOG_LEVELS[level], "propagate": False, "handlers": ["file_json"]},
-            "requests": {"level": "WARNING", "propagate": False, "handlers": []},
-            "tzlocal": {"level": "WARNING", "propagate": False, "handlers": []},
             "urllib3": {"level": "WARNING", "propagate": False, "handlers": []},
         },
     }
@@ -185,11 +126,11 @@ def mute_console_logging() -> None:
     # pylint: enable=unidiomatic-typecheck
 
 
-def configure_logging(level: str, *, path: str | Path, quiet: bool) -> dict:
+def configure_logging(level: str, *, path: str | Path, quiet: bool) -> None:
     """Configure logging.
-    :param level: log level; for example 'info'
-    :param path: log file path; for example '/Users/Shared/loopdown/loopdown.log'
-    :param quiet: boolean value indicating all stdout/stderr streaming should stop in a 'quiet' mode"""
+    :param level: logging level; for example 'info'
+    :param path: log file path
+    :param quiet: suppress all console output when True"""
     path = Path(path)
     # parent directory must exist; create if it doesn't
     try:
@@ -198,8 +139,7 @@ def configure_logging(level: str, *, path: str | Path, quiet: bool) -> dict:
     except OSError:
         pass  # dictconfig will fail with a clearer error if we can't create directories
 
-    # log_cfg = human_logging_config(level, path=path)
-    log_cfg = mixed_logging_config(level, path=path)
+    log_cfg = logging_config(level, path=path)
     logging.config.dictConfig(log_cfg)
 
     root = logging.getLogger()
@@ -211,5 +151,3 @@ def configure_logging(level: str, *, path: str | Path, quiet: bool) -> dict:
 
     if quiet:
         mute_console_logging()
-
-    return log_cfg

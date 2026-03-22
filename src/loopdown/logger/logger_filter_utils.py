@@ -3,6 +3,20 @@
 import logging
 
 
+class AnyOfLevelsFilter(logging.Filter):
+    """Allow only records whose levelno matches one of the provided levels.
+    :param levelnos: numeric levels to allow, for example [logging.WARNING, logging.INFO, logging.DEBUG]"""
+
+    def __init__(self, levelnos: list[int] | tuple[int, ...]) -> None:
+        super().__init__()
+        self._levelnos = set(int(ln) for ln in levelnos)
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Validate record levelno matches the levelnos we're allowing.
+        :param record: log record instance"""
+        return record.levelno in self._levelnos
+
+
 class ExactLevelFilter(logging.Filter):
     """Allow only records where levelno matches a single logging level.
     :param levelno: exact numeric logging level to allow, for example 'logging.INFO'"""
@@ -17,15 +31,9 @@ class ExactLevelFilter(logging.Filter):
         return record.levelno == self._levelno
 
 
-class AnyOfLevelsFilter(logging.Filter):
-    """Allow only records whose levelno matches one of the provided levels.
-    :param levelnos: numeric levels to allow, for example [logging.WARNING, logging.INFO, logging.DEBUG]"""
-
-    def __init__(self, levelnos: list[int] | tuple[int, ...]) -> None:
-        super().__init__()
-        self._levelnos = set(int(ln) for ln in levelnos)
+class FileOnlyFilter(logging.Filter):
+    """Suppress records tagged as file-only from console output."""
 
     def filter(self, record: logging.LogRecord) -> bool:
-        """Validate record levelno matches the levelnos we're allowing.
-        :param record: log record instance"""
-        return record.levelno in self._levelnos
+        """Filter out records that are not 'file_only' (suppresses 'file_only' log events from console)."""
+        return not getattr(record, "file_only", False)

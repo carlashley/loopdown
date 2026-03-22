@@ -6,25 +6,14 @@ from pathlib import Path
 
 from .arg_formatters import QuotedChoicesHelpFormatter
 
-# from .arg_helpers import AutoChoices, CachingServer, MirrorServer
-from .arg_helpers import CachingServer, MirrorServer
+from .arg_helpers import AUTO, CachingServer, MirrorServer, MISSING
 from .arg_parser import StrictArgumentParser
-from .arg_sentinels import AUTO, MISSING
-from ..consts.apple_enums import ApplicationConsts
-from ..consts.config_consts import ConfigurationConsts
-from ..consts.version_enums import VersionInfo
+from .._config import ApplicationConsts, ConfigurationConsts, VersionInfo
 
 
-def add_shared_options_to_subparser(
-    p: argparse.ArgumentParser, *, main: StrictArgumentParser, pkg_group_registered: list[bool]
-) -> None:
-    """Adds options shared by both 'deploy' and 'download' subparsers.
-    'main' is the top level StrictArgumentParser class; the package selection group is registered on it exactly once
-    (controlled by 'pkg_group_registered') so that '_validate_any_required_groups' only runs a single check regardless
-    of how many subparsers share those options.
-    :param p: argparse.ArgumentParser object
-    :param main: the top level StrictArgumentParser object
-    :param pkg_group_registered: list of bools when 'any of required' type arguments are registered"""
+def add_shared_options_to_subparser(p: argparse.ArgumentParser) -> tuple[argparse.Action, argparse.Action]:
+    """Adds options shared by both 'deploy' and 'download' subparsers. Returns the 'required' and 'optional'
+    argument actions in a tuple for later attachment to the main parser to ensure validating the actions occurs."""
     pkg_grp = p.add_argument_group(
         "package selection",
         description="at least one of -r/--req or -o/--opt is required",
@@ -62,7 +51,7 @@ def add_shared_options_to_subparser(
         help="force the specified action",
     )
 
-    req_action = pkg_grp.add_argument(
+    req_arg = pkg_grp.add_argument(
         "-r",
         "--req",
         action="store_true",
@@ -70,7 +59,7 @@ def add_shared_options_to_subparser(
         help="include the required audio packages",
     )
 
-    opt_action = pkg_grp.add_argument(
+    opt_arg = pkg_grp.add_argument(
         "-o",
         "--opt",
         action="store_true",
@@ -78,18 +67,7 @@ def add_shared_options_to_subparser(
         help="include the optional audio packages"
     )
 
-    # register any-of-required constrain on the main parser _once_. validation runs there because argparse
-    # dispatches subparser parsing internally, bypassing our overridden parse_args on the subparser instance
-    if not pkg_group_registered[0]:
-        main.add_any_required_group(
-            "package selection",
-            description="at least one of -r/--req or -o/--opt is required",
-        )
-
-        # directly assign the actions capture from the first subparser's add_argument calls above;
-        # both subparsers share teh same dest names so either set works
-        main._any_required_groups[-1].actions = [req_action, opt_action]
-        pkg_group_registered[0] = True
+    return (req_arg, opt_arg)
 
 
 def build_arguments() -> argparse.Namespace:
@@ -141,14 +119,11 @@ def build_arguments() -> argparse.Namespace:
     )
 
     p.add_argument(
-        "--skip-pre-signature-check",
+        "--skip-signature-check",
         action="store_true",
-        dest="skip_pre_signature_check",
+        dest="skip_sig_check",
         required=False,
-        help=(
-            "skip the signature check of each downloaded package during pre-run analysis; speeds up processing"
-            "for downloading (this is off by default in 'deploy' mode)"
-        ),
+        help="skip the signature check after downloads (this is off by default in 'deploy' mode and in dry-runs)",
     )
 
     # subcommands
@@ -159,10 +134,6 @@ def build_arguments() -> argparse.Namespace:
         help="use %(metavar)s -h for further help",
     )
 
-    # sentinel used to ensure any-of-required group for -r/--req and -o/--opt is registered on the main parser
-    # once, even though add_shared_options_to_subparser is called once per subparser
-    pkg_group_registered: list[bool] = [False]
-
     deploy = subparsers.add_parser(
         "deploy",
         formatter_class=QuotedChoicesHelpFormatter,
@@ -170,9 +141,13 @@ def build_arguments() -> argparse.Namespace:
         description="Deploy audio content packages locally (requires elevated permission when not performing dry-run)",
     )
 
-    add_shared_options_to_subparser(deploy, main=p, pkg_group_registered=pkg_group_registered)
+    # add shared options, get required and optional arg actions
+    req_arg, opt_arg = add_shared_options_to_subparser(deploy)
 
-    deploy.add_argument(
+    # always use default download dest in deployment mode
+    deploy.set_defaults(destination=ConfigurationConsts.DEFAULT_DOWNLOAD_DEST)
+
+    cache_arg = deploy.add_argument(
         "-c",
         "--cache-server",
         action=CachingServer,
@@ -187,13 +162,13 @@ def build_arguments() -> argparse.Namespace:
         ),
     )
 
-    deploy.add_argument(
+    mirror_arg = deploy.add_argument(
         "-m",
         "--mirror-server",
         action=MirrorServer,
-        const=MISSING,  # flag missing when not provided so only check for argument value when provided
+        const=MISSING,  # store MISSING when flag given without a value to help with exclusive checks
         dest="mirror_server",
-        metavar="[url]",
+        metavar="url",
         nargs="?",
         required=False,
         help="local mirror server to use; expected format is 'https://example.org'",
@@ -206,7 +181,8 @@ def build_arguments() -> argparse.Namespace:
         description="Download audio content packages locally"
     )
 
-    add_shared_options_to_subparser(download, main=p, pkg_group_registered=pkg_group_registered)
+    # discard the req/opt arg actions here; not used in download mode
+    add_shared_options_to_subparser(download)
 
     download.add_argument(
         "-d",
@@ -218,5 +194,24 @@ def build_arguments() -> argparse.Namespace:
         type=Path,
         help="override the download directory path when '--download-only' used; default is %(default)s",
     )
+
+    # main parser group registrations
+    # register constrains on the main parser; argparse dispatches subparser parsing internally,
+    # bypassing our overridden parse_args on the subparser instances, so validation of args must live
+    # here
+
+    # registering at least one of -r/--req or -o/--opt is required
+    p.add_any_required_group(
+        "package selection",
+        description="at least one of -r/--req or -o/--opt is required",
+    )
+    p.any_required_groups[-1].actions = [req_arg, opt_arg]
+
+    # registering cache/mirror args to the main parser to ensure validation of exclusivity occurs
+    p.add_exclusive_group(
+        "server selection",
+        message="-c/--cache-server and -m/--mirror-server are mutually exclusive",
+    )
+    p.all_exclusive_groups[-1].actions = [cache_arg, mirror_arg]
 
     return p.parse_args()

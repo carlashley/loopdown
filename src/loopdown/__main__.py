@@ -4,10 +4,10 @@ import logging
 import sys
 
 from loopdown.arguments import build_arguments
-from loopdown.base.context import LoopdownContext
-from loopdown.utils.flock_utils import lock_execution, AlreadyRunningError
+from loopdown.context import ContextManager
+from loopdown.orchestration import Orchestrate
+from loopdown.utils.runtime_utils import install_termination_handlers, lock_execution, AlreadyRunningError
 from loopdown.logger.logging_utils import configure_logging
-from loopdown.utils.signal_utils import install_termination_handlers
 
 log = logging.getLogger(__name__)
 
@@ -19,10 +19,8 @@ def main():
         args = build_arguments()
         configure_logging(args.log_level, path=args.log_file, quiet=args.quiet)
 
-        context = LoopdownContext(args=args)
-        context.audit_start()
-        context.process_content()
-        context.audit_stop()
+        conductor = Orchestrate(ctx=ContextManager(args=args))
+        conductor.process_content()
 
 
 if __name__ == "__main__":

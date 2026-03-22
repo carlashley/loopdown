@@ -2,18 +2,30 @@
 
 from dataclasses import dataclass, field
 from functools import total_ordering
+from typing import TYPE_CHECKING
 
-from .json_mixin import AsJsonMixin
-from .protocol_types import AudioContentPackage
-from ..utils.normalizers import bytes2hr
+if TYPE_CHECKING:
+    from .package import AudioContentPackage
+
+
+def bytes2hr(v: str | int | float, *, bs: float = 1000.0) -> str:
+    """Convert bytes size value to human readable value. Returns SI Unit style suffixes (KB, MB, GB, etc).
+    :param v: value
+    :param bs: block size; default is 1000 (closest match to Apple behaviour for human friendly file sizes)"""
+    v, idx = float(v), 0  # convert v to int, and set default index starting point
+    suffixes = ("B", "KB", "MB", "GB", "TB", "PB")
+
+    while v > bs and idx < len(suffixes) - 1:
+        idx += 1
+        v /= bs
+
+    return f"{v:.2f}{suffixes[idx]}"
 
 
 @total_ordering  # implements comparisons like >=, <=
 @dataclass(slots=True)
-class Size(AsJsonMixin):
-    """Package size class. Has human readable property and a raw value property.
-    Implements __add__ and __iadd__ (accumulation) methods.
-    This presumes size data is immutable."""
+class Size:
+    """Package size class. Has human readable property and a raw value property."""
 
     raw: int = field(default=0)
 
@@ -49,7 +61,7 @@ class Size(AsJsonMixin):
 
         return self.raw == other.raw
 
-    def __lt__(self, other: object):  # type: ignore[arg=type]
+    def __lt__(self, other: object):  # type: ignore[arg-type]
         if not isinstance(other, Size):
             return NotImplemented
 
@@ -63,8 +75,8 @@ class BucketStats:
     down: Size = field(default_factory=Size)
     inst: Size = field(default_factory=Size)
 
-    def add(self, pkg: AudioContentPackage) -> None:
-        """Add."""
+    def add(self, pkg: "AudioContentPackage") -> None:
+        """Accumulate package sizes and increment count."""
         self.count += 1
         self.down += pkg.download_size
         self.inst += pkg.installed_size

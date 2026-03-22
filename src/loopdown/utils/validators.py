@@ -8,11 +8,12 @@ from urllib.parse import urlparse
 def validate_url(url: str, *, reqd_scheme: str, validate_port: bool = False) -> Optional[str]:
     """Validate a caching server URL has the required components."""
     fmt_sfx = f"(expected {reqd_scheme}://host{':port' if validate_port else ''})"
-    parsed = urlparse(url)
 
     def generate_err_msg(msg: str, *, sfx: Optional[str] = None) -> str:
         sfx = sfx or ""
         return f"'{url}' {msg} {sfx}".strip()
+
+    parsed = urlparse(url)
 
     if (parsed.scheme or "").lower() != reqd_scheme:
         return generate_err_msg("invalid scheme", sfx=fmt_sfx)

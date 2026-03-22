@@ -12,6 +12,9 @@ class QuotedChoicesHelpFormatter(argparse.ArgumentDefaultsHelpFormatter):
         params = dict(vars(action), prog=self._prog)
         help_text = action.help
 
+        if help_text is None:
+            return None
+
         # format choices -> 'a', 'b', 'c'
         if action.choices is not None and "%(choices)s" in help_text:
             try:
@@ -30,9 +33,6 @@ class QuotedChoicesHelpFormatter(argparse.ArgumentDefaultsHelpFormatter):
                     params["default"] = ", ".join(f"'{item}'" for item in default)
                 else:
                     params["default"] = f"'{default}'"
-
-            if help_text is None:
-                return None
 
         return help_text % params
 
