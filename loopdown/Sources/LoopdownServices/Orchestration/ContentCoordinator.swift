@@ -114,13 +114,22 @@ private extension ContentCoordinator {
         let pkgs = mergePackagesAcrossApps(
             apps: apps,
             includeRequired: includeRequired,
-            includeOptional: includeOptional
+            includeOptional: includeOptional,
+            forceDeploy: false,
+            debugLog: nil
         )
 
         if pkgs.isEmpty {
             logger.notice("No packages selected.")
             return
         }
+
+        // Disk space check: download sizes only (no install step in download mode).
+        let requiredBytes = pkgs.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
+        let checkPath = FileManager.default.temporaryDirectory.path
+        let freeBytes = try filesystemFreeBytes(atPath: checkPath)
+
+        logger.debug("Free bytes at '\(checkPath)': \(ByteSize(freeBytes))")
 
         let total = pkgs.count
 
@@ -129,7 +138,17 @@ private extension ContentCoordinator {
                 logger.info("\(counter(idx + 1, of: total)) - download: \(pkg.name) (\(pkg.downloadSize))")
             }
             logger.notice(dryRunDownloadSummary(for: pkgs))
+            let passed = freeBytes >= requiredBytes
+            logger.notice(dryRunDiskSpaceSummary(required: requiredBytes, available: freeBytes, passed: passed))
             return
+        }
+
+        if freeBytes < requiredBytes {
+            throw ContentCoordinatorError.insufficientDiskSpace(
+                required: requiredBytes,
+                available: freeBytes,
+                path: checkPath
+            )
         }
 
         for (idx, pkg) in pkgs.enumerated() {
@@ -186,26 +205,23 @@ private extension ContentCoordinator {
         let baseURL = effectiveBaseURL(cacheServer: cacheServer, mirrorServer: mirrorServer)
         logger.notice("Downloading from \(baseURL.absoluteString) and installing content")
 
-        // 1) Merge packages across all apps:
-        //    - build a single list
-        //    - mandatory wins over optional for same packageID
-        let merged = mergePackagesAcrossApps(
+        // 1) Merge packages across apps, filtering by install state per-app (matching Python
+        //    behaviour). forceDeploy bypasses the install-state filter so all packages are
+        //    included regardless.
+        let pending = mergePackagesAcrossApps(
             apps: apps,
             includeRequired: includeRequired,
-            includeOptional: includeOptional
+            includeOptional: includeOptional,
+            forceDeploy: forceDeploy,
+            debugLog: logger.debug
         )
 
-        if merged.isEmpty {
+        if pending.isEmpty {
             logger.notice("No packages selected for deploy.")
             return
         }
 
-        // 2) Determine which packages actually need installing.
-        // Used for both the disk space check and dry-run summaries so that
-        // already-installed packages don't inflate the required bytes or totals.
-        let pending = forceDeploy ? merged : merged.filter { packageNeedsInstall($0, debugLog: nil) }
-
-        // 3) Free space check against pending packages only.
+        // 2) Free space check against pending packages only.
         // NOTE: This checks the filesystem backing URLSession temp directory.
         let totalDownload = pending.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
         let totalInstalled = pending.reduce(Int64(0)) { $0 + $1.installedSize.raw }
@@ -216,6 +232,16 @@ private extension ContentCoordinator {
 
         logger.debug("Free bytes at '\(checkPath)': \(ByteSize(freeBytes))")
 
+        // 3) Dry-run: list packages then print download, install, and disk space summaries.
+        if dryRun {
+            listPackagesForDryRunDeploy(pending, logger: logger)
+            logger.notice(dryRunDownloadSummary(for: pending))
+            logger.notice(dryRunInstallSummary(for: pending))
+            let passed = freeBytes >= requiredBytes
+            logger.notice(dryRunDiskSpaceSummary(required: requiredBytes, available: freeBytes, passed: passed))
+            return
+        }
+
         if freeBytes < requiredBytes {
             throw ContentCoordinatorError.insufficientDiskSpace(
                 required: requiredBytes,
@@ -224,21 +250,13 @@ private extension ContentCoordinator {
             )
         }
 
-        // 4) Dry-run: list packages then print download and install summaries.
-        if dryRun {
-            listPackagesForDryRunDeploy(merged, pending: Set(pending.map(\.packageID)), logger: logger)
-            logger.notice(dryRunDownloadSummary(for: pending))
-            logger.notice(dryRunInstallSummary(for: pending))
-            return
-        }
-
-        // 5) Early exit if nothing needs installing (all packages already up to date).
+        // 4) Early exit if nothing needs installing (all packages already up to date).
         if pending.isEmpty {
             logger.notice("All packages are already installed.")
             return
         }
 
-        // 6) Create staging directory and install signal handlers for cleanup.
+        // 5) Create staging directory and install signal handlers for cleanup.
         let staging = try TemporaryDirectory()
 
         let signalCleanup = SignalCleanup {
@@ -251,10 +269,9 @@ private extension ContentCoordinator {
             staging.cleanup()
         }
 
-        // 7) Download into staging, verify signature, then install.
+        // 6) Download into staging, verify signature, then install.
         // Iterate over `pending` directly — it already contains only the packages
-        // that need installing, so no further filtering or packageNeedsInstall calls
-        // are needed here.
+        // that need installing, so no further filtering calls are needed here.
         let total = pending.count
         for (idx, pkg) in pending.enumerated() {
             let n = idx + 1
@@ -282,6 +299,8 @@ private extension ContentCoordinator {
                 }
             }
 
+            let label = counter(n, of: total)
+            let indent = String(repeating: " ", count: label.count + 3)
             do {
                 try PackageInstaller.install(
                     pkgURL: stagedURL,
@@ -289,31 +308,20 @@ private extension ContentCoordinator {
                     debugLog: logger.debug,
                     errorLog: logger.error
                 )
-                logger.notice("\(String(repeating: " ", count: counter(n, of: total).count + 3))installed: \(pkg.name)")
+                logger.notice("\(indent)installed: \(pkg.name)")
             } catch {
-                logger.error("\(String(repeating: " ", count: counter(n, of: total).count + 3))failed to install: \(pkg.name) (\(error))")
+                logger.error("\(indent)failed to install: \(pkg.name) (\(error))")
             }
         }
-
     }
 
-    /// List packages for a deploy dry-run, noting which would be skipped as already current.
-    ///
-    /// `pendingIDs` is the pre-computed set of package IDs that need installing, avoiding
-    /// a second round of `pkgutil` subprocess calls per package.
     static func listPackagesForDryRunDeploy(
         _ pkgs: [AudioContentPackage],
-        pending pendingIDs: Set<String>,
         logger: CoreLogger
     ) {
         let total = pkgs.count
         for (idx, pkg) in pkgs.enumerated() {
-            let n = idx + 1
-            if pendingIDs.contains(pkg.packageID) {
-                logger.info("\(counter(n, of: total)) - download+install: \(pkg.name) (\(pkg.downloadSize) dl, \(pkg.installedSize) installed)")
-            } else {
-                logger.debug("would skip (already installed): \(pkg.name)")
-            }
+            logger.info("\(counter(idx + 1, of: total)) - download+install: \(pkg.name) (\(pkg.downloadSize) dl, \(pkg.installedSize) installed)")
         }
     }
 }
@@ -333,10 +341,10 @@ private extension ContentCoordinator {
 
         var parts: [String] = []
         if !required.isEmpty {
-            parts.append("\(required.count) required: \(ByteSize(reqSize).human)")
+            parts.append("\(required.count) required: \(ByteSize(reqSize).description)")
         }
         if !optional.isEmpty {
-            parts.append("\(optional.count) optional: \(ByteSize(optSize).human)")
+            parts.append("\(optional.count) optional: \(ByteSize(optSize).description)")
         }
 
         let breakdown = parts.isEmpty ? "" : " (\(parts.joined(separator: ", ")))"
@@ -356,14 +364,22 @@ private extension ContentCoordinator {
 
         var parts: [String] = []
         if !required.isEmpty {
-            parts.append("\(required.count) required: \(ByteSize(reqSize).human)")
+            parts.append("\(required.count) required: \(ByteSize(reqSize).description)")
         }
         if !optional.isEmpty {
-            parts.append("\(optional.count) optional: \(ByteSize(optSize).human)")
+            parts.append("\(optional.count) optional: \(ByteSize(optSize).description)")
         }
 
         let breakdown = parts.isEmpty ? "" : " (\(parts.joined(separator: ", ")))"
-        return "Total install size \(ByteSize(totalSize).human)\(breakdown)"
+        return "Total install size \(ByteSize(totalSize).description)\(breakdown)"
+    }
+
+    /// Summary line for the disk space check portion of a dry-run.
+    ///
+    /// Example: "Required disk space check: passed (5.80GB required, 326.54GB available)"
+    static func dryRunDiskSpaceSummary(required: Int64, available: Int64, passed: Bool) -> String {
+        let status = passed ? "passed" : "failed"
+        return "Required disk space check: \(status) (\(ByteSize(required)) required, \(ByteSize(available)) available)"
     }
 }
 
@@ -438,7 +454,9 @@ private extension ContentCoordinator {
     static func mergePackagesAcrossApps(
         apps: [AudioApplication],
         includeRequired: Bool,
-        includeOptional: Bool
+        includeOptional: Bool,
+        forceDeploy: Bool,
+        debugLog: ((String) -> Void)?
     ) -> [AudioContentPackage] {
 
         var byID: [String: AudioContentPackage] = [:]
@@ -447,7 +465,16 @@ private extension ContentCoordinator {
         if includeRequired {
             for app in apps {
                 for pkg in app.mandatory {
-                    byID[pkg.packageID] = pkg
+                    // Filter by install state per-app before merging, matching Python behaviour.
+                    // This ensures shared packages with differing InstalledSize across app plists
+                    // resolve consistently: whichever app's copy survives the install filter wins,
+                    // with mandatory taking precedence over optional for the same packageID.
+                    if !forceDeploy && !packageNeedsInstall(pkg, debugLog: debugLog) { continue }
+                    if let existing = byID[pkg.packageID] {
+                        if !existing.mandatory { byID[pkg.packageID] = pkg }
+                    } else {
+                        byID[pkg.packageID] = pkg
+                    }
                     mandatoryIDs.insert(pkg.packageID)
                 }
             }
@@ -457,6 +484,7 @@ private extension ContentCoordinator {
             for app in apps {
                 for pkg in app.optional {
                     if mandatoryIDs.contains(pkg.packageID) { continue }
+                    if !forceDeploy && !packageNeedsInstall(pkg, debugLog: debugLog) { continue }
                     if byID[pkg.packageID] == nil {
                         byID[pkg.packageID] = pkg
                     }

@@ -48,24 +48,13 @@ enum CacheServer: ExpressibleByArgument, CustomStringConvertible, Equatable {
 
 
 // MARK: Mirroring Server arguments
-enum MirrorServer: ExpressibleByArgument, CustomStringConvertible, Equatable {
-    case url(URL)
+struct MirrorServer: ExpressibleByArgument, CustomStringConvertible, Equatable {
+    let url: URL
 
     init?(argument: String) {
         guard let url = URL(string: argument), url.scheme != nil else { return nil }
-        self = .url(url)
+        self.url = url
     }
 
-    var url: URL {
-        switch self {
-        case .url(let u):
-            return u
-        }
-    }
-    
-    var description: String {
-        switch self {
-        case .url(let url): return url.absoluteString
-        }
-    }
+    var description: String { url.absoluteString }
 }

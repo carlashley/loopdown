@@ -3,7 +3,6 @@
 //
 // Created on 18/1/2026
 //
-    
 
 import Foundation
 
@@ -13,7 +12,7 @@ import Foundation
 ///
 /// Note:
 /// - Hashing and equality are intentionally based only on `packageID`.
-public struct AudioContentPackage: Hashable, Decodable, CustomStringConvertible {
+public struct AudioContentPackage: Hashable, Decodable, Sendable, CustomStringConvertible {
 
     // MARK: - Stored properties
 

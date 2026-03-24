@@ -8,7 +8,7 @@
 import ArgumentParser
 import LoopdownCore
 
-extension ConcreteApp: ExpressibleByArgument {
+extension ConcreteApp: @retroactive ExpressibleByArgument {
     public init?(argument: String) {
         switch argument.lowercased() {
         case "garageband": self = .garageband

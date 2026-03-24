@@ -19,7 +19,7 @@ public struct ByteSize: Comparable, Hashable, Sendable, CustomStringConvertible 
 
     /// Human readable size using 1000-based units with decimal suffixes:
     /// B, KB, MB, GB, TB, PB.
-    public var human: String {
+    public var description: String {
         var v = Double(raw)
         var idx = 0
         let suffixes = ["B", "KB", "MB", "GB", "TB", "PB"]
@@ -34,12 +34,7 @@ public struct ByteSize: Comparable, Hashable, Sendable, CustomStringConvertible 
 
         return String(format: "%.2f%@", v, suffixes[idx])
     }
-
-    // Default text representation for logging/interpolation
-    public var description: String {
-        human
-    }
-    
+ 
     public static func < (lhs: ByteSize, rhs: ByteSize) -> Bool {
         lhs.raw < rhs.raw
     }

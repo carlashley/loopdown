@@ -8,4 +8,4 @@
 import LoopdownInfrastructure
 import LoopdownCore
 
-extension AppLogger: CoreLogger {}
+extension AppLogger: @retroactive CoreLogger {}

@@ -67,7 +67,7 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
         self.maxRedirects = maxRedirects
 
         // Copy & configure for a CLI tool.
-        let cfg = configuration
+        let cfg = configuration.copy() as! URLSessionConfiguration
         cfg.waitsForConnectivity = true
         cfg.timeoutIntervalForRequest = 60
         cfg.timeoutIntervalForResource = 60 * 60

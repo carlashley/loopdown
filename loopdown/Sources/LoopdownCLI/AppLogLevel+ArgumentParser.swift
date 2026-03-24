@@ -5,13 +5,12 @@
 //
     
 
-import Foundation
 import ArgumentParser
 import LoopdownInfrastructure
 
 
 // MARK: - AppLogLevel extension for command line arguments
-extension AppLogLevel: ExpressibleByArgument {
+extension AppLogLevel: @retroactive ExpressibleByArgument {
     public init?(argument: String) {
         self.init(parsing: argument)
     }

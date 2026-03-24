@@ -65,7 +65,7 @@ struct Deploy: AsyncParsableCommand {
 
             try await ContentCoordinator.run(
                 mode: .deploy,
-                selectedApps: apps.resolvedApps,
+                selectedApps: apps.app,
                 includeRequired: required.required,
                 includeOptional: optional.optional,
                 destDir: LoopdownConstants.Paths.defaultDest,

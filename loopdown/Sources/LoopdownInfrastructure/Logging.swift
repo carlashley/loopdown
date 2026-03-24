@@ -13,7 +13,7 @@ import os
 
 // MARK: - Log Level
 /// Log level threshold. Messages below the configured level are ignored.
-public enum AppLogLevel: String, CaseIterable, Comparable {
+public enum AppLogLevel: String, CaseIterable, Comparable, Sendable {
     case trace
     case debug
     case info
@@ -22,18 +22,10 @@ public enum AppLogLevel: String, CaseIterable, Comparable {
     case error
     case critical
 
-    private static let rank: [AppLogLevel: Int] = [
-        .trace: 0,
-        .debug: 1,
-        .info: 2,
-        .notice: 3,
-        .warning: 4,
-        .error: 5,
-        .critical: 6
-    ]
-
     public static func < (lhs: AppLogLevel, rhs: AppLogLevel) -> Bool {
-        (rank[lhs] ?? 0) < (rank[rhs] ?? 0)
+        let all = Self.allCases
+        guard let l = all.firstIndex(of: lhs), let r = all.firstIndex(of: rhs) else { return false }
+        return l < r
     }
 
     public init?(parsing argument: String) {
@@ -55,7 +47,7 @@ public enum AppLogLevel: String, CaseIterable, Comparable {
 // MARK: - Console Sink
 /// Write log lines to stdout/stderr (stderr for warning+ by default).
 /// When `isEnabled` is false, console output is suppressed.
-public struct ConsoleLogSink {
+public struct ConsoleLogSink: Sendable {
     public var isEnabled: Bool = false
 
     public init(isEnabled: Bool = false) {
@@ -98,7 +90,7 @@ public struct ConsoleLogSink {
 
 // MARK: - File Sink
 /// Append log lines to file. Safe to call from multiple threads.
-public final class FileLogSink {
+public final class FileLogSink: Sendable {
     private let fileHandle: FileHandle
     private let queue = DispatchQueue(label: "FileLogSink.queue")
 
@@ -114,7 +106,7 @@ public final class FileLogSink {
         }
 
         self.fileHandle = try FileHandle(forWritingTo: fileURL)
-        try self.fileHandle.seekToEnd()
+        _ = try self.fileHandle.seekToEnd()
     }
 
     deinit {
@@ -143,14 +135,14 @@ public final class FileLogSink {
 ///  - Unified logging (os.Logger)
 ///  - Zero or more file sinks (tee)
 ///  - Optional console sink (message-only)
-public final class AppLogger: @unchecked Sendable {
+public final class AppLogger: Sendable {
     private let osLogger: os.Logger
 
     public let minLevel: AppLogLevel
     public let fileSinks: [FileLogSink]
     public let consoleSink: ConsoleLogSink?
 
-    private let subsystem: String
+    public let subsystem: String
     private let category: String
 
     /// Cached timestamp formatter to avoid per-log allocation.
@@ -320,7 +312,7 @@ public enum Log {
 
     public static func category(_ name: String) -> AppLogger {
         AppLogger(
-            subsystem: "com.github.carlashley.loopdown",
+            subsystem: shared.subsystem,
             category: name,
             minLevel: shared.minLevel,
             fileSinks: shared.fileSinks,

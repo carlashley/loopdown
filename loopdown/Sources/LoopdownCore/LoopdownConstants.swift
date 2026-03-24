@@ -32,15 +32,9 @@ public enum LoopdownConstants {
         public static let shortNames: [String] = Array(nameMapping.keys).sorted()
         
         /// All acceptable real names (normalized) for quick membership checks.
-        public static let realNames: Set<String> = {
-            var s = Set<String>()
-            for realList in nameMapping.values {
-                for real in realList {
-                    s.insert(normalizeName(real))
-                }
-            }
-            return s
-        }()
+        public static let realNames: Set<String> = Set(
+            nameMapping.values.joined().map { normalizeName($0) }
+        )
         
         /// Stable locale for name normalization (avoid Turkish-i etc),
         private static let nameLocale = Locale(identifier: "en_US_POSIX")

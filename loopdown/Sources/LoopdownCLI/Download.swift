@@ -4,7 +4,6 @@
 // Created on 18/1/2026
 //
 
-import Foundation
 import ArgumentParser
 import LoopdownCore
 import LoopdownServices
@@ -55,7 +54,7 @@ struct Download: AsyncParsableCommand {
 
             try await ContentCoordinator.run(
                 mode: .download,
-                selectedApps: apps.resolvedApps,
+                selectedApps: apps.app,
                 includeRequired: required.required,
                 includeOptional: optional.optional,
                 destDir: destination.dest,

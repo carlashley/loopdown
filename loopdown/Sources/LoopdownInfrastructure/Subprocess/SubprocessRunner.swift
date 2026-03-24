@@ -88,7 +88,6 @@ enum ProcessRunner {
 
         let stdoutPipe = Pipe()
         let stderrPipe = Pipe()
-        let stdinPipe = Pipe()
 
         // Buffers to be filled incrementally while the process runs.
         let stdoutBuffer = LockedData()
@@ -124,24 +123,19 @@ enum ProcessRunner {
             proc.standardError = FileHandle.standardError
         }
 
-        let stdinData = stdin
-        if stdinData != nil {
+        // Write stdin (if provided), otherwise inherit the parent stdin.
+        if let data = stdin {
+            let stdinPipe = Pipe()
             proc.standardInput = stdinPipe
-        } else {
-            // Inherit stdin by default
-            proc.standardInput = FileHandle.standardInput
-        }
 
-        debugLog?("Running: \(args.joined(separator: " "))")
+            debugLog?("Running: \(args.joined(separator: " "))")
 
-        do {
-            try proc.run()
-        } catch {
-            throw ProcessRunnerError.launchFailed(String(describing: error))
-        }
+            do {
+                try proc.run()
+            } catch {
+                throw ProcessRunnerError.launchFailed(String(describing: error))
+            }
 
-        // Write stdin (if provided)
-        if let data = stdinData {
             do {
                 try stdinPipe.fileHandleForWriting.write(contentsOf: data)
                 try stdinPipe.fileHandleForWriting.close()
@@ -150,9 +144,18 @@ enum ProcessRunner {
                 proc.terminate()
                 throw ProcessRunnerError.launchFailed("Unable to write stdin: \(error)")
             }
+        } else {
+            // Inherit stdin by default
+            proc.standardInput = FileHandle.standardInput
+
+            debugLog?("Running: \(args.joined(separator: " "))")
+
+            do {
+                try proc.run()
+            } catch {
+                throw ProcessRunnerError.launchFailed(String(describing: error))
+            }
         }
-        // Always close the write end so the child sees EOF
-        try? stdinPipe.fileHandleForWriting.close()
 
         // Wait for exit with timeout support
         if let timeout {

@@ -12,38 +12,22 @@ import Foundation
 /// and provides access to its downloadable content package metadata.
 ///
 /// This is a Core model. It may read local metadata from the application bundle.
-public final class AudioApplication: Hashable, @unchecked Sendable {
+public final class AudioApplication: Hashable, Sendable {
 
     public let name: String
     public let version: String
     public let path: URL
     public let shortName: String?
 
-    /// Raw 'Packages' dictionary from the metadata property list file.
-    public var packages: [String: Any]? { packagesCache }
-
     /// Mandatory packages decoded from the metadata property list.
-    public var mandatory: [AudioContentPackage] { decodedPackagesCache.mandatory }
+    public let mandatory: [AudioContentPackage]
 
     /// Optional (non-mandatory) packages decoded from the metadata property list.
-    public var optional: [AudioContentPackage] { decodedPackagesCache.optional }
+    public let optional: [AudioContentPackage]
 
     // MARK: - Logger
 
     private let logger: CoreLogger
-
-    // MARK: - Caches
-
-    /// Cache for the packages property list payload.
-    private lazy var packagesCache: [String: Any]? = {
-        self.readMetadataSourceFile()
-    }()
-
-    /// Internal cache for decoded packages split by mandatory flag.
-    private lazy var decodedPackagesCache: (
-        mandatory: [AudioContentPackage],
-        optional: [AudioContentPackage]
-    ) = { self.decodePackagesByMandatoriness() }()
 
 
     // MARK: - Init
@@ -59,6 +43,13 @@ public final class AudioApplication: Hashable, @unchecked Sendable {
         self.path = path
         self.shortName = LoopdownConstants.Applications.shortName(for: name)
         self.logger = logger
+
+        // Eagerly read and decode metadata so all stored properties are immutable
+        // and the type can conform to Sendable without @unchecked.
+        let raw = AudioApplication.readMetadataSourceFile(path: path, logger: logger)
+        let decoded = AudioApplication.decodePackagesByMandatoriness(raw: raw, logger: logger)
+        self.mandatory = decoded.mandatory
+        self.optional = decoded.optional
     }
 
 
@@ -85,8 +76,11 @@ public final class AudioApplication: Hashable, @unchecked Sendable {
     ///
     /// Notes: If `IsMandatory` is missing from the package dict, the `AudioContentPackage` decoder
     /// should default it to `false`.
-    private func decodePackagesByMandatoriness() -> (mandatory: [AudioContentPackage], optional: [AudioContentPackage]) {
-        guard let raw = self.packages else {
+    private static func decodePackagesByMandatoriness(
+        raw: [String: Any]?,
+        logger: CoreLogger
+    ) -> (mandatory: [AudioContentPackage], optional: [AudioContentPackage]) {
+        guard let raw else {
             return (mandatory: [], optional: [])
         }
 
@@ -133,7 +127,7 @@ public final class AudioApplication: Hashable, @unchecked Sendable {
 
     /// Find the relevant property list file containing package metadata.
     /// Looks under `<Application.app>/Contents/Resources/`.
-    private func findResourceFile() -> URL? {
+    private static func findResourceFile(path: URL, logger: CoreLogger) -> URL? {
         let resourcesURL = path.appendingPathComponent(
             LoopdownConstants.Applications.resourceFilePath,
             isDirectory: true
@@ -152,7 +146,7 @@ public final class AudioApplication: Hashable, @unchecked Sendable {
             at: resourcesURL,
             includingPropertiesForKeys: [.isRegularFileKey],
             options: [.skipsHiddenFiles],
-            errorHandler: { [logger] url, error in
+            errorHandler: { url, error in
                 logger.error("Error enumerating \(url.path): \(error)")
                 return true
             }
@@ -205,19 +199,18 @@ public final class AudioApplication: Hashable, @unchecked Sendable {
     // MARK: - Read property list
 
     /// Read the metadata source file and return the 'Packages' value.
-    private func readMetadataSourceFile() -> [String: Any]? {
-        guard let resourceFile = findResourceFile() else {
+    private static func readMetadataSourceFile(path: URL, logger: CoreLogger) -> [String: Any]? {
+        guard let resourceFile = findResourceFile(path: path, logger: logger) else {
             return nil
         }
 
         do {
             let data = try Data(contentsOf: resourceFile)
 
-            var format: PropertyListSerialization.PropertyListFormat = .binary
             let plist = try PropertyListSerialization.propertyList(
                 from: data,
                 options: [],
-                format: &format
+                format: nil
             )
 
             guard let dict = plist as? [String: Any] else {
