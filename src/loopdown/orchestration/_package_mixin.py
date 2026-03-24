@@ -3,7 +3,7 @@
 # mypy: disable-error-code="attr-defined"
 import logging
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from os import cpu_count
 from typing import Iterator
 
@@ -103,11 +103,11 @@ class PackageProcessingMixin:
     def iter_packages_concurrently(self) -> AppPkgIterator:
         """Process all packages for apps that will be processed."""
         with ThreadPoolExecutor(max_workers=max_workers()) as tpe:
-            futures = {tpe.submit(self.iter_packages_of_app, app): app for app in self.apps_to_process}
+            # submit a deterministic order and collect results in that same order so merge behaviour is
+            # consistent regardless of thread scheduling (parity behaviour with Swift implementation).
+            ordered = [(app, tpe.submit(self.iter_packages_of_app, app)) for app in self.apps_to_process]
 
-            for future in as_completed(futures):
-                app = futures[future]
-
+            for app, future in ordered:
                 try:
                     pkgs = future.result()
                     yield (app, pkgs)
