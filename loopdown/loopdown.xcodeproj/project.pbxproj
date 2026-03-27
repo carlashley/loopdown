@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -31,9 +31,10 @@
 		FA58F8ED2F1CCF81001EFB98 /* PackageInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8EC2F1CCF81001EFB98 /* PackageInfo.swift */; };
 		FA7D5B522F28A89E0049BB47 /* ContentCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7D5B512F28A89E0049BB47 /* ContentCoordinator.swift */; };
 		FA7D5B542F28BF7C0049BB47 /* AssetCacheLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7D5B532F28BF7C0049BB47 /* AssetCacheLocator.swift */; };
-		FA7D5B572F28CA270049BB47 /* CacheServerResolution.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7D5B562F28CA270049BB47 /* CacheServerResolution.swift */; };
 		FA9C3A862F3485140079758A /* DownloadClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9C3A852F3485140079758A /* DownloadClient.swift */; };
 		FA9C3A882F34AF840079758A /* ExecutionLock+Async.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9C3A872F34AF840079758A /* ExecutionLock+Async.swift */; };
+		FAA1ED8E2F768D4C007B2348 /* LoopdownCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398632F1BA16E0053139B /* LoopdownCore.framework */; };
+		FAA1ED8F2F768D4C007B2348 /* LoopdownCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398632F1BA16E0053139B /* LoopdownCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		FAA398352F1BA1330053139B /* LoopdownServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA3982B2F1BA1330053139B /* LoopdownServices.framework */; };
 		FAA398512F1BA15A0053139B /* LoopdownInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398472F1BA15A0053139B /* LoopdownInfrastructure.framework */; };
 		FAA3986D2F1BA16F0053139B /* LoopdownCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398632F1BA16E0053139B /* LoopdownCore.framework */; };
@@ -49,9 +50,19 @@
 		FAC711462F1BB88400DE79BF /* LoopdownServices.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C72F1BB85500F1FB70 /* LoopdownServices.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FAC711472F1BB88900DE79BF /* LoopdownInfrastructure.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FAC711482F1BB88E00DE79BF /* LoopdownCore.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C52F1BB83C00F1FB70 /* LoopdownCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FAD460FC2F768770000C730D /* CacheServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD460FB2F768770000C730D /* CacheServer.swift */; };
+		FAD460FE2F7687C6000C730D /* CacheServerResolution.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD460FD2F7687C6000C730D /* CacheServerResolution.swift */; };
+		FAD461072F7688F9000C730D /* CacheServer+ArgumentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD461062F7688F9000C730D /* CacheServer+ArgumentParser.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		FAA1ED902F768D4C007B2348 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FAA398102F1B9FDD0053139B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FAA398622F1BA16E0053139B;
+			remoteInfo = LoopdownCore;
+		};
 		FAA398362F1BA1330053139B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = FAA398102F1B9FDD0053139B /* Project object */;
@@ -76,6 +87,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		FAA1ED922F768D4C007B2348 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				FAA1ED8F2F768D4C007B2348 /* LoopdownCore.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FAA398162F1B9FDD0053139B /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -115,7 +137,6 @@
 		FA58F8EC2F1CCF81001EFB98 /* PackageInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageInfo.swift; sourceTree = "<group>"; };
 		FA7D5B512F28A89E0049BB47 /* ContentCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentCoordinator.swift; sourceTree = "<group>"; };
 		FA7D5B532F28BF7C0049BB47 /* AssetCacheLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetCacheLocator.swift; sourceTree = "<group>"; };
-		FA7D5B562F28CA270049BB47 /* CacheServerResolution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheServerResolution.swift; sourceTree = "<group>"; };
 		FA9C3A852F3485140079758A /* DownloadClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadClient.swift; sourceTree = "<group>"; };
 		FA9C3A872F34AF840079758A /* ExecutionLock+Async.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExecutionLock+Async.swift"; sourceTree = "<group>"; };
 		FAA398182F1B9FDD0053139B /* loopdown */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = loopdown; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -133,7 +154,14 @@
 		FAB47FB72F1CAC5F00CB44A1 /* CoreLogger+Infrastructure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreLogger+Infrastructure.swift"; sourceTree = "<group>"; };
 		FAB47FB92F1CAEBF00CB44A1 /* AudioContentPackage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioContentPackage.swift; sourceTree = "<group>"; };
 		FAB47FC02F1CB78300CB44A1 /* LoggerProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerProtocol.swift; sourceTree = "<group>"; };
+		FAD460FB2F768770000C730D /* CacheServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheServer.swift; sourceTree = "<group>"; };
+		FAD460FD2F7687C6000C730D /* CacheServerResolution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheServerResolution.swift; sourceTree = "<group>"; };
+		FAD461062F7688F9000C730D /* CacheServer+ArgumentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CacheServer+ArgumentParser.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		FAD460FF2F76885B000C730D /* Preferences */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Preferences; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		FAA398152F1B9FDD0053139B /* Frameworks */ = {
@@ -166,6 +194,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FAA1ED8E2F768D4C007B2348 /* LoopdownCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -238,6 +267,7 @@
 				FA0A60C42F1C5A650025ED20 /* CLILogging.swift */,
 				FAB048C42F1C6F4B000FA556 /* ConcreteApp+ArgumentParser.swift */,
 				FAB47FB72F1CAC5F00CB44A1 /* CoreLogger+Infrastructure.swift */,
+				FAD461062F7688F9000C730D /* CacheServer+ArgumentParser.swift */,
 			);
 			name = LoopdownCLI;
 			path = Sources/LoopdownCLI;
@@ -246,6 +276,7 @@
 		FA290E6A2F1BADCE0090B7F7 /* LoopdownInfrastructure */ = {
 			isa = PBXGroup;
 			children = (
+				FAD460FF2F76885B000C730D /* Preferences */,
 				FA9C3A812F346F490079758A /* Networking */,
 				FA58F8EA2F1CCD38001EFB98 /* Subprocess */,
 				FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */,
@@ -297,7 +328,6 @@
 		FA7D5B552F28CA160049BB47 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				FA7D5B562F28CA270049BB47 /* CacheServerResolution.swift */,
 				FA9C3A872F34AF840079758A /* ExecutionLock+Async.swift */,
 			);
 			path = Helpers;
@@ -307,8 +337,17 @@
 			isa = PBXGroup;
 			children = (
 				FA9C3A852F3485140079758A /* DownloadClient.swift */,
+				FAD460FB2F768770000C730D /* CacheServer.swift */,
+				FAD460FD2F7687C6000C730D /* CacheServerResolution.swift */,
 			);
 			path = Networking;
+			sourceTree = "<group>";
+		};
+		FAA1ED8D2F768D4C007B2348 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		FAA3980F2F1B9FDD0053139B = {
@@ -318,6 +357,7 @@
 				FA290E6D2F1BADCE0090B7F7 /* LoopdownCore */,
 				FA290E6A2F1BADCE0090B7F7 /* LoopdownInfrastructure */,
 				FA290E652F1BADCE0090B7F7 /* LoopdownServices */,
+				FAA1ED8D2F768D4C007B2348 /* Frameworks */,
 				FAA398192F1B9FDD0053139B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -459,10 +499,15 @@
 				FAA398432F1BA15A0053139B /* Sources */,
 				FAA398442F1BA15A0053139B /* Frameworks */,
 				FAA398452F1BA15A0053139B /* Resources */,
+				FAA1ED922F768D4C007B2348 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				FAA1ED912F768D4C007B2348 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				FAD460FF2F76885B000C730D /* Preferences */,
 			);
 			name = LoopdownInfrastructure;
 			productName = LoopdownInfrastructure;
@@ -532,7 +577,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 2640;
 				TargetAttributes = {
 					FAA398172F1B9FDD0053139B = {
 						CreatedOnToolsVersion = 15.4;
@@ -661,6 +706,7 @@
 			files = (
 				FA0A60C32F1C58D50025ED20 /* ValidationHelpers.swift in Sources */,
 				FA0A60AB2F1C51630025ED20 /* AppLogLevel+ArgumentParser.swift in Sources */,
+				FAD461072F7688F9000C730D /* CacheServer+ArgumentParser.swift in Sources */,
 				FA0A60B12F1C54560025ED20 /* ServerArguments.swift in Sources */,
 				FA9C3A882F34AF840079758A /* ExecutionLock+Async.swift in Sources */,
 				FA0A60B72F1C550F0025ED20 /* Download.swift in Sources */,
@@ -668,7 +714,6 @@
 				FA0A60B32F1C548D0025ED20 /* CommonArguments.swift in Sources */,
 				FA0A60B92F1C55540025ED20 /* Loopdown.swift in Sources */,
 				FA0A60B52F1C54BE0025ED20 /* Deploy.swift in Sources */,
-				FA7D5B572F28CA270049BB47 /* CacheServerResolution.swift in Sources */,
 				FAB47FB82F1CAC5F00CB44A1 /* CoreLogger+Infrastructure.swift in Sources */,
 				FA0A60C52F1C5A650025ED20 /* CLILogging.swift in Sources */,
 			);
@@ -700,9 +745,11 @@
 				FAB048C72F1C74A0000FA556 /* ExecutionLock.swift in Sources */,
 				FA0A60AF2F1C54020025ED20 /* PrivilegeCheck.swift in Sources */,
 				FA7D5B542F28BF7C0049BB47 /* AssetCacheLocator.swift in Sources */,
+				FAD460FC2F768770000C730D /* CacheServer.swift in Sources */,
 				FA0A60A82F1C4C9E0025ED20 /* Logging.swift in Sources */,
 				FA9C3A862F3485140079758A /* DownloadClient.swift in Sources */,
 				FA58F8ED2F1CCF81001EFB98 /* PackageInfo.swift in Sources */,
+				FAD460FE2F7687C6000C730D /* CacheServerResolution.swift in Sources */,
 				FA58F8E52F1CC9EA001EFB98 /* SystemProfiler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -753,6 +800,11 @@
 			isa = PBXTargetDependency;
 			target = FAA398622F1BA16E0053139B /* LoopdownCore */;
 			targetProxy = FAA3986E2F1BA16F0053139B /* PBXContainerItemProxy */;
+		};
+		FAA1ED912F768D4C007B2348 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FAA398622F1BA16E0053139B /* LoopdownCore */;
+			targetProxy = FAA1ED902F768D4C007B2348 /* PBXContainerItemProxy */;
 		};
 		FAA398372F1BA1330053139B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -806,6 +858,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -869,6 +922,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -894,6 +948,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 			};
@@ -903,6 +958,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 			};
@@ -916,6 +972,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -953,6 +1010,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -984,9 +1042,9 @@
 		FAA398402F1BA1330053139B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownServicesTests;
@@ -999,9 +1057,9 @@
 		FAA398412F1BA1330053139B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownServicesTests;
@@ -1019,6 +1077,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1057,6 +1116,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1089,9 +1149,9 @@
 		FAA3985C2F1BA15A0053139B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownInfrastructureTests;
@@ -1104,9 +1164,9 @@
 		FAA3985D2F1BA15A0053139B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownInfrastructureTests;
@@ -1124,6 +1184,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1161,6 +1222,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1192,9 +1254,9 @@
 		FAA398782F1BA16F0053139B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownCoreTests;
@@ -1207,9 +1269,9 @@
 		FAA398792F1BA16F0053139B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownCoreTests;

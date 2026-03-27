@@ -1,9 +1,8 @@
 //// AssetCacheLocator.swift
-// loopdown
+// LoopdownInfrastructure
 //
 // Created on 27/1/2026
 //
-    
 
 import Foundation
 
@@ -13,11 +12,12 @@ public enum AssetCacheLocator {
 
     // MARK: Constants
     private enum Consts {
-        static let toolPath = "/usr/bin/AssetCacheLocatorUtil"
+        static let toolPath             = "/usr/bin/AssetCacheLocatorUtil"
         static let defaultPreferredRank = 0
-        static let minRank = 0
-        static let maxRank = 10_000
-        static let validSources: Set<String> = ["system"]
+        static let minRank              = 0
+        static let maxRank              = 1000
+        static let validSources: Set<String> = ["system", "current_user"]
+        static let validUntilFormat     = "yyyy-MM-dd HH:mm:ss z"
     }
 
     // MARK: - Run AssetCacheLocatorUtil
@@ -58,56 +58,81 @@ public enum AssetCacheLocator {
         }
     }
 
-    // MARK: - Server health check (Python parity)
+    // MARK: - Server candidate check
 
-    static func isServerHealthy(
+    /// Determine if a caching server entry is a usable candidate.
+    ///
+    /// Priority (all return true when rank >= minRank):
+    ///   1. healthy + valid + favored
+    ///   2. healthy + valid (not favored)
+    ///   3. healthy (not valid or no validUntil)
+    ///
+    /// Matches Python `cache_server_is_candidate`.
+    static func isServerCandidate(
         _ server: [String: Any],
-        minimumRanking: Int? = nil,
-        ignoreFavoured: Bool = false
+        minimumRanking: Int = Consts.defaultPreferredRank,
+        debugLog: ((String) -> Void)? = nil
     ) -> Bool {
-
-        let minRank = minimumRanking ?? Consts.defaultPreferredRank
-        guard (Consts.minRank...Consts.maxRank).contains(minRank) else {
-            return false
-        }
-
         let healthy = server["healthy"] as? Bool ?? false
+        guard healthy else { return false }
 
-        let favoured: Bool?
-        if ignoreFavoured {
-            favoured = true
-        } else {
-            favoured = server["favored"] as? Bool
-        }
-
-        let rank: Int? = {
-            if let i = server["rank"] as? Int { return i }
+        let rank: Int = {
+            if let i = server["rank"] as? Int    { return i }
             if let d = server["rank"] as? Double { return Int(d) }
-            return nil
+            return Int.max
         }()
 
-        guard healthy, let rank else { return false }
+        guard rank >= minimumRanking else { return false }
 
-        if favoured == nil {
-            return rank >= minRank
+        let favored = server["favored"] as? Bool
+
+        // Parse validUntil from advice dict
+        let valid: Bool = {
+            guard let advice  = server["advice"] as? [String: Any],
+                  let vldStr  = advice["validUntil"] as? String else { return false }
+
+            debugLog?("Candidate cache server is valid until: '\(vldStr)'")
+
+            let fmt = DateFormatter()
+            fmt.dateFormat = Consts.validUntilFormat
+            fmt.locale = Locale(identifier: "en_US_POSIX")
+
+            guard let vldDate = fmt.date(from: vldStr) else {
+                debugLog?("Error converting 'validUntil' to date (ignoring value): '\(vldStr)'")
+                return false
+            }
+
+            return vldDate > Date()
+        }()
+
+        if valid && favored == true {
+            debugLog?("Candidate cache server is healthy: \(healthy), ranked: \(rank), favoured: true")
+            return true
+        } else if valid {
+            debugLog?("Candidate cache server is healthy: \(healthy), ranked: \(rank)")
+            return true
+        } else {
+            // healthy but not valid or no validUntil — still a candidate
+            debugLog?("Candidate cache server is healthy: \(healthy)")
+            return true
         }
-
-        return favoured == true && rank >= minRank
     }
 
     // MARK: - Extract cache server
 
-    /// Extract a usable cache server URL (mirrors Python `extract_cache_server`)
+    /// Extract a usable cache server URL from `AssetCacheLocatorUtil` output.
+    ///
+    /// Uses the `shared caching` key under `saved servers`, matching the Python
+    /// `extract_cache_server` implementation.
     public static func extractCacheServerURL(
         source: String = "system",
         minimumRanking: Int? = nil,
-        ignoreFavoured: Bool = false,
         scheme: String = "http",
         debugLog: ((String) -> Void)? = nil
     ) -> URL? {
 
         guard Consts.validSources.contains(source) else {
-            debugLog?("Invalid cache source '\(source)'")
+            debugLog?("Invalid cache source '\(source)'; must be 'system' or 'current_user'")
             return nil
         }
 
@@ -116,43 +141,42 @@ public enum AssetCacheLocator {
             return nil
         }
 
+        // Python: metadata["results"][source]["saved servers"]["shared caching"]
         guard
-            let results = data["results"] as? [String: Any],
-            let sourceMeta = results[source] as? [String: Any],
+            let results      = data["results"]       as? [String: Any],
+            let sourceMeta   = results[source]        as? [String: Any],
             let savedServers = sourceMeta["saved servers"] as? [String: Any],
-            var allServers = savedServers["all servers"] as? [[String: Any]]
+            var servers      = savedServers["shared caching"] as? [[String: Any]]
         else {
-            debugLog?("Unable to extract server list from AssetCacheLocatorUtil output")
+            debugLog?("Unable to extract 'shared caching' server list from AssetCacheLocatorUtil output")
             return nil
         }
 
-        // Sort by rank (lowest first) – same as Python
-        if allServers.count > 1 {
-            allServers.sort {
+        debugLog?("Found saved servers in 'AssetCacheLocatorUtil' output")
+
+        // Sort by rank ascending, matching Python behaviour
+        if servers.count > 1 {
+            servers.sort {
                 let r1 = ($0["rank"] as? Int) ?? Int.max
                 let r2 = ($1["rank"] as? Int) ?? Int.max
                 return r1 < r2
             }
         }
 
-        for server in allServers {
-            guard isServerHealthy(
-                server,
-                minimumRanking: minimumRanking,
-                ignoreFavoured: ignoreFavoured
-            ) else {
+        let minRank = minimumRanking ?? Consts.defaultPreferredRank
+
+        for server in servers {
+            guard isServerCandidate(server, minimumRanking: minRank, debugLog: debugLog) else {
                 continue
             }
 
-            guard let hostport = server["hostport"] as? String else {
-                continue
-            }
+            guard let hostport = server["hostport"] as? String else { continue }
 
-            // hostport is usually "host:port" with no scheme
+            // hostport is "host:port" with no scheme
             var comps = URLComponents()
             comps.scheme = scheme
 
-            if let idx = hostport.lastIndex(of: ":"),
+            if let idx  = hostport.lastIndex(of: ":"),
                let port = Int(hostport[hostport.index(after: idx)...]) {
                 comps.host = String(hostport[..<idx])
                 comps.port = port

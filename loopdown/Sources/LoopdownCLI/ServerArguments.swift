@@ -7,54 +7,46 @@
 
 import ArgumentParser
 import Foundation
-import LoopdownCore
+import LoopdownInfrastructure
 
 
-// MARK: - CacheServer arguments
-enum CacheServer: ExpressibleByArgument, CustomStringConvertible, Equatable {
-    case auto
-    case url(URL)
+// MARK: - Server options
 
-    init?(argument: String) {
-        if argument.lowercased() == "auto" {
-            self = .auto
-            return
+/// Grouped CLI arguments for cache and mirror server selection.
+///
+/// `CacheServer` and `MirrorServer` types are defined in `LoopdownInfrastructure/Networking/CacheServer.swift`.
+/// Their `ExpressibleByArgument` conformances are in `CacheServer+ArgumentParser.swift`.
+struct ServerOptions: ParsableArguments {
+    @Option(name: [.customShort("c"), .long], help: "Caching server to use; 'auto' or http://host:port")
+    var cacheServer: CacheServer?
+
+    @Option(name: [.customShort("m"), .long], help: "Mirror server base URL")
+    var mirrorServer: MirrorServer?
+
+    mutating func validate() throws {
+        if cacheServer != nil && mirrorServer != nil {
+            throw ValidationError("Use either '--cache-server' or '--mirror-server', not both.")
         }
-        guard let url = URL(string: argument), url.scheme != nil else { return nil }
-        self = .url(url)
+
+        if let cacheServer {
+            try validateCacheServer(cacheServer)
+        }
     }
 
-    /// Convert CLI cache-server argument into the normalized caching server URL.
-    /// - Returns: Normalized caching server URL, or nil if `.auto`.
-    func normalizedURL(contentSourceHost: String? = nil) -> URL? {
-        switch self {
+    private func validateCacheServer(_ value: CacheServer) throws {
+        switch value {
         case .auto:
-            return nil
+            return
         case .url(let url):
-            return DownloadURLNormalizer.normalizeCachingServerURL(
-                url,
-                contentSource: contentSourceHost
-            )
+            guard url.scheme?.lowercased() == "http" else {
+                throw ValidationError("'--cache-server' must use http")
+            }
+            guard let host = url.host, !host.isEmpty else {
+                throw ValidationError("Cache server must include a host")
+            }
+            guard let port = url.port, (1...65535).contains(port) else {
+                throw ValidationError("Cache server must include a valid port")
+            }
         }
     }
-    
-    var description: String {
-        switch self {
-        case .auto: return "auto"
-        case .url(let url): return url.absoluteString
-        }
-    }
-}
-
-
-// MARK: Mirroring Server arguments
-struct MirrorServer: ExpressibleByArgument, CustomStringConvertible, Equatable {
-    let url: URL
-
-    init?(argument: String) {
-        guard let url = URL(string: argument), url.scheme != nil else { return nil }
-        self.url = url
-    }
-
-    var description: String { url.absoluteString }
 }

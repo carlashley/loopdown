@@ -52,38 +52,3 @@ struct SkipSignatureCheckOption: ParsableArguments {
     @Flag(name: .long, help: "Skip the pkgutil signature check on downloaded packages.")
     var skipSignatureCheck: Bool = false
 }
-
-struct ServerOptions: ParsableArguments {
-    @Option(help: "Caching server to use; 'auto' or http://host:port")
-    var cacheServer: CacheServer?
-
-    @Option(help: "Mirror server base URL")
-    var mirrorServer: MirrorServer?
-
-    mutating func validate() throws {
-        if cacheServer != nil && mirrorServer != nil {
-            throw ValidationError("Use either '--cache-server' or '--mirror-server', not both.")
-        }
-
-        if let cacheServer {
-            try validateCacheServer(cacheServer)
-        }
-    }
-
-    private func validateCacheServer(_ value: CacheServer) throws {
-        switch value {
-        case .auto:
-            return
-        case .url(let url):
-            guard url.scheme?.lowercased() == "http" else {
-                throw ValidationError("'--cache-server' must use http")
-            }
-            guard let host = url.host, !host.isEmpty else {
-                throw ValidationError("Cache server must include a host")
-            }
-            guard let port = url.port, (1...65535).contains(port) else {
-                throw ValidationError("Cache server must include a valid port")
-            }
-        }
-    }
-}
