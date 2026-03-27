@@ -1,5 +1,4 @@
 """Main."""
-
 import logging
 import sys
 
@@ -14,6 +13,11 @@ log = logging.getLogger(__name__)
 
 def main():
     """Main."""
+    print(
+        "Warning: this Python implementation of loopdown has been deprecated and will move to a Swift based "
+        "implementation in the future.",
+        file=sys.stderr,
+    )
 
     with lock_execution(app_name=__name__):
         args = build_arguments()
