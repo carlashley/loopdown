@@ -51,5 +51,72 @@ SUBCOMMANDS:
   See 'loopdown help <subcommand>' for detailed help.
 ```
 
+## Managed Preferences
+This is an experimental implementation of use managed preferences (or even using `defaults` to provide local preferences) for deployment modes.
+
+When using managed preferences to control how `loopdown` runs for deploying content, the following default options are used (but can be overridden):
+- deploy mode (not a dry run and output is still sent to console+log)
+- cache server auto detected
+- install required packages (presumes disk space check passes)
+
+Either a dry-run or deploy run can be called manually from the command line using `loopdown deploy --managed -n` or `loopdown deploy --managed`.
+
+The command line version of `loopdown` should support both managed preferences (via MDM) and local preferences with the keys documented in the YAML below.
+
+Setting a value using `defaults`: `defaults write com.github.carlashley.loopdown <key> <value>`, for example, setting both required and optional packages for installation:
+```
+[foo@bar]: # defaults write com.github.carlashley.loopdown required -bool true
+[foo@bar]: # defaults write com.github.carlashley.loopdown optional -bool true
+```
+
+### YAML Preferences
+```
+# Preferences for loopdown (domain: 'com.github.carlashley.loopdown').
+apps:
+  type: [String]
+  default: []        # empty = all installed apps
+  values: garageband, logicpro, mainstage
+
+required:
+  type: Bool
+  default: true      # inferred true when both required and optional are absent
+
+optional:
+  type: Bool
+  default: false
+
+forceDeploy:
+  type: Bool
+  default: false
+
+skipSignatureCheck:
+  type: Bool
+  default: false
+
+logLevel:
+  type: String
+  default: info
+  values: debug, info, notice, warning, error, critical
+
+cacheServer:
+  type: String
+  default: auto      # inferred when both cacheServer and mirrorServer are absent
+  values: auto, http://host:port
+
+mirrorServer:
+  type: String
+  default:           # absent; overrides cacheServer when present
+  values: https://host
+
+dryRun:
+  type: Bool
+  default: false     # also overridable by --dry-run CLI flag
+
+quietRun:
+  type: Bool
+  default: false
+```
+
+
 ## License
 Licensed under the Apache License Version 2.0. See `LICENSE` for more information.
