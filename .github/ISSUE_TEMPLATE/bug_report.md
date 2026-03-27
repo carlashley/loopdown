@@ -6,29 +6,40 @@ labels: ''
 assignees: ''
 
 ---
-NOTE: While I endeavour to respond to issues as quickly as I can, I maintain this on my own time, so I appreciate your patience :). I will not be taking any feature requests.
 
-**Describe the bug**
+**Describe the bug**:
 A clear and concise description of what the bug is.
 
-**Screenshots**
+**Screenshots**:
 If applicable, add screenshots to help explain your problem.
 
-**Exception Errors**
+Command:
+Please include the _full_ command string used.
+
+**Exception Errors**:
 If applicable, please add include the exception errors here; for example:
 ```
-[jappleseed@ungoliant]:loopdown # ./loopdown deploy --apps garageband --req --opt
+[jappleseed@ungoliant]:loopdown # ./loopdown -n -m -p garageband1047 --create-mirror /tmp/foo
 Processing content for: 'garageband1047'
 Traceback (most recent call last):
-.... a whole lot of gobbledegook... 
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/jappleseed/Documents/github/loopdown/./loopdown/__main__.py", line 118, in <module>
+  File "/Users/jappleseed/Documents/github/loopdown/./loopdown/__main__.py", line 66, in main
+  File "/Users/jappleseed/Documents/github/loopdown/./loopdown/ldilib/parsers.py", line 68, in parse_packages
+  File "/Users/jappleseed/Documents/github/loopdown/./loopdown/ldilib/parsers.py", line 278, in parse_package_for_attrs
+  File "/Users/jappleseed/Documents/github/loopdown/./loopdown/ldilib/parsers.py", line 311, in parse_updated_package_attr_vals
 KeyError: 'foo'
 ```
 
-**Debug log**
-If possible, please re-run `loopdown` with the `--log-level debug` argument parameter and attached the `/Users/Shared/loopdown/loopdown.log` file once `loopdown` has finished.
+**Debug log**:
+Please attach the `latest.log` (if using the Swift version) or the `loopdown.log` (if using the Python version) that should be located in `/Users/Shared/loopdown`.
+Alternatively copy components of the debug log file and paste them here.
+
+Any issue raised without debug log data will be closed without further follow up.
 
 **Which macOS Version?**
 Output of `sw_vers`:
 
-**Additional context**
+**Additional context**:
 Add any other context about the problem here.
