@@ -49,7 +49,8 @@ Options:
 ## Primary help
 ```
 python3 -m loopdown -h
-usage: loopdown [-h] [-v] [-l [level]] [-q] [--skip-pre-signature-check] [deploy,download] ...
+Warning: this Python implementation of loopdown has been deprecated and will move to a Swift based implementation in the future.
+usage: loopdown [-h] [-v] [-l [level]] [-q] [--no-proxy] [--skip-signature-check] [deploy,download] ...
 
 Process additional content for installed audio applications, GarageBand, Logic Pro, and/or MainStage.
 
@@ -64,18 +65,20 @@ options:
   -l, --log-level [level]
                         override the log level; default is 'info', choices are 'critical', 'error', 'warning', 'info', 'debug', 'notset'
   -q, --quiet           all console output (stdout/stderr) is suppressed; events logged to file only
-  --skip-pre-signature-check
-                        skip the signature check of each downloaded package during pre-run analysis; speeds up processingfor downloading (this is off by default in 'deploy' mode)
+  --no-proxy            ignore proxies for '*' in all curl subprocess calls
+  --skip-signature-check
+                        skip the signature check after downloads (this is off by default in 'deploy' mode and in dry-runs)
 
 package selection:
   at least one of -r/--req or -o/--opt is required
 
-loopdown v2.0.20260120. Copyright © 2026 Carl Ashley. All rights reserved. Apache License Version 2.0 - http://www.apache.org/licenses/
+loopdown v2.0.20260327. Copyright © 2026 Carl Ashley. All rights reserved. Apache License Version 2.0 - http://www.apache.org/licenses/
 ```
 
 ## Download help
 ```
 python3 -m loopdown download -h
+Warning: this Python implementation of loopdown has been deprecated and will move to a Swift based implementation in the future.
 usage: loopdown download [-h] [-n] [-a [app ...]] [-f] [-r] [-o] [-d [dir]]
 
 Download audio content packages locally
@@ -98,7 +101,8 @@ package selection:
 ## Deploy help
 ```
 python3 -m loopdown deploy -h
-usage: loopdown deploy [-h] [-n] [-a [app ...]] [-f] [-r] [-o] [-c [url]] [-m [[url]]]
+Warning: this Python implementation of loopdown has been deprecated and will move to a Swift based implementation in the future.
+usage: loopdown deploy [-h] [-n] [-a [app ...]] [-f] [-r] [-o] [-c [url]] [-m [url]]
 
 Deploy audio content packages locally (requires elevated permission when not performing dry-run)
 
@@ -110,7 +114,7 @@ options:
   -f, --force           force the specified action
   -c, --cache-server [url]
                         use a caching server; when no server is specified, attempts to auto detect; expected format is 'http://ipaddr:port'
-  -m, --mirror-server [[url]]
+  -m, --mirror-server [url]
                         local mirror server to use; expected format is 'https://example.org'
 
 package selection:
