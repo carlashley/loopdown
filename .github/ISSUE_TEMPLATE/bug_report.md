@@ -7,13 +7,16 @@ assignees: ''
 
 ---
 
-**Describe the bug**
+**Describe the bug**:
 A clear and concise description of what the bug is.
 
-**Screenshots**
+**Screenshots**:
 If applicable, add screenshots to help explain your problem.
 
-**Exception Errors**
+Command:
+Please include the _full_ command string used.
+
+**Exception Errors**:
 If applicable, please add include the exception errors here; for example:
 ```
 [jappleseed@ungoliant]:loopdown # ./loopdown -n -m -p garageband1047 --create-mirror /tmp/foo
@@ -29,11 +32,14 @@ Traceback (most recent call last):
 KeyError: 'foo'
 ```
 
-**Debug log**
-If possible, please re-run `loopdown` with the `--log-level debug` argument parameter and attached the `/Users/Shared/loopdown/loopdown.log` file once `loopdown` has finished.
+**Debug log**:
+Please attach the `latest.log` (if using the Swift version) or the `loopdown.log` (if using the Python version) that should be located in `/Users/Shared/loopdown`.
+Alternatively copy components of the debug log file and paste them here.
+
+Any issue raised without debug log data will be closed without further follow up.
 
 **Which macOS Version?**
 Output of `sw_vers`:
 
-**Additional context**
+**Additional context**:
 Add any other context about the problem here.

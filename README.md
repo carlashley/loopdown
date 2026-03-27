@@ -5,9 +5,13 @@ This _should_ build on macOS 14+ and produce a Universal 2 binary in `dist/swift
 
 To build, find the `build.sh` file and run it (it should be in the `loopdown` folder).
 
-## Known/Possible Issues
-- Deployment with cache server or mirror server has not yet been tested
+## Disclaimer
+I'm generally fairly wary of projects that rely on AI to create code, however this project does heavily utilize Claude to convert the concepts in the Python version of this project to Swift. While I've made the best effort I can to not introduce slop or directly copied code, I can't guarantee this hasn't happened. If code is found to be direct copies of code in other projects, please raise an issue with references so I can follow up.
 
+## Support
+This is provided 'as is'. Any bugs must be reported as an issue.
+No technical support is provided on how to use this in your environment other than what is provided in this read-me or in the help messages in the utility itself.
+Issues raised without any debug logging data will be closed without further follow up.
 
 ## Build options are:
 ```
