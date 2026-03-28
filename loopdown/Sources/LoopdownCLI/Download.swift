@@ -18,7 +18,7 @@ struct DestinationOption: ParsableArguments {
     var dest: String = LoopdownConstants.Paths.defaultDest
 }
 
-// MARK: - Download argument
+// MARK: - Download command
 struct Download: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Download content for selected apps.",
@@ -38,6 +38,8 @@ struct Download: AsyncParsableCommand {
     @OptionGroup var required: RequiredContentOption
     @OptionGroup var optional: OptionalContentOption
     @OptionGroup var destination: DestinationOption
+    @OptionGroup var servers: ServerOptions
+    @OptionGroup var cacheDiscovery: CacheAutoDiscoveryOptions
     @OptionGroup var signatureCheck: SkipSignatureCheckOption
 
     func validate() throws {
@@ -52,6 +54,15 @@ struct Download: AsyncParsableCommand {
                 enableConsole: !quiet.quietRun
             )
 
+            let resolvedCacheServerURL = CacheServerResolution.resolveCacheServerURL(
+                servers.cacheServer,
+                maxAttempts: cacheDiscovery.cacheAutoRetries,
+                retryDelay: UInt32(cacheDiscovery.cacheRetryDelay),
+                logger: logger
+            )
+
+            let mirrorServerURL = servers.mirrorServer?.url
+
             try await ContentCoordinator.run(
                 mode: .download,
                 selectedApps: apps.app,
@@ -60,8 +71,8 @@ struct Download: AsyncParsableCommand {
                 destDir: destination.dest,
                 forceDeploy: false,
                 skipSignatureCheck: signatureCheck.skipSignatureCheck,
-                cacheServer: nil,
-                mirrorServer: nil,
+                cacheServer: resolvedCacheServerURL,
+                mirrorServer: mirrorServerURL,
                 dryRun: dry.dryRun,
                 logger: logger
             )

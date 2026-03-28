@@ -3,7 +3,6 @@
 //
 // Created on 18/1/2026
 //
-    
 
 import ArgumentParser
 import Foundation
@@ -47,6 +46,42 @@ struct ServerOptions: ParsableArguments {
             guard let port = url.port, (1...65535).contains(port) else {
                 throw ValidationError("Cache server must include a valid port")
             }
+        }
+    }
+}
+
+
+// MARK: - Cache auto-discovery options
+
+/// Grouped CLI arguments controlling the behaviour of `--cache-server auto` discovery.
+///
+/// Applies to both `download` and `deploy` commands. Has no effect unless
+/// `--cache-server auto` is in use.
+struct CacheAutoDiscoveryOptions: ParsableArguments {
+    @Option(
+        name: .long,
+        help: ArgumentHelp(
+            "Maximum number of attempts when auto-discovering a caching server (default: 3).",
+            valueName: "n"
+        )
+    )
+    var cacheAutoRetries: Int = 3
+
+    @Option(
+        name: .long,
+        help: ArgumentHelp(
+            "Seconds to wait between caching server auto-discovery attempts (default: 1).",
+            valueName: "seconds"
+        )
+    )
+    var cacheRetryDelay: Int = 1
+
+    mutating func validate() throws {
+        if cacheAutoRetries < 1 {
+            throw ValidationError("'--cache-auto-retries' must be at least 1.")
+        }
+        if cacheRetryDelay < 0 {
+            throw ValidationError("'--cache-retry-delay' must be 0 or greater.")
         }
     }
 }

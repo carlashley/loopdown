@@ -3,7 +3,6 @@
 //
 // Created on 27/3/2026
 //
-    
 
 import Foundation
 import LoopdownCore
@@ -11,7 +10,7 @@ import LoopdownCore
 
 // MARK: - ManagedPreferences
 
-/// Typed representation of the `com.github.carlashley.loopdown` managed preferences domain.
+/// Typed representation of the `BuildInfo.identifier` managed preferences domain.
 ///
 /// All keys are optional in the preferences domain. Missing keys are filled with
 /// documented sane defaults so that `loopdown deploy --managed` provides useful
@@ -19,7 +18,7 @@ import LoopdownCore
 ///
 /// ## MDM payload
 /// Payload type:       `com.apple.managed.preferences`
-/// Preference domain:  `com.github.carlashley.loopdown`
+/// Preference domain:  `BuildInfo.identifier`
 ///
 /// ## Key reference
 ///
@@ -36,6 +35,19 @@ import LoopdownCore
 /// optional:
 ///   type: Bool
 ///   default: false
+///
+/// appPolicies:
+///   type: [{app: String, required: Bool, optional: Bool}]
+///   default: []        # empty = use top-level required/optional for all apps
+///   # Per-app overrides for required/optional. Apps not listed fall back to the
+///   # top-level required/optional values.
+///   # Example:
+///   #   - app: garageband
+///   #     required: true
+///   #     optional: true
+///   #   - app: logicpro
+///   #     required: true
+///   #     optional: false
 ///
 /// forceDeploy:
 ///   type: Bool
@@ -75,11 +87,14 @@ public struct ManagedPreferences: Equatable {
     /// Short app names to target. Empty means all installed apps.
     public let apps: [ConcreteApp]
 
-    /// Include required content packages.
+    /// Include required content packages (global default).
     public let required: Bool
 
-    /// Include optional content packages.
+    /// Include optional content packages (global default).
     public let optional: Bool
+
+    /// Per-app overrides for required/optional. Empty means use global defaults for all apps.
+    public let appPolicies: [AppContentPolicy]
 
     /// Force deploy regardless of existing install state.
     public let forceDeploy: Bool

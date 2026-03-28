@@ -22,6 +22,8 @@ public enum ContentCoordinator {
     /// - Note:
     ///   - `selectedApps`: empty means "all installed apps that loopdown supports".
     ///   - `includeRequired` / `includeOptional` are already validated by the CLI.
+    ///   - `appPolicies`: per-app overrides for `includeRequired`/`includeOptional` under
+    ///     `--managed`. Empty (the default) means use the global flags for every app.
     ///   - `destDir` is used for `download` mode output placement.
     ///   - `deploy` downloads into a managed staging directory and installs from there.
     ///   - `skipSignatureCheck`: when false (default), each downloaded package is verified
@@ -31,6 +33,7 @@ public enum ContentCoordinator {
         selectedApps: [ConcreteApp],
         includeRequired: Bool,
         includeOptional: Bool,
+        appPolicies: [AppContentPolicy] = [],
         destDir: String,
         forceDeploy: Bool,
         skipSignatureCheck: Bool,
@@ -79,6 +82,7 @@ public enum ContentCoordinator {
                 apps: targetApps,
                 includeRequired: includeRequired,
                 includeOptional: includeOptional,
+                appPolicies: appPolicies,
                 forceDeploy: forceDeploy,
                 skipSignatureCheck: skipSignatureCheck,
                 cacheServer: cacheServer,
@@ -111,6 +115,7 @@ private extension ContentCoordinator {
         logger.notice("Downloading from \(baseURL.absoluteString) and saving content to \(destDir)")
 
         // Merge packages across all selected apps to avoid downloading duplicates.
+        // Download mode has no per-app policy concept — appPolicies is --managed only.
         let pkgs = mergePackagesAcrossApps(
             apps: apps,
             includeRequired: includeRequired,
@@ -189,6 +194,7 @@ private extension ContentCoordinator {
         apps: [AudioApplication],
         includeRequired: Bool,
         includeOptional: Bool,
+        appPolicies: [AppContentPolicy],
         forceDeploy: Bool,
         skipSignatureCheck: Bool,
         cacheServer: URL?,
@@ -199,7 +205,7 @@ private extension ContentCoordinator {
     ) async throws {
 
         logger.debug("forceDeploy: \(forceDeploy)")
-        if let cacheServer { logger.debug("cacheServer: \(cacheServer.absoluteString)") }
+        if let cacheServer  { logger.debug("cacheServer: \(cacheServer.absoluteString)") }
         if let mirrorServer { logger.debug("mirrorServer: \(mirrorServer.absoluteString)") }
 
         let baseURL = effectiveBaseURL(cacheServer: cacheServer, mirrorServer: mirrorServer)
@@ -207,11 +213,13 @@ private extension ContentCoordinator {
 
         // 1) Merge packages across apps, filtering by install state per-app (matching Python
         //    behaviour). forceDeploy bypasses the install-state filter so all packages are
-        //    included regardless.
+        //    included regardless. appPolicies provides per-app required/optional overrides
+        //    under --managed; empty means use the global includeRequired/includeOptional.
         let pending = mergePackagesAcrossApps(
             apps: apps,
             includeRequired: includeRequired,
             includeOptional: includeOptional,
+            appPolicies: appPolicies,
             forceDeploy: forceDeploy,
             debugLog: logger.debug
         )
@@ -223,9 +231,9 @@ private extension ContentCoordinator {
 
         // 2) Free space check against pending packages only.
         // NOTE: This checks the filesystem backing URLSession temp directory.
-        let totalDownload = pending.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
+        let totalDownload  = pending.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
         let totalInstalled = pending.reduce(Int64(0)) { $0 + $1.installedSize.raw }
-        let requiredBytes = totalDownload + totalInstalled
+        let requiredBytes  = totalDownload + totalInstalled
 
         let checkPath = FileManager.default.temporaryDirectory.path
         let freeBytes = try filesystemFreeBytes(atPath: checkPath)
@@ -299,7 +307,7 @@ private extension ContentCoordinator {
                 }
             }
 
-            let label = counter(n, of: total)
+            let label  = counter(n, of: total)
             let indent = String(repeating: " ", count: label.count + 3)
             do {
                 try PackageInstaller.install(
@@ -358,8 +366,8 @@ private extension ContentCoordinator {
         let required = pkgs.filter { $0.mandatory }
         let optional = pkgs.filter { !$0.mandatory }
 
-        let reqSize = required.reduce(Int64(0)) { $0 + $1.installedSize.raw }
-        let optSize = optional.reduce(Int64(0)) { $0 + $1.installedSize.raw }
+        let reqSize   = required.reduce(Int64(0)) { $0 + $1.installedSize.raw }
+        let optSize   = optional.reduce(Int64(0)) { $0 + $1.installedSize.raw }
         let totalSize = reqSize + optSize
 
         var parts: [String] = []
@@ -451,19 +459,36 @@ private extension ContentCoordinator {
         }
     }
 
+    /// Merge packages across all target apps, deduplicating by package ID.
+    ///
+    /// `appPolicies` provides per-app `required`/`optional` overrides (used under `--managed`).
+    /// Apps without a matching policy entry fall back to the global `includeRequired`/`includeOptional`.
+    /// Pass an empty array (the default) to apply the global flags uniformly to all apps.
     static func mergePackagesAcrossApps(
         apps: [AudioApplication],
         includeRequired: Bool,
         includeOptional: Bool,
+        appPolicies: [AppContentPolicy] = [],
         forceDeploy: Bool,
         debugLog: ((String) -> Void)?
     ) -> [AudioContentPackage] {
 
+        // Build a lookup so per-app policy resolution is O(1).
+        let policyByApp: [ConcreteApp: AppContentPolicy] = appPolicies.reduce(into: [:]) {
+            $0[$1.app] = $1
+        }
+
         var byID: [String: AudioContentPackage] = [:]
         var mandatoryIDs = Set<String>()
 
-        if includeRequired {
-            for app in apps {
+        for app in apps {
+            // Resolve required/optional for this app: per-app policy takes precedence
+            // over the global flags; falls back to global when no policy entry exists.
+            let policy       = app.concreteApp.flatMap { policyByApp[$0] }
+            let wantRequired = policy?.required ?? includeRequired
+            let wantOptional = policy?.optional ?? includeOptional
+
+            if wantRequired {
                 for pkg in app.mandatory {
                     // Filter by install state per-app before merging, matching Python behaviour.
                     // This ensures shared packages with differing InstalledSize across app plists
@@ -478,10 +503,8 @@ private extension ContentCoordinator {
                     mandatoryIDs.insert(pkg.packageID)
                 }
             }
-        }
 
-        if includeOptional {
-            for app in apps {
+            if wantOptional {
                 for pkg in app.optional {
                     if mandatoryIDs.contains(pkg.packageID) { continue }
                     if !forceDeploy && !packageNeedsInstall(pkg, debugLog: debugLog) { continue }

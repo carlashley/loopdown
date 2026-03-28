@@ -10,6 +10,7 @@
 		2A734E57F4D44DC5869156B4 /* LoopdownCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398632F1BA16E0053139B /* LoopdownCore.framework */; };
 		594F80C8424040CBBD2934B6 /* LoopdownInfrastructure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA398472F1BA15A0053139B /* LoopdownInfrastructure.framework */; };
 		AB63D0C0CE3543F1A67A35EA /* LoopdownServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAA3982B2F1BA1330053139B /* LoopdownServices.framework */; };
+		FA059B1A2F776FE40095C792 /* AppContentPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA059B192F776FE40095C792 /* AppContentPolicy.swift */; };
 		FA0A60A62F1C4BAE0025ED20 /* LoopdownConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60A52F1C4BAE0025ED20 /* LoopdownConstants.swift */; };
 		FA0A60A82F1C4C9E0025ED20 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60A72F1C4C9E0025ED20 /* Logging.swift */; };
 		FA0A60AB2F1C51630025ED20 /* AppLogLevel+ArgumentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60AA2F1C51630025ED20 /* AppLogLevel+ArgumentParser.swift */; };
@@ -110,6 +111,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FA059B192F776FE40095C792 /* AppContentPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContentPolicy.swift; sourceTree = "<group>"; };
 		FA0A60A52F1C4BAE0025ED20 /* LoopdownConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoopdownConstants.swift; sourceTree = "<group>"; };
 		FA0A60A72F1C4C9E0025ED20 /* Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
 		FA0A60AA2F1C51630025ED20 /* AppLogLevel+ArgumentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppLogLevel+ArgumentParser.swift"; sourceTree = "<group>"; };
@@ -390,6 +392,7 @@
 			children = (
 				FAB47FB22F1CA85E00CB44A1 /* AudioApplication.swift */,
 				FAB47FB92F1CAEBF00CB44A1 /* AudioContentPackage.swift */,
+				FA059B192F776FE40095C792 /* AppContentPolicy.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -772,6 +775,7 @@
 				FAB47FB32F1CA85E00CB44A1 /* AudioApplication.swift in Sources */,
 				FAB47FBA2F1CAEBF00CB44A1 /* AudioContentPackage.swift in Sources */,
 				FA0A60A62F1C4BAE0025ED20 /* LoopdownConstants.swift in Sources */,
+				FA059B1A2F776FE40095C792 /* AppContentPolicy.swift in Sources */,
 				FAB47FB02F1C9DDA00CB44A1 /* DownloadPathNormalization.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -19,21 +19,22 @@ import LoopdownCore
 ///    exists and is readable it is used exclusively.
 /// 2. `CFPreferencesCopyAppValue` against the `com.github.carlashley.loopdown` domain — the
 ///    classic MDM managed-preferences stack (pushed via `com.apple.managed.preferences` profile
-///    payload). Used when the plist file is absent.
+///    payload). Used when the plist file is absent or unreadable.
 ///
 /// Preferences are read fresh on each `read()` call so that changes take effect without
 /// restarting the binary.
 ///
 /// ## Sane defaults (applied when keys are absent)
 ///
-/// - `apps`                                                                          → all installed apps (empty array passed to ContentCoordinator)
-/// - `required`+`optional` both absent/false            → `required = true`
-/// - `cacheServer`+`mirrorServer` both absent     → `cacheServer = .auto`
-/// - `forceDeploy`                                                          → false
-/// - `skipSignatureCheck`                                          → false
-/// - `logLevel`                                                                → .info
-/// - `dryRun`                                                                     → false  (also overridable by --dry-run CLI flag)
-/// - `quietRun`                                                                 → false
+/// - `apps`                                          → all installed apps (empty array passed to ContentCoordinator)
+/// - `required`+`optional` both absent/false         → `required = true`
+/// - `appPolicies`                                   → [] (use global required/optional for all apps)
+/// - `cacheServer`+`mirrorServer` both absent        → `cacheServer = .auto`
+/// - `forceDeploy`                                   → false
+/// - `skipSignatureCheck`                            → false
+/// - `logLevel`                                      → .info
+/// - `dryRun`                                        → false  (also overridable by --dry-run CLI flag)
+/// - `quietRun`                                      → false
 public enum ManagedPreferencesReader {
 
     public static let domain   = BuildInfo.identifier
@@ -42,22 +43,69 @@ public enum ManagedPreferencesReader {
     // MARK: - Read
 
     /// Read and return managed preferences with all defaults applied.
-    public static func read() -> ManagedPreferences {
-        if let dict = loadPlist() {
+    ///
+    /// - Throws: `PlistError.unreadable` if the plist file exists but cannot be read due to
+    ///   a permissions error or other I/O failure. The file being absent is not an error —
+    ///   it falls through to CFPreferences. All other plist failures (malformed, not a
+    ///   dictionary) are also treated as fallthrough with a debug log entry.
+    public static func read(debugLog: ((String) -> Void)? = nil) throws -> ManagedPreferences {
+        switch loadPlist(debugLog: debugLog) {
+        case .success(let dict):
+            debugLog?("ManagedPreferencesReader: using plist source '\(plistURL.path)'")
             return build(source: .plist(dict))
+        case .failure(.unreadable(let e)):
+            // File exists but could not be read — hard failure. The admin placed this file
+            // intentionally; silently falling back to CFPreferences would be misleading.
+            throw PlistError.unreadable(e)
+        case .failure(let error):
+            debugLog?("ManagedPreferencesReader: plist unavailable (\(error)); falling back to CFPreferences domain '\(domain)'")
+            return build(source: .cfPreferences)
         }
-        return build(source: .cfPreferences)
     }
 
     // MARK: - Plist loader
 
-    /// Attempt to load the DDM-written plist. Returns nil if the file is absent or unreadable.
-    private static func loadPlist() -> [String: Any]? {
-        guard FileManager.default.fileExists(atPath: plistURL.path),
-              let data = try? Data(contentsOf: plistURL),
-              let dict = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
-        else { return nil }
-        return dict
+    public enum PlistError: Error, CustomStringConvertible {
+        case notFound
+        case unreadable(Error)
+        case malformed(Error)
+        case notADictionary
+
+        public var description: String {
+            switch self {
+            case .notFound:               return "file not found at '\(ManagedPreferencesReader.plistURL.path)'"
+            case .unreadable(let e):      return "file unreadable (\(e))"
+            case .malformed(let e):       return "plist parse error (\(e))"
+            case .notADictionary:         return "plist root is not a dictionary"
+            }
+        }
+    }
+
+    /// Attempt to load the plist. Returns a typed Result so callers can log the exact failure reason.
+    private static func loadPlist(debugLog: ((String) -> Void)?) -> Result<[String: Any], PlistError> {
+        guard FileManager.default.fileExists(atPath: plistURL.path) else {
+            return .failure(.notFound)
+        }
+
+        let data: Data
+        do {
+            data = try Data(contentsOf: plistURL)
+        } catch {
+            return .failure(.unreadable(error))
+        }
+
+        let obj: Any
+        do {
+            obj = try PropertyListSerialization.propertyList(from: data, format: nil)
+        } catch {
+            return .failure(.malformed(error))
+        }
+
+        guard let dict = obj as? [String: Any] else {
+            return .failure(.notADictionary)
+        }
+
+        return .success(dict)
     }
 
     // MARK: - Builder
@@ -83,6 +131,9 @@ public enum ManagedPreferencesReader {
             return (rawRequired ?? false, rawOptional ?? false)
         }()
 
+        // Per-app policy overrides
+        let appPolicies = readAppPolicies(source: source)
+
         // Server — default cacheServer=.auto when both absent
         let cacheServer  = readCacheServer(source: source)
         let mirrorServer = readMirrorServer(source: source)
@@ -106,6 +157,7 @@ public enum ManagedPreferencesReader {
             apps:                apps,
             required:            required,
             optional:            optional,
+            appPolicies:         appPolicies,
             forceDeploy:         forceDeploy,
             skipSignatureCheck:  skipSignatureCheck,
             logLevel:            logLevel,
@@ -121,6 +173,22 @@ public enum ManagedPreferencesReader {
     private static func readApps(source: Source) -> [ConcreteApp] {
         guard let raw = array(forKey: "apps", source: source) as? [String] else { return [] }
         return raw.compactMap { ConcreteApp(rawValue: $0.lowercased()) }
+    }
+
+    /// Parse the `appPolicies` array. Entries with an unrecognised `app` value are silently skipped.
+    private static func readAppPolicies(source: Source) -> [AppContentPolicy] {
+        guard let raw = array(forKey: "appPolicies", source: source) else { return [] }
+        // Cast element-by-element: PropertyListSerialization vends NSDictionary, not [String: Any],
+        // so a direct cast of the whole array as [[String: Any]] silently fails.
+        return raw.compactMap { element -> AppContentPolicy? in
+            guard let entry    = element as? [String: Any],
+                  let appRaw   = entry["app"]      as? String,
+                  let app      = ConcreteApp(rawValue: appRaw.lowercased()),
+                  let required = entry["required"] as? Bool,
+                  let optional = entry["optional"] as? Bool
+            else { return nil }
+            return AppContentPolicy(app: app, required: required, optional: optional)
+        }
     }
 
     private static func readCacheServer(source: Source) -> CacheServer? {

@@ -26,8 +26,9 @@ struct ManagedOption: ParsableArguments {
             discussion: """
             When --managed is active, all deploy arguments are read from the \
             com.github.carlashley.loopdown CFPreferences domain. Only --dry-run \
-            may be combined with --managed; all other flags are ignored and their \
-            values must be set via the preferences domain.
+            and --cache-auto-retries/--cache-retry-delay may be combined with \
+            --managed; all other flags are ignored and their values must be set \
+            via the preferences domain.
 
             Sane defaults are applied for any key absent from the domain:
               apps               all installed apps
@@ -57,7 +58,8 @@ struct Deploy: AsyncParsableCommand {
         Root privileges are required unless '-n/--dry-run' is specified.
 
         Use '--managed' to drive all arguments from the com.github.carlashley.loopdown \
-        preferences domain (e.g. via MDM). Only '--dry-run' may be combined with '--managed'.
+        preferences domain (e.g. via MDM). Only '--dry-run' and cache discovery options \
+        may be combined with '--managed'.
 
         If you need to download content for a local mirror, use the 'download' command instead.
         See 'loopdown download --help' for more information.
@@ -72,6 +74,7 @@ struct Deploy: AsyncParsableCommand {
     @OptionGroup var optional: OptionalContentOption
     @OptionGroup var force: ForceDeployOption
     @OptionGroup var servers: ServerOptions
+    @OptionGroup var cacheDiscovery: CacheAutoDiscoveryOptions
     @OptionGroup var signatureCheck: SkipSignatureCheckOption
     @OptionGroup var managedOption: ManagedOption
 
@@ -86,8 +89,8 @@ struct Deploy: AsyncParsableCommand {
     }
 
     private func validateManagedMode() throws {
-        // Under --managed, only --dry-run is permitted. Detect any explicitly-set flags
-        // that would conflict with the managed preferences domain.
+        // Under --managed, only --dry-run and cache discovery options are permitted.
+        // Detect any explicitly-set flags that would conflict with the managed preferences domain.
         if !apps.app.isEmpty {
             throw ValidationError("'--app' cannot be used with '--managed'; set the 'apps' key in the preferences domain instead.")
         }
@@ -108,9 +111,6 @@ struct Deploy: AsyncParsableCommand {
         }
         if signatureCheck.skipSignatureCheck {
             throw ValidationError("'--skip-signature-check' cannot be used with '--managed'; set the 'skipSignatureCheck' key in the preferences domain instead.")
-        }
-        if logging.logLevel != .info {
-            throw ValidationError("'--log-level' cannot be used with '--managed'; set the 'logLevel' key in the preferences domain instead.")
         }
         if quiet.quietRun {
             throw ValidationError("'--quiet' cannot be used with '--managed'; set the 'quietRun' key in the preferences domain instead.")
@@ -158,6 +158,8 @@ struct Deploy: AsyncParsableCommand {
 
             let resolvedCacheServerURL = CacheServerResolution.resolveCacheServerURL(
                 servers.cacheServer,
+                maxAttempts: cacheDiscovery.cacheAutoRetries,
+                retryDelay: UInt32(cacheDiscovery.cacheRetryDelay),
                 logger: logger
             )
 
@@ -183,7 +185,11 @@ struct Deploy: AsyncParsableCommand {
 
     private func runManaged() async throws {
         try await ExecutionLock.withLockAsync {
-            let prefs = ManagedPreferencesReader.read()
+            // Buffer plist diagnostics before the logger exists so we can replay them
+            // through the single real logger after startRun. This avoids calling
+            // startRun twice (which would create two log files, discarding the first).
+            var prefsDebugLines: [String] = []
+            let prefs = try ManagedPreferencesReader.read(debugLog: { prefsDebugLines.append($0) })
 
             // --dry-run CLI flag overrides the prefs value.
             let effectiveDryRun = dry.dryRun || prefs.dryRun
@@ -198,20 +204,29 @@ struct Deploy: AsyncParsableCommand {
                 )
             }
 
+            // CLI --log-level overrides the prefs value when explicitly provided.
+            let effectiveLogLevel = logging.logLevel != .info ? logging.logLevel : prefs.logLevel
+
             let logger = CLILogging.startRun(
                 category: "Deploy",
-                minLevel: prefs.logLevel,
+                minLevel: effectiveLogLevel,
                 enableConsole: !prefs.quietRun
             )
+
+            // Replay buffered plist diagnostics through the real logger.
+            prefsDebugLines.forEach { logger.debug($0) }
 
             logger.debug("--managed: reading from domain '\(ManagedPreferencesReader.domain)'")
             logger.debug("--managed: apps=\(prefs.apps.map { $0.rawValue })")
             logger.debug("--managed: required=\(prefs.required) optional=\(prefs.optional)")
+            logger.debug("--managed: appPolicies=\(prefs.appPolicies.map { "\($0.app.rawValue)(r:\($0.required) o:\($0.optional))" })")
             logger.debug("--managed: forceDeploy=\(prefs.forceDeploy) skipSignatureCheck=\(prefs.skipSignatureCheck)")
             logger.debug("--managed: dryRun=\(effectiveDryRun) (prefs=\(prefs.dryRun) cli=\(dry.dryRun))")
 
             let resolvedCacheServerURL = CacheServerResolution.resolveCacheServerURL(
                 prefs.cacheServer,
+                maxAttempts: cacheDiscovery.cacheAutoRetries,
+                retryDelay: UInt32(cacheDiscovery.cacheRetryDelay),
                 logger: logger
             )
 
@@ -222,6 +237,7 @@ struct Deploy: AsyncParsableCommand {
                 selectedApps: prefs.apps,
                 includeRequired: prefs.required,
                 includeOptional: prefs.optional,
+                appPolicies: prefs.appPolicies,
                 destDir: LoopdownConstants.Paths.defaultDest,
                 forceDeploy: prefs.forceDeploy,
                 skipSignatureCheck: prefs.skipSignatureCheck,
