@@ -58,6 +58,8 @@ SUBCOMMANDS:
 ## Managed Preferences
 This is an experimental implementation of use managed preferences (or even using `defaults` to provide local preferences) for deployment modes.
 
+Preferences can be set with a local `defaults write com.github.carlashley.loopdown` command (or `plistlib` for more complex settings like `appPolicies`) or configuration delivered by MDM or DDM (as long as `com.github.carlashley.loopdown.plist` lands in `/Library/Managed Preferences`).
+
 When using managed preferences to control how `loopdown` runs for deploying content, the following default options are used (but can be overridden):
 - deploy mode (not a dry run and output is still sent to console+log)
 - cache server auto detected
@@ -65,15 +67,12 @@ When using managed preferences to control how `loopdown` runs for deploying cont
 
 Either a dry-run or deploy run can be called manually from the command line using `loopdown deploy --managed -n` or `loopdown deploy --managed`.
 
-The command line version of `loopdown` should support both managed preferences (via MDM) and local preferences with the keys documented in the YAML below.
-
-Setting a value using `defaults`: `defaults write com.github.carlashley.loopdown <key> <value>`, for example, setting both required and optional packages for installation:
-```
-[foo@bar]: # defaults write com.github.carlashley.loopdown required -bool true
-[foo@bar]: # defaults write com.github.carlashley.loopdown optional -bool true
-```
 
 ### YAML Preferences
+This documents the accepted keys and values for the managed deployment.
+
+It is possible to configure per-app installation of required and/or optional packages using an app policy by using `appPolicies`. This is useful when you might deploy more than one of the audio applications, but only want required content installed for one, but required and optional for another (for example, install required and optional content for GarageBand, but only the required content for Logic Pro).
+
 ```
 # Preferences for loopdown (domain: 'com.github.carlashley.loopdown').
 apps:
@@ -88,6 +87,19 @@ required:
 optional:
   type: Bool
   default: false
+
+appPolicies:
+  type: [{app: String, required: Bool, optional: Bool}]
+  default: []        # empty = use top-level required/optional for all apps
+  # Per-app overrides for required/optional. Apps not listed fall back to the
+  # top-level required/optional values.
+  # Example:
+  #   - app: garageband
+  #     required: true
+  #     optional: true
+  #   - app: logicpro
+  #     required: true
+  #     optional: false
 
 forceDeploy:
   type: Bool
@@ -120,7 +132,6 @@ quietRun:
   type: Bool
   default: false
 ```
-
 
 ## License
 Licensed under the Apache License Version 2.0. See `LICENSE` for more information.
