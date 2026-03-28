@@ -48,11 +48,15 @@ struct Download: AsyncParsableCommand {
 
     func run() async throws {
         try await ExecutionLock.withLockAsync {
-            let logger = CLILogging.startRun(
+            /// Emit a message to file sinks only — never console, regardless of console sink state.
+            /// Used for run UID open/close lines that must not appear in terminal output.
+            let run = CLILogging.startRun(
                 category: "Download",
                 minLevel: logging.logLevel,
                 enableConsole: !quiet.quietRun
             )
+            let logger = run.logger
+            defer { run.emitRunEnd() }
 
             let resolvedCacheServerURL = CacheServerResolution.resolveCacheServerURL(
                 servers.cacheServer,

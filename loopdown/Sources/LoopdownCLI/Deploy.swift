@@ -150,11 +150,13 @@ struct Deploy: AsyncParsableCommand {
 
     private func runStandard() async throws {
         try await ExecutionLock.withLockAsync {
-            let logger = CLILogging.startRun(
+            let run = CLILogging.startRun(
                 category: "Deploy",
                 minLevel: logging.logLevel,
                 enableConsole: !quiet.quietRun
             )
+            let logger = run.logger
+            defer { run.emitRunEnd() }
 
             let resolvedCacheServerURL = CacheServerResolution.resolveCacheServerURL(
                 servers.cacheServer,
@@ -207,11 +209,15 @@ struct Deploy: AsyncParsableCommand {
             // CLI --log-level overrides the prefs value when explicitly provided.
             let effectiveLogLevel = logging.logLevel != .info ? logging.logLevel : prefs.logLevel
 
-            let logger = CLILogging.startRun(
+            /// Emit a message to file sinks only — never console, regardless of console sink state.
+            /// Used for run UID open/close lines that must not appear in terminal output.
+            let run = CLILogging.startRun(
                 category: "Deploy",
                 minLevel: effectiveLogLevel,
                 enableConsole: !prefs.quietRun
             )
+            let logger = run.logger
+            defer { run.emitRunEnd() }
 
             // Replay buffered plist diagnostics through the real logger.
             prefsDebugLines.forEach { logger.debug($0) }

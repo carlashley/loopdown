@@ -211,6 +211,14 @@ public final class AppLogger: Sendable {
     public func error(_ msg: String)    { log(.error, msg) }
     public func critical(_ msg: String) { log(.critical, msg) }
 
+    /// Emit a message to file sinks only — never console, regardless of console sink state.
+    /// Used for run UID open/close lines that must not appear in terminal output.
+    public func fileOnly(_ msg: String) {
+        let ts = Self.tsFormatter.string(from: Date())
+        let renderedLine = "\(ts) [FILE    ] \(msg)"
+        for sink in fileSinks { sink.writeLine(renderedLine) }
+    }
+    
     public func withConsole(_ sink: ConsoleLogSink?) -> AppLogger {
         AppLogger(
             subsystem: subsystem,
