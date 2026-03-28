@@ -55,8 +55,7 @@ public enum ManagedPreferencesReader {
     private static func loadPlist() -> [String: Any]? {
         guard FileManager.default.fileExists(atPath: plistURL.path),
               let data = try? Data(contentsOf: plistURL),
-              let dict = try? PropertyListSerialization.propertyList(from: data,
-                                                                     format: nil) as? [String: Any]
+              let dict = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
         else { return nil }
         return dict
     }
