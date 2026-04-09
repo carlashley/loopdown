@@ -52,6 +52,7 @@ public enum PackageInstaller {
     public static func install(
         pkgURL: URL,
         packageName: String,
+        verbose: Bool = false,
         debugLog: ((String) -> Void)? = nil,
         errorLog: ((String) -> Void)? = nil
     ) throws {
@@ -59,7 +60,9 @@ public enum PackageInstaller {
             throw InstallError.installerNotFound
         }
 
-        let cmd = [Consts.installerPath, "-pkg", pkgURL.path, "-target", Consts.target]
+        var cmd = [Consts.installerPath]
+        if verbose { cmd.append("-verbose") }
+        cmd += ["-pkg", pkgURL.path, "-target", Consts.target]
 
         let result = try ProcessRunner.run(
             cmd,

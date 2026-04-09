@@ -178,6 +178,7 @@ struct Deploy: AsyncParsableCommand {
                 cacheServer: resolvedCacheServerURL,
                 mirrorServer: mirrorServerURL,
                 dryRun: dry.dryRun,
+                verboseInstall: logging.logLevel <= AppLogLevel.debug,
                 logger: logger
             )
         }
@@ -250,6 +251,7 @@ struct Deploy: AsyncParsableCommand {
                 cacheServer: resolvedCacheServerURL,
                 mirrorServer: mirrorServerURL,
                 dryRun: effectiveDryRun,
+                verboseInstall: effectiveLogLevel <= AppLogLevel.debug,
                 logger: logger
             )
         }

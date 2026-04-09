@@ -1,4 +1,4 @@
-//// CoreLogger.swift
+//// LoggerProtocol.swift
 // loopdown
 //
 // Created on 18/1/2026

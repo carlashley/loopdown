@@ -40,6 +40,7 @@ public enum ContentCoordinator {
         cacheServer: URL?,
         mirrorServer: URL?,
         dryRun: Bool,
+        verboseInstall: Bool = false,
         logger: CoreLogger
     ) async throws {
 
@@ -88,6 +89,7 @@ public enum ContentCoordinator {
                 cacheServer: cacheServer,
                 mirrorServer: mirrorServer,
                 dryRun: dryRun,
+                verboseInstall: verboseInstall,
                 logger: logger,
                 downloader: downloader
             )
@@ -200,6 +202,7 @@ private extension ContentCoordinator {
         cacheServer: URL?,
         mirrorServer: URL?,
         dryRun: Bool,
+        verboseInstall: Bool,
         logger: CoreLogger,
         downloader: DownloadClient
     ) async throws {
@@ -313,6 +316,7 @@ private extension ContentCoordinator {
                 try PackageInstaller.install(
                     pkgURL: stagedURL,
                     packageName: pkg.name,
+                    verbose: verboseInstall,
                     debugLog: logger.debug,
                     errorLog: logger.error
                 )
