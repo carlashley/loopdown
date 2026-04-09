@@ -695,10 +695,11 @@
 			);
 			outputPaths = (
 				"$(SRCROOT)/Sources/Generated/BuildInfo.swift",
+				"$(SRCROOT)/Sources/Generated/Info.plist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\n# Ensure UTF-8 output\nexport LC_ALL=en_AU.UTF-8\nexport LANG=en_AU.UTF-8\n\necho \">>> BuildInfo script running\"\n\n# Where to write the generated file:\nOUT_DIR=\"${SRCROOT}/Sources/Generated\"\nOUT_FILE=\"${OUT_DIR}/BuildInfo.swift\"\n\nmkdir -p \"${OUT_DIR}\"\n\n# Copyright symbol\nif locale charmap 2>/dev/null | grep -qi utf-8; then\n  COPYRIGHT_SYMBOL=\"©\"\nelse\n  COPYRIGHT_SYMBOL=\"(c)\"\nfi\n\n# Semantic version: prefer Xcode MARKETING_VERSION (set it in Build Settings)\nVERSION=\"${MARKETING_VERSION:-0.0.0}\"\nBUILD=\"$(date +\"%Y%m%dT%H%M\")\"\nHOLDER=\"Carl Ashley\"\nYEAR=\"$(date +\"%Y\")\"\n\n# Handle either '.Debug' added to build number or nothing appended when release is built\nif [[ \"${CONFIGURATION}\" == \"Debug\" ]]; then\n    BUILD_LABEL=\"${BUILD}.Debug\"\nelse\n    BUILD_LABEL=\"${BUILD}\"\nfi\n\necho \">>> BuildInfo version: ${MARKETING_VERSION:-<unset>}\"\n\n# Generate the BuildInfo.swift file\ncat > \"${OUT_FILE}\" <<EOF\npublic enum BuildInfo {\n    public static let marketingVersion: String = \"${VERSION}\"\n    public static let buildNumber: String = \"${BUILD}\"\n    public static let buildConfiguration: String = \"${CONFIGURATION}\"\n    public static let copyrightYear: String = \"${YEAR}\"\n    public static let copyrightHolder: String = \"${HOLDER}\"\n    public static let identifier: String = \"com.github.carlashley.loopdown\"\n\n    public static var versionLine: String {\n        \"loopdown v\\\\(marketingVersion) (${BUILD_LABEL}) Copyright ${COPYRIGHT_SYMBOL} \\\\(copyrightYear) \\\\(copyrightHolder). All rights reserved.\"\n    }\n}\nEOF\n\necho \"Generated: ${OUT_FILE}\"\n";
+			shellScript = "set -euo pipefail\n# Ensure UTF-8 output\nexport LC_ALL=en_AU.UTF-8\nexport LANG=en_AU.UTF-8\n\necho \">>> BuildInfo script running\"\n\n# Where to write the generated file:\nOUT_DIR=\"${SRCROOT}/Sources/Generated\"\nOUT_FILE=\"${OUT_DIR}/BuildInfo.swift\"\nOUT_PLIST=\"${OUT_DIR}/Info.plist\"\n\nmkdir -p \"${OUT_DIR}\"\n\n# Copyright symbol\nif locale charmap 2>/dev/null | grep -qi utf-8; then\n  COPYRIGHT_SYMBOL=\"©\"\nelse\n  COPYRIGHT_SYMBOL=\"(c)\"\nfi\n\n# Semantic version: prefer Xcode MARKETING_VERSION (set it in Build Settings)\nVERSION=\"${MARKETING_VERSION:-0.0.0}\"\nBUILD=\"$(date +\"%Y%m%dT%H%M\")\"\nHOLDER=\"Carl Ashley\"\nYEAR=\"$(date +\"%Y\")\"\nCOPYRIGHT_STRING=\"Copyright ${COPYRIGHT_SYMBOL} ${YEAR} ${HOLDER}. All rights reserved.\"\n\n# Handle either '.Debug' added to build number or nothing appended when release is built\nif [[ \"${CONFIGURATION}\" == \"Debug\" ]]; then\n    BUILD_LABEL=\"${BUILD}.Debug\"\nelse\n    BUILD_LABEL=\"${BUILD}\"\nfi\n\necho \">>> BuildInfo version: ${MARKETING_VERSION:-<unset>}\"\n\n# Generate the BuildInfo.swift file\ncat > \"${OUT_FILE}\" <<EOF\npublic enum BuildInfo {\n    public static let marketingVersion: String = \"${VERSION}\"\n    public static let buildNumber: String = \"${BUILD}\"\n    public static let buildConfiguration: String = \"${CONFIGURATION}\"\n    public static let copyrightYear: String = \"${YEAR}\"\n    public static let copyrightHolder: String = \"${HOLDER}\"\n    public static let identifier: String = \"com.github.carlashley.loopdown\"\n\n    public static var versionLine: String {\n        \"loopdown v\\\\(marketingVersion) (${BUILD_LABEL}) Copyright ${COPYRIGHT_SYMBOL} \\\\(copyrightYear) \\\\(copyrightHolder). All rights reserved.\"\n    }\n}\nEOF\n\necho \"Generated: ${OUT_FILE}\"\n\n# Generate Info.plist\ncat > \"${OUT_PLIST}\" <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\"\n    \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n    <key>CFBundleIdentifier</key>\n    <string>com.github.carlashley.loopdown</string>\n    <key>CFBundleName</key>\n    <string>loopdown</string>\n    <key>CFBundleShortVersionString</key>\n    <string>${VERSION}</string>\n    <key>CFBundleVersion</key>\n    <string>${BUILD}</string>\n    <key>NSHumanReadableCopyright</key>\n    <string>${COPYRIGHT_STRING}</string>\n</dict>\n</plist>\nEOF\n\necho \"Generated: ${OUT_PLIST}\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -952,7 +953,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEAD_CODE_STRIPPING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "$(SRCROOT)/Sources/Generated/Info.plist";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 			};
@@ -962,7 +967,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEAD_CODE_STRIPPING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "$(SRCROOT)/Sources/Generated/Info.plist";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 			};

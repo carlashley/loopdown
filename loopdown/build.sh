@@ -28,6 +28,7 @@ XCODE_FLAGS=(
     -project "$PROJECT"
     -scheme "$SCHEME"
     -configuration "$CONFIG"
+    INFOPLIST_FILE="./Sources/Generated/Info.plist"
     CODE_SIGN_IDENTITY=""
     CODE_SIGNING_REQUIRED=NO
     CODE_SIGNING_ALLOWED=NO
@@ -45,6 +46,13 @@ build_arch() {
         clean build
 }
 
+# ── Adhoc Singing helper ───────────────────────────────────────────────────────
+adhoc_sign_binary() {
+    local path="$1"
+    echo "==> Signing (ad-hoc)..."
+    /usr/bin/codesign --sign - --force --preserve-metadata=entitlements "$path"
+}
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 case "$ARCH" in
     universal)
@@ -56,6 +64,7 @@ case "$ARCH" in
             "$BUILD_ROOT/arm64/$CONFIG/$BINARY" \
             "$BUILD_ROOT/x86_64/$CONFIG/$BINARY" \
             -output "$DIST_ROOT/universal/$BINARY"
+        adhoc_sign_binary "$DIST_ROOT/universal/$BINARY"
         echo "==> Verifying..."
         lipo -info "$DIST_ROOT/universal/$BINARY"
         echo "==> Done: $DIST_ROOT/universal/$BINARY"
@@ -64,6 +73,7 @@ case "$ARCH" in
         build_arch "$ARCH"
         mkdir -p "$DIST_ROOT/$ARCH"
         cp "$BUILD_ROOT/$ARCH/$CONFIG/$BINARY" "$DIST_ROOT/$ARCH/$BINARY"
+        adhoc_sign_binary "$DIST_ROOT/$ARCH/$BINARY"
         echo "==> Verifying..."
         lipo -info "$DIST_ROOT/$ARCH/$BINARY"
         echo "==> Done: $DIST_ROOT/$ARCH/$BINARY"
