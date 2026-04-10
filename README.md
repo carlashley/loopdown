@@ -3,12 +3,6 @@ Apple appears to have changed how the content for Logic Pro 12+ is installed for
 
 Given this significant change to the way content is installed, and that Apple is making the content only available to valid app store purchases, I will not be pursuing any changes to `loopdown` as it does not appear to be feasible to build any tooling to automate the deployment of content.
 
-There has been a suggested method of deploying content by MacAdmin's Slack user `ElliotD` in the `musicsupport` channel that I've paraphrased below:
-1. On a test Mac, install Logic Pro and download all libraries.
-1. Move the full bundle to `/Users/Shared/Logic Pro Sounds` and change permissions to `root:wheel 755`
-1. Modify the `.bundle` location preference value in `~/Library/Application Support/com.apple.musicapps.content/Logic Pro Library.bookmark` to point to the new location
-1. Build this in a package and deploy
-
 If you're responsible for deploying Mac's and want to learn more, join the MacAdmin's Slack and the `musicsupport` channel for ongoing discussion.
 
 ## General Info
