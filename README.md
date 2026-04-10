@@ -1,5 +1,5 @@
 ## Important Note Regarding Support for Logic Pro 12+ Content Packs
-Apple appears to have changed how the content for Logic Pro 12+ is installed for that app; the "traditiona" method of downloading a `.pkg` file and installing it seems to have been replaced by a patching mechanism that downloads specific content files and stores it into the `~/Music/Logic Pro Content.bundle` directory (amongst others).
+Apple appears to have changed how the content for Logic Pro 12+ is installed for that app; the "traditional" method of downloading a `.pkg` file and installing it seems to have been replaced by a patching mechanism that downloads specific content files and stores it into the `~/Music/Logic Pro Content.bundle` directory (amongst others).
 
 Given this significant change to the way content is installed, and that Apple is making the content only available to valid app store purchases, I will not be pursuing any changes to `loopdown` as it does not appear to be feasible to build any tooling to automate the deployment of content.
 
