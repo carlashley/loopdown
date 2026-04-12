@@ -12,7 +12,13 @@ import LoopdownInfrastructure
 // MARK: - Installed application resolver
 public enum InstalledApplicationResolver {
     /// Resolve installed audio applications that loopdown can process.
+    ///
+    /// - Parameters:
+    ///   - libraryDestURL: Destination root for modern Logic Pro / MainStage content.
+    ///     Passed through to `AudioApplication.init` for receipt plist lookup and extraction.
+    ///   - logger: Logger for debug output.
     public static func resolveInstalled(
+        libraryDestURL: URL,
         logger: CoreLogger = NullLogger()
     ) -> AnySequence<AudioApplication> {
 
@@ -22,14 +28,13 @@ public enum InstalledApplicationResolver {
 
         return AnySequence(
             installedApps.lazy.compactMap { app -> AudioApplication? in
-                // system_profiler keys we care about
                 guard let rawName = app["_name"] as? String else { return nil }
 
                 let normalized = LoopdownConstants.Applications.normalizeName(rawName)
                 guard LoopdownConstants.Applications.realNames.contains(normalized) else { return nil }
 
-                let version = app["version"] as? String ?? ""
-                let pathString = app["path"] as? String ?? ""
+                let version    = app["version"]  as? String ?? ""
+                let pathString = app["path"]     as? String ?? ""
 
                 guard !pathString.isEmpty else {
                     logger.debug("Skipping '\(rawName)': missing path")
@@ -42,6 +47,7 @@ public enum InstalledApplicationResolver {
                     name: rawName,
                     version: version,
                     path: url,
+                    libraryDestURL: libraryDestURL,
                     logger: logger
                 )
             }

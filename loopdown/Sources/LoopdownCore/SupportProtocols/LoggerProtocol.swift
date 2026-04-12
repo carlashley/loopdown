@@ -19,6 +19,8 @@ public protocol CoreLogger: Sendable {
     func notice(_ message: String)
     func warning(_ message: String)
     func error(_ message: String)
+    /// Emit to file sinks only — never to console, regardless of log level.
+    func fileOnly(_ message: String)
 }
 
 /// Default no-op logger.
@@ -29,4 +31,5 @@ public struct NullLogger: CoreLogger {
     public func notice(_ message: String) {}
     public func warning(_ message: String) {}
     public func error(_ message: String) {}
+    public func fileOnly(_ message: String) {}
 }

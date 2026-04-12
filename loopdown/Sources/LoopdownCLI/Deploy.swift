@@ -18,6 +18,22 @@ struct ForceDeployOption: ParsableArguments {
     var forceDeploy: Bool = false
 }
 
+struct LibraryDestOption: ParsableArguments {
+    @Option(
+        name: .long,
+        help: ArgumentHelp(
+            "Destination directory for modern Logic Pro 12+ and MainStage 4+ content.",
+            discussion: """
+            Used as the extraction target for modern content packages (.aar archives) \
+            and as the root under which receipt plists are read to determine install \
+            state. Default: \(LoopdownConstants.ModernApps.defaultLibraryDestPath)
+            """,
+            valueName: "dir"
+        )
+    )
+    var libraryDest: String = LoopdownConstants.ModernApps.defaultLibraryDestPath
+}
+
 struct ManagedOption: ParsableArguments {
     @Flag(
         name: .long,
@@ -39,6 +55,7 @@ struct ManagedOption: ParsableArguments {
               logLevel           info
               cacheServer        auto (when no server key is present)
               dryRun             false
+              libraryDest        \(LoopdownConstants.ModernApps.defaultLibraryDestPath)
             """
         )
     )
@@ -77,6 +94,7 @@ struct Deploy: AsyncParsableCommand {
     @OptionGroup var cacheDiscovery: CacheAutoDiscoveryOptions
     @OptionGroup var signatureCheck: SkipSignatureCheckOption
     @OptionGroup var managedOption: ManagedOption
+    @OptionGroup var libraryDestOption: LibraryDestOption
 
     // MARK: Validation
 
@@ -89,8 +107,6 @@ struct Deploy: AsyncParsableCommand {
     }
 
     private func validateManagedMode() throws {
-        // Under --managed, only --dry-run and cache discovery options are permitted.
-        // Detect any explicitly-set flags that would conflict with the managed preferences domain.
         if !apps.app.isEmpty {
             throw ValidationError("'--app' cannot be used with '--managed'; set the 'apps' key in the preferences domain instead.")
         }
@@ -115,9 +131,10 @@ struct Deploy: AsyncParsableCommand {
         if quiet.quietRun {
             throw ValidationError("'--quiet' cannot be used with '--managed'; set the 'quietRun' key in the preferences domain instead.")
         }
+        if libraryDestOption.libraryDest != LoopdownConstants.ModernApps.defaultLibraryDestPath {
+            throw ValidationError("'--library-dest' cannot be used with '--managed'; set the 'libraryDest' key in the preferences domain instead.")
+        }
 
-        // Root check still applies unless --dry-run is set (either from CLI or from prefs,
-        // but we can only read CLI here — prefs are read in run()).
         if !dry.dryRun && !PrivilegeCheck.isRoot {
             throw ValidationError("You must be root to use this command; re-run with sudo or use '-n/--dry-run'.")
         }
@@ -134,7 +151,6 @@ struct Deploy: AsyncParsableCommand {
     // MARK: Run
 
     func run() async throws {
-        // Consume the trigger file if the run was daemon-initiated.
         try? FileManager.default.removeItem(
             atPath: "/Library/Application Support/com.github.carlashley.loopdown/run.trigger"
         )
@@ -166,12 +182,17 @@ struct Deploy: AsyncParsableCommand {
             )
 
             let mirrorServerURL = servers.mirrorServer?.url
+            let libraryDestURL  = URL(
+                fileURLWithPath: libraryDestOption.libraryDest,
+                isDirectory: true
+            )
 
             try await ContentCoordinator.run(
                 mode: .deploy,
                 selectedApps: apps.app,
                 includeRequired: required.required,
                 includeOptional: optional.optional,
+                libraryDestURL: libraryDestURL,
                 destDir: LoopdownConstants.Paths.defaultDest,
                 forceDeploy: force.forceDeploy,
                 skipSignatureCheck: signatureCheck.skipSignatureCheck,
@@ -188,18 +209,11 @@ struct Deploy: AsyncParsableCommand {
 
     private func runManaged() async throws {
         try await ExecutionLock.withLockAsync {
-            // Buffer plist diagnostics before the logger exists so we can replay them
-            // through the single real logger after startRun. This avoids calling
-            // startRun twice (which would create two log files, discarding the first).
             var prefsDebugLines: [String] = []
             let prefs = try ManagedPreferencesReader.read(debugLog: { prefsDebugLines.append($0) })
 
-            // --dry-run CLI flag overrides the prefs value.
             let effectiveDryRun = dry.dryRun || prefs.dryRun
 
-            // Under --managed the dry-run root check was already validated above for the
-            // CLI --dry-run case. Re-check here for the prefs-driven dryRun=true case,
-            // since validate() cannot read prefs at parse time.
             if !effectiveDryRun && !PrivilegeCheck.isRoot {
                 throw ValidationError(
                     "You must be root to use this command; " +
@@ -207,11 +221,8 @@ struct Deploy: AsyncParsableCommand {
                 )
             }
 
-            // CLI --log-level overrides the prefs value when explicitly provided.
             let effectiveLogLevel = logging.logLevel != .info ? logging.logLevel : prefs.logLevel
 
-            /// Emit a message to file sinks only — never console, regardless of console sink state.
-            /// Used for run UID open/close lines that must not appear in terminal output.
             let run = CLILogging.startRun(
                 category: "Deploy",
                 minLevel: effectiveLogLevel,
@@ -220,7 +231,6 @@ struct Deploy: AsyncParsableCommand {
             let logger = run.logger
             defer { run.emitRunEnd() }
 
-            // Replay buffered plist diagnostics through the real logger.
             prefsDebugLines.forEach { logger.debug($0) }
 
             logger.debug("--managed: reading from domain '\(ManagedPreferencesReader.domain)'")
@@ -229,6 +239,7 @@ struct Deploy: AsyncParsableCommand {
             logger.debug("--managed: appPolicies=\(prefs.appPolicies.map { "\($0.app.rawValue)(r:\($0.required) o:\($0.optional))" })")
             logger.debug("--managed: forceDeploy=\(prefs.forceDeploy) skipSignatureCheck=\(prefs.skipSignatureCheck)")
             logger.debug("--managed: dryRun=\(effectiveDryRun) (prefs=\(prefs.dryRun) cli=\(dry.dryRun))")
+            logger.debug("--managed: libraryDest=\(prefs.libraryDest)")
 
             let resolvedCacheServerURL = CacheServerResolution.resolveCacheServerURL(
                 prefs.cacheServer,
@@ -238,6 +249,10 @@ struct Deploy: AsyncParsableCommand {
             )
 
             let mirrorServerURL = prefs.mirrorServer?.url
+            let libraryDestURL  = URL(
+                fileURLWithPath: prefs.libraryDest,
+                isDirectory: true
+            )
 
             try await ContentCoordinator.run(
                 mode: .deploy,
@@ -245,6 +260,7 @@ struct Deploy: AsyncParsableCommand {
                 includeRequired: prefs.required,
                 includeOptional: prefs.optional,
                 appPolicies: prefs.appPolicies,
+                libraryDestURL: libraryDestURL,
                 destDir: LoopdownConstants.Paths.defaultDest,
                 forceDeploy: prefs.forceDeploy,
                 skipSignatureCheck: prefs.skipSignatureCheck,

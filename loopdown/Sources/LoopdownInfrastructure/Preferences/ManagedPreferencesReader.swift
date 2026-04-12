@@ -35,6 +35,7 @@ import LoopdownCore
 /// - `logLevel`                                      → .info
 /// - `dryRun`                                        → false  (also overridable by --dry-run CLI flag)
 /// - `quietRun`                                      → false
+/// - `libraryDest`                                   → /Users/Shared/Logic Pro Library.bundle
 public enum ManagedPreferencesReader {
 
     public static let domain   = BuildInfo.identifier
@@ -152,6 +153,8 @@ public enum ManagedPreferencesReader {
         let logLevel           = readLogLevel(source: source)
         let dryRun             = bool(forKey: "dryRun",             source: source) ?? false
         let quietRun           = bool(forKey: "quietRun",           source: source) ?? false
+        let libraryDest        = string(forKey: "libraryDest",      source: source)
+                                    ?? LoopdownConstants.ModernApps.defaultLibraryDestPath
 
         return ManagedPreferences(
             apps:                apps,
@@ -164,7 +167,8 @@ public enum ManagedPreferencesReader {
             cacheServer:         resolvedCacheServer,
             mirrorServer:        mirrorServer,
             dryRun:              dryRun,
-            quietRun:            quietRun
+            quietRun:            quietRun,
+            libraryDest:         libraryDest
         )
     }
 

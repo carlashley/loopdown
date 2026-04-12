@@ -117,4 +117,7 @@ public struct ManagedPreferences: Equatable {
 
     /// Suppress all console output.
     public let quietRun: Bool
+
+    /// Destination directory for modern Logic Pro 12+ / MainStage 4+ content deployment.
+    public let libraryDest: String
 }

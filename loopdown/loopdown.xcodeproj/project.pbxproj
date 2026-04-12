@@ -30,6 +30,9 @@
 		FA58F8E52F1CC9EA001EFB98 /* SystemProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8E42F1CC9EA001EFB98 /* SystemProfiler.swift */; };
 		FA58F8EB2F1CCD38001EFB98 /* SubprocessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8E92F1CCD38001EFB98 /* SubprocessRunner.swift */; };
 		FA58F8ED2F1CCF81001EFB98 /* PackageInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8EC2F1CCF81001EFB98 /* PackageInfo.swift */; };
+		FA6320F12F8BB60200C61C9A /* ModernContentDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6320F02F8BB5FD00C61C9A /* ModernContentDatabase.swift */; };
+		FA6320F42F8BB63A00C61C9A /* ModernContentReceipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6320F32F8BB63A00C61C9A /* ModernContentReceipt.swift */; };
+		FA6320F92F8BB6F600C61C9A /* AARExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6320F82F8BB6F600C61C9A /* AARExtractor.swift */; };
 		FA7D5B522F28A89E0049BB47 /* ContentCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7D5B512F28A89E0049BB47 /* ContentCoordinator.swift */; };
 		FA7D5B542F28BF7C0049BB47 /* AssetCacheLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA7D5B532F28BF7C0049BB47 /* AssetCacheLocator.swift */; };
 		FA9C3A862F3485140079758A /* DownloadClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9C3A852F3485140079758A /* DownloadClient.swift */; };
@@ -137,6 +140,9 @@
 		FA58F8E42F1CC9EA001EFB98 /* SystemProfiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemProfiler.swift; sourceTree = "<group>"; };
 		FA58F8E92F1CCD38001EFB98 /* SubprocessRunner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SubprocessRunner.swift; sourceTree = "<group>"; };
 		FA58F8EC2F1CCF81001EFB98 /* PackageInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageInfo.swift; sourceTree = "<group>"; };
+		FA6320F02F8BB5FD00C61C9A /* ModernContentDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernContentDatabase.swift; sourceTree = "<group>"; };
+		FA6320F32F8BB63A00C61C9A /* ModernContentReceipt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernContentReceipt.swift; sourceTree = "<group>"; };
+		FA6320F82F8BB6F600C61C9A /* AARExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AARExtractor.swift; sourceTree = "<group>"; };
 		FA7D5B512F28A89E0049BB47 /* ContentCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentCoordinator.swift; sourceTree = "<group>"; };
 		FA7D5B532F28BF7C0049BB47 /* AssetCacheLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetCacheLocator.swift; sourceTree = "<group>"; };
 		FA9C3A852F3485140079758A /* DownloadClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadClient.swift; sourceTree = "<group>"; };
@@ -162,6 +168,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		FA6320F52F8BB66500C61C9A /* SQLite */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SQLite; sourceTree = "<group>"; };
 		FAD460FF2F76885B000C730D /* Preferences */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Preferences; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -294,6 +301,7 @@
 		FA290E6D2F1BADCE0090B7F7 /* LoopdownCore */ = {
 			isa = PBXGroup;
 			children = (
+				FA6320F52F8BB66500C61C9A /* SQLite */,
 				FAB47FC12F1CB78300CB44A1 /* SupportProtocols */,
 				FAB47FB12F1CA84C00CB44A1 /* Models */,
 				FAB47FAC2F1C8CCE00CB44A1 /* Utilities */,
@@ -310,6 +318,7 @@
 		FA58F8EA2F1CCD38001EFB98 /* Subprocess */ = {
 			isa = PBXGroup;
 			children = (
+				FA6320F82F8BB6F600C61C9A /* AARExtractor.swift */,
 				FA58F8E92F1CCD38001EFB98 /* SubprocessRunner.swift */,
 				FA58F8E42F1CC9EA001EFB98 /* SystemProfiler.swift */,
 				FA58F8EC2F1CCF81001EFB98 /* PackageInfo.swift */,
@@ -390,6 +399,8 @@
 		FAB47FB12F1CA84C00CB44A1 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				FA6320F32F8BB63A00C61C9A /* ModernContentReceipt.swift */,
+				FA6320F02F8BB5FD00C61C9A /* ModernContentDatabase.swift */,
 				FAB47FB22F1CA85E00CB44A1 /* AudioApplication.swift */,
 				FAB47FB92F1CAEBF00CB44A1 /* AudioContentPackage.swift */,
 				FA059B192F776FE40095C792 /* AppContentPolicy.swift */,
@@ -548,6 +559,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				FA6320F52F8BB66500C61C9A /* SQLite */,
 			);
 			name = LoopdownCore;
 			productName = LoopdownCore;
@@ -751,6 +765,7 @@
 				FA7D5B542F28BF7C0049BB47 /* AssetCacheLocator.swift in Sources */,
 				FAD460FC2F768770000C730D /* CacheServer.swift in Sources */,
 				FA0A60A82F1C4C9E0025ED20 /* Logging.swift in Sources */,
+				FA6320F92F8BB6F600C61C9A /* AARExtractor.swift in Sources */,
 				FA9C3A862F3485140079758A /* DownloadClient.swift in Sources */,
 				FA58F8ED2F1CCF81001EFB98 /* PackageInfo.swift in Sources */,
 				FAD460FE2F7687C6000C730D /* CacheServerResolution.swift in Sources */,
@@ -772,6 +787,8 @@
 				FAB47FAE2F1C8CE600CB44A1 /* ByteSize.swift in Sources */,
 				FAB47FC22F1CB78300CB44A1 /* LoggerProtocol.swift in Sources */,
 				FA0A60BD2F1C568D0025ED20 /* ConcreteApp.swift in Sources */,
+				FA6320F12F8BB60200C61C9A /* ModernContentDatabase.swift in Sources */,
+				FA6320F42F8BB63A00C61C9A /* ModernContentReceipt.swift in Sources */,
 				FA0A60C82F1C62AF0025ED20 /* BuildInfo.swift in Sources */,
 				FAB47FB32F1CA85E00CB44A1 /* AudioApplication.swift in Sources */,
 				FAB47FBA2F1CAEBF00CB44A1 /* AudioContentPackage.swift in Sources */,
@@ -1201,6 +1218,7 @@
 				MARKETING_VERSION = 2.0.3;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				"OTHER_LDFLAGS[arch=*]" = "-lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownCore;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -1237,6 +1255,7 @@
 				MARKETING_VERSION = 2.0.3;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				"OTHER_LDFLAGS[arch=*]" = "-lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownCore;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;

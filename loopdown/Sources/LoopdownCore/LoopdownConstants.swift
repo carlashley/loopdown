@@ -65,7 +65,31 @@ public enum LoopdownConstants {
         public enum ContentPaths {
             public static let path2013 = "lp10_ms3_content_2013"
             public static let path2016 = "lp10_ms3_content_2016"
+
+            /// Path prefix prepended to `ZSERVERPATH` values from the modern SQLite
+            /// content database. This prefix is baked into `downloadPath` on modern
+            /// packages so that the server (Apple CDN, cache, or mirror) can be
+            /// prepended uniformly without any per-package branching.
+            ///
+            /// Mirrors `ServerBases.MODERN = "universal/ContentPacks_3"` in Python.
+            public static let modernPrefix = "universal/ContentPacks_3"
         }
+    }
+
+    public enum ModernApps {
+        /// Minimum major version at which an app switches to the modern SQLite-based
+        /// content delivery system. Apps not listed here (i.e. GarageBand) are always legacy.
+        public static let minimumModernVersion: [String: Int] = [
+            "logicpro":  12,
+            "mainstage":  4,
+        ]
+
+        /// Relative path inside the `.app` bundle to the SQLite content database.
+        public static let contentDatabaseRelativePath =
+            "Contents/Resources/Library.bundle/ContentDatabaseV01.db/index.db"
+
+        /// Default library destination for modern content deployment.
+        public static let defaultLibraryDestPath = "/Users/Shared/Logic Pro Library.bundle"
     }
 
     public enum Identifiers {

@@ -4,6 +4,7 @@
 // Created on 18/1/2026
 //
 
+import Foundation
 import ArgumentParser
 import LoopdownCore
 import LoopdownServices
@@ -65,13 +66,22 @@ struct Download: AsyncParsableCommand {
                 logger: logger
             )
 
-            let mirrorServerURL = servers.mirrorServer?.url
+            let mirrorServerURL  = servers.mirrorServer?.url
+            // Download mode does not install content, but libraryDestURL is needed for
+            // AudioApplication init to read the modern content database and receipt plists
+            // (which determine package metadata). Use the default path; the value has no
+            // effect on where downloaded files are saved (that is controlled by destDir).
+            let libraryDestURL = URL(
+                fileURLWithPath: LoopdownConstants.ModernApps.defaultLibraryDestPath,
+                isDirectory: true
+            )
 
             try await ContentCoordinator.run(
                 mode: .download,
                 selectedApps: apps.app,
                 includeRequired: required.required,
                 includeOptional: optional.optional,
+                libraryDestURL: libraryDestURL,
                 destDir: destination.dest,
                 forceDeploy: false,
                 skipSignatureCheck: signatureCheck.skipSignatureCheck,
