@@ -14,8 +14,55 @@ This is the last version of the Python implementation of `loopdown`. Future rele
 - - There are no plans to implement any partial download resumption in this release.
 - Please take note of the new argument syntax as noted in the _Usage_ section below.
 
-## Important Note About Apple's Creator Suite
-At this time I do not have plans to support the version of Logic Pro that ships in the Apple Creator Suite subscription plan.
+## Important Note About Logic Pro 12+ and MainStage 4+
+Rudimentary support for the new method used to install audio content packs has been added for Logic Pro 12+ and MainStage 4+.
+
+How this deployment process works when the apps are updated is as yet unknown; the way in which content is considered as installed and what version the content is has changed as Apple no longer ships the content in a traditional `pkg` format. Using `-f/--force` may be required to ensure content remains updated.
+
+The testing of this deployment process has only been done against "clean" installs of macOS and respective audio apps; the new versions of Logic Pro and MainStage appear to do a migration of existing content packages, so it's not known how this deployment process will work in scenarios where legacy content packs have been installed.
+
+If deploying GarageBand + either/all of the new apps, there is a significant amount of space consumed; in my testing of this scenario, there is at least 200GB of data installed (most likely a large amount of this is duplication of legacy content). This is worth keeping in mind if using `loopdown` to deploy content packs for these apps.
+
+### Before Deployment of Logic Pro 12+ and/or MainStage 4+
+Apple has changed the way their additional content packs are installed for Logic Pro 12+ and MainStage 4+; when "core" and "essential" packs are installed on the first run, they are installed to the users Music directory, specifically `/Users/<user>/Music/Logic Pro Library.bundle`.
+
+For lab deployments or where many users will login to the Mac, this has the potential to waste disk space as the contents get duplicated for each user logging in and using either of the Logic Pro/MainStage apps.
+
+
+It is possible for this library directory to be placed in a centralised location and a symlink created in the `~/Music` directory to point to this location, so you will need to decide where this directory will be located; by default, `loopdown` will install this content to `/Users/Shared/Logic Pro Library.bundle`.
+
+if you change this default directory value, it is essential that any time you do a deployment run that you specify the `-b/--library-dest` argument with the path to the directory you've chosen, otherwise all the audio content packs will be re-deployed as if they were never installed.
+
+There are additional steps after deploying the content that you will need to do to ensure that Logic Pro/MainStage will correctly detect the centralised location of the library. They are documented below.
+
+### After Deployment of Logic Pro 12+ and/or MainStage 4+
+After deploying the content for Logic Pro 12+ and/or MainStage 4+ to a centralised location, you will need to do the following (thanks to ElliotD in the MacAdmins `musicsupport`` channel for working this out):
+1. Ensure a symlink exists in `~/Music` that points to the centralised directory; the mechanism through which this is handled is up to you
+1. Create a LaunchAgent (either in `/Library/LaunchAgents` or in `~/Library/LaunchAgents`) that runs a script that copies `~/Library/Application Support/com.apple.musicapps.content/Logic Pro Library.bookmark` into the same directory the content was installed to
+1. If you do not want the content to be deleted by anyone, add an ACL to the directory the content was installed to (deleting the content at a later date will require this to be removed)
+
+A basic example of configuring things after deployment, presuming the default `-b/--library-dest` value of `/Users/Shared/Logic Pro Library.bundle`:
+```
+# /bin/ln -s /Users/Shared/Logic\ Pro\ Library.bundle ~/Music/
+# /bin/cat > /Library/LaunchAgents/com.github.carlashley.loopdown.copy_bookmark.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.github.carlashley.loopdown.copy_bookmark</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>/path/to/script/copy_library_bookmark.sh</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+  </dict>
+</plist>
+EOF
+# /bin/chmod +a "everyone deny delete,delete_child" /Users/Shared/Logic\ Pro\ Library.bundle
+```
+The LaunchAgent should be installed as a _system_ level agent (`/Library/LaunchAgent`) so it can automatically be run during that users login, alternatively you could use `outset` to run the script on every login.
 
 
 # Building
@@ -72,7 +119,7 @@ options:
 package selection:
   at least one of -r/--req or -o/--opt is required
 
-loopdown v2.0.20260327. Copyright © 2026 Carl Ashley. All rights reserved. Apache License Version 2.0 - http://www.apache.org/licenses/
+loopdown v2.0.3. Copyright © 2026 Carl Ashley. All rights reserved. Apache License Version 2.0 - http://www.apache.org/licenses/
 ```
 
 ## Download help
@@ -100,14 +147,16 @@ package selection:
 
 ## Deploy help
 ```
-python3 -m loopdown deploy -h
+python3 -m loopdown deploy -h  
 Warning: this Python implementation of loopdown has been deprecated and will move to a Swift based implementation in the future.
-usage: loopdown deploy [-h] [-n] [-a [app ...]] [-f] [-r] [-o] [-c [url]] [-m [url]]
+usage: loopdown deploy [-h] [-b LIBRARY_PATH] [-n] [-a [app ...]] [-f] [-r] [-o] [-c [url]] [-m [url]]
 
 Deploy audio content packages locally (requires elevated permission when not performing dry-run)
 
 options:
   -h, --help            show this help message and exit
+  -b, --library-dest [dir]
+                        the destination where modern Logic Pro 12+ and MainStage 4+ content is deployed to; default is '/Users/Shared/Logic Pro Library.bundle'
   -n, --dry-run         perform a dry run; no mutating action taken
   -a, --apps [app ...]  override the default 'garageband', 'logicpro', 'mainstage' set of apps that audio content will be processed for;
                         choices are 'garageband', 'logicpro', 'mainstage'
