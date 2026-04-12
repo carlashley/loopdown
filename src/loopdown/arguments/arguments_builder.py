@@ -151,6 +151,7 @@ def build_arguments() -> argparse.Namespace:
         "--library-dest",
         type=Path,
         dest="library_path",
+        metavar="[dir]",
         default=Path("/Users/Shared/Logic Pro Library.bundle"),
         help=(
             "the destination where modern Logic Pro 12+ and MainStage 4+ content is deployed to; "
