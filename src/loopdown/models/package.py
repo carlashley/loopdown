@@ -16,6 +16,7 @@ from packaging import version as vers
 
 from .receipt import ModernContentReceipt
 from .size import Size
+from .._config import ServerBases
 from ..utils.package_utils import get_pkg_info
 
 log = logging.getLogger(__name__)
@@ -94,7 +95,7 @@ def normalize_url_path(p: str, *, is_legacy: bool) -> str:
     if is_legacy:
         path = f"lp10_ms3_content_2016/{p}"
     else:
-        path = p
+        path = f"{ServerBases.MODERN}/{p}"
 
     normalized = posixpath.normpath(path)
 

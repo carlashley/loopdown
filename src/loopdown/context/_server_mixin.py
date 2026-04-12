@@ -15,7 +15,7 @@ from ..utils.validators import validate_url
 
 log = logging.getLogger(__name__)
 
-CONTENT_SOURCE = ServerBases.LEGACY
+CONTENT_SOURCE = ServerBases.BASE
 
 
 def assetcachelocator(**kwargs) -> Optional[dict[str, Any]]:

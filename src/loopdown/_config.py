@@ -10,11 +10,10 @@ from pathlib import Path
 
 
 class ServerBases:
-    _BASE: str = "https://audiocontentdownload.apple.com"
-    LEGACY: str = str(_BASE)
+    BASE: str = "https://audiocontentdownload.apple.com"
     MODERN_CONTENT_PACKS: str = "universal/ContentPacks_"
     MODERN_VERS = "3"
-    MODERN: str = f"{_BASE}/{MODERN_CONTENT_PACKS}{MODERN_VERS}"
+    MODERN: str = f"{MODERN_CONTENT_PACKS}{MODERN_VERS}"
 
 
 class ApplicationConsts:

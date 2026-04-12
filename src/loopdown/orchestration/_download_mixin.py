@@ -8,7 +8,8 @@ import subprocess
 from pathlib import Path
 from typing import Optional, TYPE_CHECKING
 
-from .._config import ServerBases, VersionConsts
+# from .._config import ServerBases, VersionConsts
+from .._config import VersionConsts
 from ..utils.package_utils import pkg_is_signed_by_apple
 
 if TYPE_CHECKING:
@@ -86,15 +87,10 @@ class DownloadMixin:
     def generate_url_and_dest(self, pkg: "_AudioContentPackage") -> tuple[str, Path]:
         """Generate the correct URL for the package file and the destination to save it.
         :param pkg: _AudioContentPackage object"""
-        if not pkg.is_legacy:
-            server = ServerBases.MODERN
+        if "{path}" in self.ctx.server:
+            url = self.ctx.server.format(path=pkg.download_path)
         else:
-            server = self.ctx.server
-
-        if "{path}" in server:
-            url = server.format(path=pkg.download_path)
-        else:
-            url = f"{server}/{pkg.download_path}"
+            url = f"{self.ctx.server}/{pkg.download_path}"
 
         return (url, self.ctx.args.destination.joinpath(pkg.download_path))
 
