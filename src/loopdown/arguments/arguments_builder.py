@@ -147,7 +147,7 @@ def build_arguments() -> argparse.Namespace:
     )
 
     deploy.add_argument(
-        "-l",
+        "-b",
         "--library-dest",
         type=Path,
         dest="library_path",
