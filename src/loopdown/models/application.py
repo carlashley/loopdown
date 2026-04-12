@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from .._config import ApplicationConsts as Consts
+from .sqlitedb import PackageDatabase, SQLiteReader
 
 log = logging.getLogger(__name__)
 
@@ -19,6 +20,9 @@ DATACLASS_ATTRS_MAP: dict[str, str] = {
     "version": "version",
     "path": "path",
 }
+
+DB_PATH: Path = Path("Contents/Resources/Library.bundle/ContentDatabaseV01.db/index.db")
+MODERN_APPS_VERS: dict[str, int] = {"logicpro": 12, "mainstage": 4}
 
 
 def get_app_shortname(fn: str) -> Optional[str]:
@@ -110,8 +114,28 @@ class Application:
         """Custom string representation."""
         return f"{self.name} version {self.version} at {str(self.path)}"
 
+    @property
+    def content_db(self) -> SQLiteReader:
+        """Content database for apps that have a modernised database derived package construct."""
+        if self.is_modernised:
+            return SQLiteReader(db=self.path.joinpath(DB_PATH))
+
+    @property
+    def is_modernised(self) -> bool:
+        """Indicates the application has the modernised content deployment method."""
+        return self.short_name in MODERN_APPS_VERS and self.major_version >= MODERN_APPS_VERS[self.short_name]
+
+    @cached_property
+    def major_version(self) -> int:
+        """The major version number of the app."""
+        return int(self.version.split(".")[0])
+
     @cached_property
     def packages(self) -> Optional[dict[str, Any]]:
         """Packages metadata from the resource file."""
+        if self.is_modernised and self.short_name is not None:
+            db = PackageDatabase(self.content_db)
+            return db.all_content(self.short_name)
+
         meta_file = find_meta_file(self.path)
         return read_meta_file(meta_file) if meta_file is not None else None

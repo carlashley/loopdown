@@ -1,6 +1,9 @@
 """Main."""
+
 import logging
 import sys
+
+sys.dont_write_bytecode = True
 
 from loopdown.arguments import build_arguments
 from loopdown.context import ContextManager

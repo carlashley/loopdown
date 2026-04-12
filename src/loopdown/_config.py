@@ -1,4 +1,5 @@
 """Configuration constants."""
+
 import platform
 import re
 
@@ -8,12 +9,18 @@ from itertools import chain
 from pathlib import Path
 
 
+class ServerBases:
+    LEGACY: str = "https://audiocontentdownload.apple.com"
+    MODERN: str = "https://audiocontentdownload.apple.com/universal"
+
+
 class ApplicationConsts:
     """Application constants. Not an enum."""
+
     NAME_MAPPING: dict[str, tuple[str, ...]] = {
-        "garageband": ("garageband", ),
+        "garageband": ("garageband",),
         "logicpro": ("logic pro", "logic pro x"),
-        "mainstage": ("mainstage", )
+        "mainstage": ("mainstage",),
     }
     SHORT_NAMES: tuple[str, ...] = tuple(NAME_MAPPING.keys())
     REAL_NAMES: tuple[str, ...] = tuple(chain.from_iterable(NAME_MAPPING.values()))
@@ -21,9 +28,17 @@ class ApplicationConsts:
     RESOURCE_FILE_PATH: str = "Contents/Resources"
 
     # not used currently, but recorded for possible future use
-    GARAGEBAND_BUNDLE_IDS: tuple[str, ...] = ("com.apple.garageband10", )
+    GARAGEBAND_BUNDLE_IDS: tuple[str, ...] = ("com.apple.garageband10",)
     LOGICPRO_BUNDLE_IDS: tuple[str, ...] = ("com.apple.logic10", "com.apple.logicpro10")
-    MAINSTAGE_BUNDLE_IDS: tuple[str, ...] = ("com.apple.mainstage3", )
+    MAINSTAGE_BUNDLE_IDS: tuple[str, ...] = ("com.apple.mainstage3",)
+
+
+class ModernContentDownloadFeeds:
+    ArtistProducerPacks: str = "ArtistProducerPacksContentDownloadFeed.rss"
+    DrummersKitsPacks: str = "DrummersKitsPacksContentDownloadFeed.rss"
+    InstrumentPacks: str = "InstrumentPacksContentDownloadFeed.rss"
+    SoundPacks: str = "SoundPacksContentDownloadFeed.rss"
+    StarterCompatibilityPacks: str = "StarterCompatibilityPacksContentDownloadFeed.rss"
 
 
 class ConfigurationConsts:
@@ -34,7 +49,7 @@ class ConfigurationConsts:
     DEFAULT_LOG_FILE = "loopdown.log"
 
 
-_C_SYMB = b'\xc2\xa9'.decode("utf-8")
+_C_SYMB = b"\xc2\xa9".decode("utf-8")
 
 
 class VersionConsts(StrEnum):

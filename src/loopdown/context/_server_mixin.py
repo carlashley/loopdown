@@ -1,4 +1,5 @@
 """Mixin for server resolution."""
+
 # type: ignore [attr-defined]
 # mypy: disable-error-code="attr-defined"
 import json
@@ -9,11 +10,12 @@ from datetime import datetime, timezone
 from urllib.parse import urlencode, urlparse, urlunparse
 from typing import Any, Optional
 
+from .._config import ServerBases
 from ..utils.validators import validate_url
 
 log = logging.getLogger(__name__)
 
-CONTENT_SOURCE = "https://audiocontentdownload.apple.com"
+CONTENT_SOURCE = ServerBases.LEGACY
 
 
 def assetcachelocator(**kwargs) -> Optional[dict[str, Any]]:

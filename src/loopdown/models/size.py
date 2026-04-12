@@ -5,7 +5,7 @@ from functools import total_ordering
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .package import AudioContentPackage
+    from .package import _AudioContentPackage
 
 
 def bytes2hr(v: str | int | float, *, bs: float = 1000.0) -> str:
@@ -75,7 +75,7 @@ class BucketStats:
     down: Size = field(default_factory=Size)
     inst: Size = field(default_factory=Size)
 
-    def add(self, pkg: "AudioContentPackage") -> None:
+    def add(self, pkg: "_AudioContentPackage") -> None:
         """Accumulate package sizes and increment count."""
         self.count += 1
         self.down += pkg.download_size

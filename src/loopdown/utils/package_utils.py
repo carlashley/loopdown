@@ -90,7 +90,7 @@ def pkg_is_signed_by_apple(fp: Path, *, pfx: str = "Status: ") -> Optional[bool]
 
     returncode, output = pkg_signature
     status = next((ln.removeprefix(pfx) for ln in output if ln.startswith(pfx)), None)
-    is_apple_software = (returncode == 0 and status is not None and "signed apple" in status.casefold())
+    is_apple_software = returncode == 0 and status is not None and "signed apple" in status.casefold()
     log_args = (str(fp), status, is_apple_software)
     log.debug("Signature status of '%s': parsed status='%s', is_apple_software='%s'", *log_args)
 

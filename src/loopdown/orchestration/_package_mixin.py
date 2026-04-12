@@ -1,4 +1,5 @@
 """Mixin for package processing."""
+
 # type: ignore [attr-defined]
 # mypy: disable-error-code="attr-defined"
 import logging
@@ -8,12 +9,12 @@ from os import cpu_count
 from typing import Iterator
 
 from ..models.application import Application
-from ..models.package import AudioContentPackage
+from ..models.package import _AudioContentPackage, AudioContentPackage, ModernAudioContentPackage
 
 log = logging.getLogger(__name__)
 
 
-AppPkgIterator = Iterator[tuple[Application, set[AudioContentPackage]]]
+AppPkgIterator = Iterator[tuple[Application, set[_AudioContentPackage]]]
 
 
 def max_workers(*, max_cap: int = 16, def_cpu_count: int = 4, def_max_threads: int = 4) -> int:
@@ -25,7 +26,7 @@ def max_workers(*, max_cap: int = 16, def_cpu_count: int = 4, def_max_threads: i
     return min(max_cap, (cpu_count() or def_cpu_count) * def_max_threads)
 
 
-def prefer_mandatory_pkg(existing: AudioContentPackage, candidate: AudioContentPackage) -> AudioContentPackage:
+def prefer_mandatory_pkg(existing: _AudioContentPackage, candidate: _AudioContentPackage) -> AudioContentPackage:
     """Prefer the AudioContentPackage that is mandatory over optional when two objects are identical.
     Returns the existing package if it is mandatory when either existing or candidate are mandatory otherwise
     return the candidate, otherwise falls back to returning the existing package."""
@@ -50,9 +51,9 @@ def merge_packages_by_id(merged: dict[str, AudioContentPackage], incoming: set[A
 class PackageProcessingMixin:
     """Holds methods for processing packages."""
 
-    def add_package_for_processing(self, pkg: AudioContentPackage) -> bool:
+    def add_package_for_processing(self, pkg: _AudioContentPackage) -> bool:
         """Determine if the package should be added for processing.
-        :param pkg: AudioContentPackage object"""
+        :param pkg: _AudioContentPackage object"""
         reqd = pkg.mandatory and self.ctx.args.required
         optn = not pkg.mandatory and self.ctx.args.optional
 
@@ -61,14 +62,14 @@ class PackageProcessingMixin:
     def gather_packages(self) -> list[AudioContentPackage]:
         """Gather all packages that will be processed, merges them so any mandatory packages win over any identical
         optional packages."""
-        merged_by_id: dict[str, AudioContentPackage] = {}
+        merged_by_id: dict[str, _AudioContentPackage] = {}
 
         for _, pkgs in self.iter_packages_concurrently():
             merge_packages_by_id(merged_by_id, pkgs)
 
         return sorted(list(merged_by_id.values()), key=lambda pkg: (not pkg.mandatory, pkg.download_size, pkg.name))
 
-    def iter_packages_of_app(self, app: Application) -> set[AudioContentPackage]:
+    def iter_packages_of_app(self, app: Application) -> set[_AudioContentPackage]:
         """Iterate over packages for an application and return a set of AudioContentPackage objects.
         :param app: Application object"""
         metadata = app.packages
@@ -77,10 +78,13 @@ class PackageProcessingMixin:
             return set()
 
         # track packages by preferred mandatory=True; aka mandatory always wins
-        pkgs_by_id: dict[str, AudioContentPackage] = {}
+        pkgs_by_id: dict[str, _AudioContentPackage] = {}
 
         for data in metadata.values():
-            pkg = AudioContentPackage.from_dict(data)
+            if bool(data.get("is_legacy", 1)):
+                pkg = AudioContentPackage.from_dict(data)
+            else:
+                pkg = ModernAudioContentPackage.from_dict(data, args=self.ctx.args)
 
             if pkg is None:
                 continue
@@ -115,9 +119,9 @@ class PackageProcessingMixin:
                     # force a blow up here; debugging is hard if this doesn't happen
                     raise
 
-    def pkg_info_log_string(self, pkg: AudioContentPackage) -> str:
+    def pkg_info_log_string(self, pkg: _AudioContentPackage) -> str:
         """Additional package information for logging to stdout during download/install processing.
-        :param pkg: AudioContentPackage object"""
+        :param pkg: _AudioContentPackage object"""
         msg = f"{pkg.download_size} download"
 
         if self.ctx.deploy_mode:

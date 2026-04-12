@@ -9,7 +9,7 @@ from typing import Optional, TYPE_CHECKING
 from ..models.size import BucketStats
 
 if TYPE_CHECKING:
-    from ..models.package import AudioContentPackage
+    from ..models.package import _AudioContentPackage
 
 
 log = logging.getLogger(__name__)
@@ -28,9 +28,9 @@ class BucketStatsMixin:
     """Holds methods for bucket stats."""
     _bucket_stats_cache: Optional[tuple[BucketStats, BucketStats]] = None
 
-    def statistics_summary(self, pkgs: Sequence["AudioContentPackage"]) -> None:
+    def statistics_summary(self, pkgs: Sequence["_AudioContentPackage"]) -> None:
         """Statistics summary.
-        :param pkgs: sequence of AudioContentPackage object"""
+        :param pkgs: sequence of _AudioContentPackage object"""
         req, opt = self.generate_bucket_stats(pkgs)
 
         if bool(self.ctx.args.required):
@@ -41,9 +41,9 @@ class BucketStatsMixin:
 
         emit_bucket_log_msg("Total", stats=req + opt, deploy_mode=self.ctx.deploy_mode)
 
-    def generate_bucket_stats(self, pkgs: Sequence["AudioContentPackage"]) -> tuple[BucketStats, BucketStats]:
+    def generate_bucket_stats(self, pkgs: Sequence["_AudioContentPackage"]) -> tuple[BucketStats, BucketStats]:
         """Generate and cache bucket stats for packages.
-        :param pkgs: sequence of AudioContentPackage object"""
+        :param pkgs: sequence of _AudioContentPackage object"""
         if self._bucket_stats_cache is not None:
             return self._bucket_stats_cache
 

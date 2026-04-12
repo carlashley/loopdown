@@ -1,4 +1,5 @@
 """Orchestration class providing all methods to execute download and/or install of content."""
+
 import logging
 
 from functools import cached_property
@@ -72,7 +73,7 @@ class Orchestrate(
             if not self.ctx.deploy_mode:
                 continue
 
-            installed = self.install_pkg(pkg)
+            installed = self.install_pkg(pkg) if pkg.is_legacy else self.unpack_aar(pkg)
 
             if not installed:
                 log.error(f"\tinstall failed for {pkg}")

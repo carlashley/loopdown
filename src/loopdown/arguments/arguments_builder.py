@@ -60,11 +60,7 @@ def add_shared_options_to_subparser(p: argparse.ArgumentParser) -> tuple[argpars
     )
 
     opt_arg = pkg_grp.add_argument(
-        "-o",
-        "--opt",
-        action="store_true",
-        dest="optional",
-        help="include the optional audio packages"
+        "-o", "--opt", action="store_true", dest="optional", help="include the optional audio packages"
     )
 
     return (req_arg, opt_arg)
@@ -101,7 +97,8 @@ def build_arguments() -> argparse.Namespace:
     )
 
     p.add_argument(
-        "-q", "--quiet",
+        "-q",
+        "--quiet",
         action="store_true",
         dest="quiet",
         help="all console output (stdout/stderr) is suppressed; events logged to file only",
@@ -149,6 +146,19 @@ def build_arguments() -> argparse.Namespace:
         description="Deploy audio content packages locally (requires elevated permission when not performing dry-run)",
     )
 
+    deploy.add_argument(
+        "-l",
+        "--library-dest",
+        type=Path,
+        dest="library_path",
+        default=Path("/Users/Shared/Logic Pro Library.bundle"),
+        help=(
+            "the destination where modern Logic Pro 12+ and MainStage 4+ content is deployed to; "
+            "default is %(default)s"
+        ),
+        required=False,
+    )
+
     # add shared options, get required and optional arg actions
     req_arg, opt_arg = add_shared_options_to_subparser(deploy)
 
@@ -186,7 +196,7 @@ def build_arguments() -> argparse.Namespace:
         "download",
         formatter_class=QuotedChoicesHelpFormatter,
         help="download audio content packages locally",
-        description="Download audio content packages locally"
+        description="Download audio content packages locally",
     )
 
     # discard the req/opt arg actions here; not used in download mode
