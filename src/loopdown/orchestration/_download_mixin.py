@@ -87,7 +87,7 @@ class DownloadMixin:
         """Generate the correct URL for the package file and the destination to save it.
         :param pkg: _AudioContentPackage object"""
         if not pkg.is_legacy:
-            server = f"{ServerBases.MODERN}/ContentPacks_3"
+            server = ServerBases.MODERN
         else:
             server = self.ctx.server
 
