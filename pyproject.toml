@@ -2,6 +2,9 @@
 name = "loopdown"
 requires-python = ">= 3.11"
 
+[tool.flake8]
+ignore = ["E402"]
+
 [tool.pylint.master]
 jobs = 0
 
