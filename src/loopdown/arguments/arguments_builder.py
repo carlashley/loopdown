@@ -18,7 +18,7 @@ def add_shared_options_to_subparser(p: argparse.ArgumentParser) -> PackageAction
     argument actions in a tuple for later attachment to the main parser to ensure validating the actions occurs."""
     pkg_grp = p.add_argument_group(
         "package selection",
-        description="at least one of -r/--req or -o/--opt is required",
+        description="at least one of -e/--esn, -r/--core, or -o/--opt is required",
     )
 
     p.add_argument(
@@ -229,7 +229,7 @@ def build_arguments() -> argparse.Namespace:
     # bypassing our overridden parse_args on the subparser instances, so validation of args must live
     # here
 
-    # registering at least one of -e/--esn, -r/--core or -o/--opt is required
+    # register package selection requirements
     p.add_any_required_group(
         "package selection",
         description="at least one of -e/--esn, -r/--core, or -o/--opt is required",
