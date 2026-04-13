@@ -4,6 +4,7 @@
 // Created on 18/1/2026
 //
 
+import Foundation
 import ArgumentParser
 import LoopdownCore
 import LoopdownServices
@@ -35,7 +36,8 @@ struct Download: AsyncParsableCommand {
     @OptionGroup var quiet: QuietRunOption
     @OptionGroup var logging: LoggingOptions
     @OptionGroup var apps: AppOptions
-    @OptionGroup var required: RequiredContentOption
+    @OptionGroup var essential: EssentialContentOption
+    @OptionGroup var core: CoreContentOption
     @OptionGroup var optional: OptionalContentOption
     @OptionGroup var destination: DestinationOption
     @OptionGroup var servers: ServerOptions
@@ -43,13 +45,15 @@ struct Download: AsyncParsableCommand {
     @OptionGroup var signatureCheck: SkipSignatureCheckOption
 
     func validate() throws {
-        try validateContentSelection(required: required.required, optional: optional.optional)
+        try validateContentSelection(
+            essential: essential.essential,
+            core: core.core,
+            optional: optional.optional
+        )
     }
 
     func run() async throws {
         try await ExecutionLock.withLockAsync {
-            /// Emit a message to file sinks only — never console, regardless of console sink state.
-            /// Used for run UID open/close lines that must not appear in terminal output.
             let run = CLILogging.startRun(
                 category: "Download",
                 minLevel: logging.logLevel,
@@ -66,12 +70,22 @@ struct Download: AsyncParsableCommand {
             )
 
             let mirrorServerURL = servers.mirrorServer?.url
+            // Download mode does not install content, but libraryDestURL is needed for
+            // AudioApplication init to read the modern content database and receipt plists
+            // (which determine package metadata). Use the default path; the value has no
+            // effect on where downloaded files are saved (that is controlled by destDir).
+            let libraryDestURL = URL(
+                fileURLWithPath: LoopdownConstants.ModernApps.defaultLibraryDestPath,
+                isDirectory: true
+            )
 
             try await ContentCoordinator.run(
                 mode: .download,
                 selectedApps: apps.app,
-                includeRequired: required.required,
+                includeEssential: essential.essential,
+                includeCore: core.core,
                 includeOptional: optional.optional,
+                libraryDestURL: libraryDestURL,
                 destDir: destination.dest,
                 forceDeploy: false,
                 skipSignatureCheck: signatureCheck.skipSignatureCheck,

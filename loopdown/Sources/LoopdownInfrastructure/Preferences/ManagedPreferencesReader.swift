@@ -26,15 +26,16 @@ import LoopdownCore
 ///
 /// ## Sane defaults (applied when keys are absent)
 ///
-/// - `apps`                                          → all installed apps (empty array passed to ContentCoordinator)
-/// - `required`+`optional` both absent/false         → `required = true`
-/// - `appPolicies`                                   → [] (use global required/optional for all apps)
-/// - `cacheServer`+`mirrorServer` both absent        → `cacheServer = .auto`
-/// - `forceDeploy`                                   → false
-/// - `skipSignatureCheck`                            → false
-/// - `logLevel`                                      → .info
-/// - `dryRun`                                        → false  (also overridable by --dry-run CLI flag)
-/// - `quietRun`                                      → false
+/// - `apps`                                               → all installed apps (empty array)
+/// - `essential`+`core`+`optional` all absent/false       → `essential = true`, `core = true`
+/// - `appPolicies`                                        → [] (use global flags for all apps)
+/// - `cacheServer`+`mirrorServer` both absent             → `cacheServer = .auto`
+/// - `forceDeploy`                                        → false
+/// - `skipSignatureCheck`                                 → false
+/// - `logLevel`                                           → .info
+/// - `dryRun`                                             → false  (also overridable by --dry-run)
+/// - `quietRun`                                           → false
+/// - `libraryDest`                                        → /Users/Shared/Logic Pro Library.bundle
 public enum ManagedPreferencesReader {
 
     public static let domain   = BuildInfo.identifier
@@ -81,7 +82,6 @@ public enum ManagedPreferencesReader {
         }
     }
 
-    /// Attempt to load the plist. Returns a typed Result so callers can log the exact failure reason.
     private static func loadPlist(debugLog: ((String) -> Void)?) -> Result<[String: Any], PlistError> {
         guard FileManager.default.fileExists(atPath: plistURL.path) else {
             return .failure(.notFound)
@@ -115,47 +115,41 @@ public enum ManagedPreferencesReader {
         case cfPreferences
     }
 
-    /// Construct a `ManagedPreferences` from whichever source was selected.
     private static func build(source: Source) -> ManagedPreferences {
-        // Apps
         let apps = readApps(source: source)
 
-        // Content selection — default required=true when both absent/false
-        let rawRequired = bool(forKey: "required", source: source)
-        let rawOptional = bool(forKey: "optional", source: source)
-        let (required, optional): (Bool, Bool) = {
-            if rawRequired == nil && rawOptional == nil {
-                // Neither key present — default to required only
-                return (true, false)
+        // Content selection — default essential=true and core=true when all three are absent/false.
+        let rawEssential = bool(forKey: "essential", source: source)
+        let rawCore      = bool(forKey: "core",      source: source)
+        let rawOptional  = bool(forKey: "optional",  source: source)
+        let (essential, core, optional): (Bool, Bool, Bool) = {
+            if rawEssential == nil && rawCore == nil && rawOptional == nil {
+                return (true, true, false)
             }
-            return (rawRequired ?? false, rawOptional ?? false)
+            return (rawEssential ?? false, rawCore ?? false, rawOptional ?? false)
         }()
 
-        // Per-app policy overrides
         let appPolicies = readAppPolicies(source: source)
 
-        // Server — default cacheServer=.auto when both absent
         let cacheServer  = readCacheServer(source: source)
         let mirrorServer = readMirrorServer(source: source)
         let resolvedCacheServer: CacheServer? = {
-            if mirrorServer != nil {
-                // Mirror takes precedence; cacheServer is irrelevant
-                return nil
-            }
-            // If neither key was present, default to .auto
+            if mirrorServer != nil { return nil }
             return cacheServer ?? .auto
         }()
 
-        // Scalar flags
         let forceDeploy        = bool(forKey: "forceDeploy",        source: source) ?? false
-        let skipSignatureCheck = bool(forKey: "skipSignatureCheck", source: source) ?? false
+        let skipSignatureCheck = bool(forKey: "skipSignatureCheck",  source: source) ?? false
         let logLevel           = readLogLevel(source: source)
-        let dryRun             = bool(forKey: "dryRun",             source: source) ?? false
-        let quietRun           = bool(forKey: "quietRun",           source: source) ?? false
+        let dryRun             = bool(forKey: "dryRun",              source: source) ?? false
+        let quietRun           = bool(forKey: "quietRun",            source: source) ?? false
+        let libraryDest        = string(forKey: "libraryDest",       source: source)
+                                    ?? LoopdownConstants.ModernApps.defaultLibraryDestPath
 
         return ManagedPreferences(
             apps:                apps,
-            required:            required,
+            essential:           essential,
+            core:                core,
             optional:            optional,
             appPolicies:         appPolicies,
             forceDeploy:         forceDeploy,
@@ -164,7 +158,8 @@ public enum ManagedPreferencesReader {
             cacheServer:         resolvedCacheServer,
             mirrorServer:        mirrorServer,
             dryRun:              dryRun,
-            quietRun:            quietRun
+            quietRun:            quietRun,
+            libraryDest:         libraryDest
         )
     }
 
@@ -181,13 +176,14 @@ public enum ManagedPreferencesReader {
         // Cast element-by-element: PropertyListSerialization vends NSDictionary, not [String: Any],
         // so a direct cast of the whole array as [[String: Any]] silently fails.
         return raw.compactMap { element -> AppContentPolicy? in
-            guard let entry    = element as? [String: Any],
-                  let appRaw   = entry["app"]      as? String,
-                  let app      = ConcreteApp(rawValue: appRaw.lowercased()),
-                  let required = entry["required"] as? Bool,
-                  let optional = entry["optional"] as? Bool
+            guard let entry     = element as? [String: Any],
+                  let appRaw    = entry["app"]       as? String,
+                  let app       = ConcreteApp(rawValue: appRaw.lowercased()),
+                  let essential = entry["essential"] as? Bool,
+                  let core      = entry["core"]      as? Bool,
+                  let optional  = entry["optional"]  as? Bool
             else { return nil }
-            return AppContentPolicy(app: app, required: required, optional: optional)
+            return AppContentPolicy(app: app, essential: essential, core: core, optional: optional)
         }
     }
 
@@ -210,7 +206,6 @@ public enum ManagedPreferencesReader {
 
     // MARK: - Primitive accessors
 
-    /// Read a String value from whichever source is active.
     private static func string(forKey key: String, source: Source) -> String? {
         switch source {
         case .plist(let dict):
@@ -220,7 +215,6 @@ public enum ManagedPreferencesReader {
         }
     }
 
-    /// Read an Array value from whichever source is active.
     private static func array(forKey key: String, source: Source) -> [Any]? {
         switch source {
         case .plist(let dict):

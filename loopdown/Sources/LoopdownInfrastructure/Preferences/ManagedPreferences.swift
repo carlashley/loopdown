@@ -28,26 +28,33 @@ import LoopdownCore
 ///   default: []        # empty = all installed apps
 ///   values: garageband, logicpro, mainstage
 ///
-/// required:
+/// essential:
 ///   type: Bool
-///   default: true      # inferred true when both required and optional are absent
+///   default: true      # inferred true when essential, core, and optional are all absent
+///   # Selects essential content packages (ecp* — Logic Pro 12+ / MainStage 4+ only).
+///
+/// core:
+///   type: Bool
+///   default: true      # inferred true when essential, core, and optional are all absent
+///   # Selects core content packages (ccp*; equivalent to required for legacy apps).
 ///
 /// optional:
 ///   type: Bool
 ///   default: false
 ///
 /// appPolicies:
-///   type: [{app: String, required: Bool, optional: Bool}]
-///   default: []        # empty = use top-level required/optional for all apps
-///   # Per-app overrides for required/optional. Apps not listed fall back to the
-///   # top-level required/optional values.
+///   type: [{app: String, essential: Bool, core: Bool, optional: Bool}]
+///   default: []        # empty = use top-level flags for all apps
+///   # Per-app overrides. Apps not listed fall back to the top-level flags.
 ///   # Example:
-///   #   - app: garageband
-///   #     required: true
-///   #     optional: true
 ///   #   - app: logicpro
-///   #     required: true
+///   #     essential: true
+///   #     core: true
 ///   #     optional: false
+///   #   - app: garageband
+///   #     essential: false
+///   #     core: true
+///   #     optional: true
 ///
 /// forceDeploy:
 ///   type: Bool
@@ -79,6 +86,11 @@ import LoopdownCore
 /// quietRun:
 ///   type: Bool
 ///   default: false
+///
+/// libraryDest:
+///   type: String
+///   default: /Users/Shared/Logic Pro Library.bundle
+///   # Destination directory for modern Logic Pro 12+ and MainStage 4+ content.
 /// ```
 public struct ManagedPreferences: Equatable {
 
@@ -87,13 +99,16 @@ public struct ManagedPreferences: Equatable {
     /// Short app names to target. Empty means all installed apps.
     public let apps: [ConcreteApp]
 
-    /// Include required content packages (global default).
-    public let required: Bool
+    /// Include essential content packages (ecp* — Logic Pro 12+ / MainStage 4+ only).
+    public let essential: Bool
 
-    /// Include optional content packages (global default).
+    /// Include core content packages (ccp* — equivalent to required for legacy apps).
+    public let core: Bool
+
+    /// Include optional content packages.
     public let optional: Bool
 
-    /// Per-app overrides for required/optional. Empty means use global defaults for all apps.
+    /// Per-app overrides for essential/core/optional. Empty means use global defaults for all apps.
     public let appPolicies: [AppContentPolicy]
 
     /// Force deploy regardless of existing install state.
@@ -105,8 +120,7 @@ public struct ManagedPreferences: Equatable {
     /// Minimum log level.
     public let logLevel: AppLogLevel
 
-    /// Cache server to use. `.auto` means attempt discovery; `nil` means no caching server
-    /// was requested (should not occur under managed defaults — see `ManagedPreferencesReader`).
+    /// Cache server to use. `.auto` means attempt discovery.
     public let cacheServer: CacheServer?
 
     /// Mirror server base URL. When non-nil, takes precedence over `cacheServer`.
@@ -117,4 +131,7 @@ public struct ManagedPreferences: Equatable {
 
     /// Suppress all console output.
     public let quietRun: Bool
+
+    /// Destination directory for modern Logic Pro 12+ / MainStage 4+ content deployment.
+    public let libraryDest: String
 }

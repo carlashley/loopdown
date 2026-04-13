@@ -52,7 +52,7 @@ public enum DownloadURLNormalizer {
 
 // MARK: - Package Path normalization
 public enum PackagePathNormalizer {
-    /// Normalize a package download path.
+    /// Normalize a legacy package download path.
     ///
     /// - Parameter name: Raw package download name.
     /// - Returns: Normalized relative package path.
@@ -67,5 +67,38 @@ public enum PackagePathNormalizer {
         }
 
         return "\(LoopdownConstants.Downloads.ContentPaths.path2016)/\(basename)"
+    }
+
+    /// Normalize a POSIX relative path, mirroring Python's `posixpath.normpath`.
+    ///
+    /// Collapses redundant slashes and resolves `.` and `..` components without
+    /// touching the filesystem or prepending the current working directory.
+    /// `NSString.standardizingPath` must not be used here — it prepends `cwd` on
+    /// relative paths, which is incorrect for URL path components.
+    ///
+    /// - Parameter path: A relative POSIX path string.
+    /// - Returns: The normalized path. Empty input returns `"."`.
+    public static func posixNormalizePath(_ path: String) -> String {
+        guard !path.isEmpty else { return "." }
+
+        var components: [String] = []
+
+        for part in path.split(separator: "/", omittingEmptySubsequences: true) {
+            switch part {
+            case ".":
+                break                   // discard
+            case "..":
+                if components.isEmpty {
+                    components.append("..")   // preserve leading ".." at root
+                } else {
+                    components.removeLast()
+                }
+            default:
+                components.append(String(part))
+            }
+        }
+
+        let result = components.joined(separator: "/")
+        return result.isEmpty ? "." : result
     }
 }

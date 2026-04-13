@@ -3,16 +3,17 @@
 //
 // Created on 18/1/2026
 //
-    
 
 import ArgumentParser
 
 
 // MARK: - Validation helpers
 
-/// Ensure at least `-r/--required` and/or `-o/--optional` are provided in `deploy` and `download` commands.
-public func validateContentSelection(required: Bool, optional: Bool) throws {
-    guard required || optional else {
-        throw ValidationError("You must specify at least one of '-r/--required' or '-o/--optional'.")
+/// Ensure at least one of `-e/--esn`, `-c/--core`, or `-o/--optional` is provided.
+public func validateContentSelection(essential: Bool, core: Bool, optional: Bool) throws {
+    guard essential || core || optional else {
+        throw ValidationError(
+            "You must specify at least one of '-e/--essential', '-c/--core', or '-o/--optional'."
+        )
     }
 }
