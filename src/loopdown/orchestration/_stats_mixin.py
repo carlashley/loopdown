@@ -1,4 +1,5 @@
 """Mixin for package statistics."""
+
 # type: ignore [attr-defined]
 # mypy: disable-error-code="attr-defined"
 import logging
@@ -14,6 +15,8 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
+type EssentialCoreOptionalStats = tuple[BucketStats, BucketStats, BucketStats]
+
 
 def emit_bucket_log_msg(label: str, *, stats: BucketStats, deploy_mode: bool) -> None:
     """Emits a BucketStats message as a log event.
@@ -26,34 +29,40 @@ def emit_bucket_log_msg(label: str, *, stats: BucketStats, deploy_mode: bool) ->
 
 class BucketStatsMixin:
     """Holds methods for bucket stats."""
-    _bucket_stats_cache: Optional[tuple[BucketStats, BucketStats]] = None
+
+    _bucket_stats_cache: Optional[EssentialCoreOptionalStats] = None
 
     def statistics_summary(self, pkgs: Sequence["_AudioContentPackage"]) -> None:
         """Statistics summary.
         :param pkgs: sequence of _AudioContentPackage object"""
-        req, opt = self.generate_bucket_stats(pkgs)
+        esn, core, opt = self.generate_bucket_stats(pkgs)
 
-        if bool(self.ctx.args.required):
-            emit_bucket_log_msg("Required", stats=req, deploy_mode=self.ctx.deploy_mode)
+        if bool(self.ctx.args.essential):
+            emit_bucket_log_msg("Essential", stats=esn, deploy_mode=self.ctx.deploy_mode)
+
+        if bool(self.ctx.args.core):
+            emit_bucket_log_msg("Core", stats=core, deploy_mode=self.ctx.deploy_mode)
 
         if bool(self.ctx.args.optional):
             emit_bucket_log_msg("Optional", stats=opt, deploy_mode=self.ctx.deploy_mode)
 
-        emit_bucket_log_msg("Total", stats=req + opt, deploy_mode=self.ctx.deploy_mode)
+        emit_bucket_log_msg("Total", stats=esn + core + opt, deploy_mode=self.ctx.deploy_mode)
 
-    def generate_bucket_stats(self, pkgs: Sequence["_AudioContentPackage"]) -> tuple[BucketStats, BucketStats]:
+    def generate_bucket_stats(self, pkgs: Sequence["_AudioContentPackage"]) -> EssentialCoreOptionalStats:
         """Generate and cache bucket stats for packages.
         :param pkgs: sequence of _AudioContentPackage object"""
         if self._bucket_stats_cache is not None:
             return self._bucket_stats_cache
 
-        req, opt = BucketStats(), BucketStats()
+        esn, core, opt = BucketStats(), BucketStats(), BucketStats()
 
         for pkg in pkgs:
-            if self.ctx.args.required and pkg.mandatory:
-                req.add(pkg)
-            elif self.ctx.args.optional and not pkg.mandatory:
+            if self.ctx.args.essential and pkg.is_essential:
+                esn.add(pkg)
+            elif self.ctx.args.core and pkg.is_core:
+                core.add(pkg)
+            elif self.ctx.args.optional and pkg.is_optional:
                 opt.add(pkg)
 
-        self._bucket_stats_cache = (req, opt)
+        self._bucket_stats_cache = (esn, core, opt)
         return self._bucket_stats_cache

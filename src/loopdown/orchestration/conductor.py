@@ -50,8 +50,8 @@ class Orchestrate(
             log.info("No packages found for processing; exiting.")
             return
 
-        req, opt = self.generate_bucket_stats(packages)
-        reqd_space = self.calculate_required_space(req, opt)
+        esn, core, opt = self.generate_bucket_stats(packages)
+        reqd_space = self.calculate_required_space(esn, core, opt)
         self.exit_on_insufficient_freespace(reqd_space)
 
         tot = len(packages)

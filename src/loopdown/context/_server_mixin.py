@@ -8,7 +8,8 @@ import subprocess
 
 from datetime import datetime, timezone
 from urllib.parse import urlencode, urlparse, urlunparse
-from typing import Any, Optional
+from time import sleep
+from typing import Any, Callable, Optional, TypeVar
 
 from .._config import ServerBases
 from ..utils.validators import validate_url
@@ -16,6 +17,27 @@ from ..utils.validators import validate_url
 log = logging.getLogger(__name__)
 
 CONTENT_SOURCE = ServerBases.BASE
+T = TypeVar("T")
+
+
+def _retry(fn: Callable[[], Optional[T]], *, max_retry: int = 3, pause: float = 1.0) -> Optional[T]:
+    """Retries a function up to a specified maximum number of times, pauses for a specified number of
+    seconds between attempts.
+    :param fn: function to retry
+    :maram max_retry: maximum retries
+    :param pause: number of seconds to pause"""
+    for attempt in range(1, max_retry + 1):
+        result = fn()
+
+        if result is not None:
+            return result
+
+        if attempt < max_retry:
+            log.debug("Attempt %s/%s returned None, retrying in %ss", attempt, max_retry, pause)
+            sleep(pause)
+
+    log.debug("All %s attempts returned None", max_retry)
+    return None
 
 
 def assetcachelocator(**kwargs) -> Optional[dict[str, Any]]:
@@ -94,7 +116,7 @@ def extract_cache_server(*, source: str = "system", pref_rank: Optional[int] = N
     if source not in ("system", "current_user"):
         raise ValueError(f"{source=} invalid; must be either 'system' or 'current_user'")
 
-    metadata = assetcachelocator()
+    metadata = _retry(assetcachelocator)
 
     if metadata is None:
         log.debug("No metadata to extract cache server value from")
@@ -108,6 +130,10 @@ def extract_cache_server(*, source: str = "system", pref_rank: Optional[int] = N
         log.debug("Found saved servers in 'AssetCacheLocatorUtil' output")
     except KeyError as e:
         log.debug("Error extracting discovered cache servers: %s", str(e))
+        return None
+
+    # backup catch in case servers is None
+    if servers is None:
         return None
 
     if len(servers) > 1:

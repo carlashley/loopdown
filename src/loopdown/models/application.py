@@ -28,9 +28,7 @@ MODERN_APPS_VERS: dict[str, int] = {"logicpro": 12, "mainstage": 4}
 def get_app_shortname(fn: str) -> Optional[str]:
     """Get the 'shortname' (i.e. garageband, logicpro, mainstage) from the actual application name.
     :param fn: full application name; for example 'Garage Band'."""
-    return next(
-        (shortname for shortname, realnames in Consts.NAME_MAPPING.items() if fn.casefold() in realnames), None
-    )
+    return next((shortname for shortname, realnames in Consts.NAME_MAPPING.items() if fn.casefold() in realnames), None)
 
 
 def rglob_plist(root: str | Path) -> Iterator[Path]:
@@ -135,7 +133,7 @@ class Application:
         """Packages metadata from the resource file."""
         if self.is_modernised and self.short_name is not None:
             db = PackageDatabase(self.content_db)
-            return db.all_content(self.short_name)
+            return db.all_content()
 
         meta_file = find_meta_file(self.path)
         return read_meta_file(meta_file) if meta_file is not None else None

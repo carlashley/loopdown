@@ -10,8 +10,10 @@ from .arg_helpers import AUTO, CachingServer, MirrorServer, MISSING
 from .arg_parser import StrictArgumentParser
 from .._config import ApplicationConsts, ConfigurationConsts, VersionInfo
 
+type PackageActions = tuple[argparse.Action, argparse.Action, argparse.Action]
 
-def add_shared_options_to_subparser(p: argparse.ArgumentParser) -> tuple[argparse.Action, argparse.Action]:
+
+def add_shared_options_to_subparser(p: argparse.ArgumentParser) -> PackageActions:
     """Adds options shared by both 'deploy' and 'download' subparsers. Returns the 'required' and 'optional'
     argument actions in a tuple for later attachment to the main parser to ensure validating the actions occurs."""
     pkg_grp = p.add_argument_group(
@@ -51,19 +53,27 @@ def add_shared_options_to_subparser(p: argparse.ArgumentParser) -> tuple[argpars
         help="force the specified action",
     )
 
-    req_arg = pkg_grp.add_argument(
-        "-r",
-        "--req",
+    esn_arg = pkg_grp.add_argument(
+        "-e",
+        "--esn",
         action="store_true",
-        dest="required",
-        help="include the required audio packages",
+        dest="essential",
+        help="include the essential audio packages (Logic Pro 12+ and MainStage 4+ only)",
+    )
+
+    core_arg = pkg_grp.add_argument(
+        "-r",
+        "--core",
+        action="store_true",
+        dest="core",
+        help="include the core audio packages (equivalent to '-r/--req' for legacy audio applications)",
     )
 
     opt_arg = pkg_grp.add_argument(
         "-o", "--opt", action="store_true", dest="optional", help="include the optional audio packages"
     )
 
-    return (req_arg, opt_arg)
+    return (esn_arg, core_arg, opt_arg)
 
 
 def build_arguments() -> argparse.Namespace:
@@ -161,7 +171,7 @@ def build_arguments() -> argparse.Namespace:
     )
 
     # add shared options, get required and optional arg actions
-    req_arg, opt_arg = add_shared_options_to_subparser(deploy)
+    esn_arg, core_arg, opt_arg = add_shared_options_to_subparser(deploy)
 
     # always use default download dest in deployment mode
     deploy.set_defaults(destination=ConfigurationConsts.DEFAULT_DOWNLOAD_DEST)
@@ -224,7 +234,7 @@ def build_arguments() -> argparse.Namespace:
         "package selection",
         description="at least one of -r/--req or -o/--opt is required",
     )
-    p.any_required_groups[-1].actions = [req_arg, opt_arg]
+    p.any_required_groups[-1].actions = [esn_arg, core_arg, opt_arg]
 
     # registering cache/mirror args to the main parser to ensure validation of exclusivity occurs
     p.add_exclusive_group(

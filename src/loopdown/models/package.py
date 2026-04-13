@@ -27,7 +27,7 @@ LEGACY_DATACLASS_ATTRS_MAP: dict[str, str] = {
     "DownloadSize": "download_size",
     "FileCheck": "file_check",
     "InstalledSize": "installed_size",
-    "IsMandatory": "mandatory",
+    "IsMandatory": "is_core",
     "PackageVersion": "version",
 }
 
@@ -117,7 +117,9 @@ class _AudioContentPackage:
     file_check: list[str] = nohash_fld(default_factory=list)
     installed_size: Size = nohash_fld(default_factory=Size)
     is_legacy: bool = nohash_fld(default=True)
-    mandatory: bool = nohash_fld(default=False)
+    is_core: bool = nohash_fld(default=False)
+    is_essential: bool = nohash_fld(default=False)
+    is_optional: bool = nohash_fld(default=False)
     name: Optional[str] = nohash_fld(default=None)
     version: Optional[vers.Version] = nohash_fld(default=None)
     download_path: Optional[str] = nohash_fld(default=None)
@@ -163,7 +165,7 @@ class AudioContentPackage(_AudioContentPackage):
         self.download_size = Size(self.download_size)  # type: ignore[arg-type]
         self.file_check = normalize_file_check(self.file_check)
         self.installed_size = Size(self.installed_size)  # type: ignore[arg-type]
-        self.mandatory = bool(self.mandatory)  # not all packages have 'mandatory'; default to False
+        self.is_core = bool(self.is_core)  # not all packages have 'is_core'; default to False
 
         if self.version is not None:
             self.version = vers.parse(str(self.version))
@@ -194,6 +196,9 @@ class AudioContentPackage(_AudioContentPackage):
 
 MODERN_DATACLASS_ATTRS_MAP: dict[str, str] = {
     "download_name": "download_name",
+    "is_core": "is_core",
+    "is_essential": "is_essential",
+    "is_optional": "is_optional",
     "package_id": "package_id",
     "server_path": "download_path",
     "server_version": "version",
@@ -217,19 +222,22 @@ class ModernContentPackageMetadata:
     installed_date: Optional[int]
     installed_local_version: int
     logic_item_count: int
-    minimum_app_version: MinimumAppVersion = field(hash=False)
     minimum_soc_version: bool
     receipt: ModernContentReceipt = field(hash=False)
     server_path: str
     server_version: int
     total_item_count: int
+    minimum_app_version: Optional[MinimumAppVersion] = field(hash=False, default=None)
 
     @classmethod
     def from_dict(cls, data: Mapping) -> Self:
         """Emits an instance of 'ModernContentPackageMetadata' from mapping data.
         :param data: raw mapping of package metadata keys to values"""
-        minimum_app_version = MinimumAppVersion(**data.pop("minimum_app_version"))
-        kwargs = {**data, "minimum_app_version": minimum_app_version}  # , "receipt": receipt}
+        min_app_vers = data.pop("minimum_app_version", None)
+        kwargs = {**data}
+
+        if min_app_vers is not None:
+            kwargs["minimum_app_version"] = MinimumAppVersion(**min_app_vers)
 
         return cls(**kwargs)
 

@@ -1,4 +1,5 @@
 """Mixin for disk space checks and cleanup operations."""
+
 # type: ignore [attr-defined]
 # mypy: disable-error-code="attr-defined"
 import logging
@@ -33,14 +34,15 @@ def has_freespace(required: int, *, target: str = "/") -> tuple[bool, str, tuple
 class DiskMixin:
     """Holds methods for disk space checks during installation and cleanup operations."""
 
-    def calculate_required_space(self, req: BucketStats, opt: BucketStats) -> Size:
+    def calculate_required_space(self, esn: BucketStats, core: BucketStats, opt: BucketStats) -> Size:
         """Calculate the total required space for the given run mode (download/download+deploy).
-        :param req: required packages BucketStats object
+        :param esn: essential packages BucketStats object
+        :param core: core packages BucketStats object
         :param opt: optional packages BucketStats object"""
-        total = req.down + opt.down
+        total = esn.down + core.down + opt.down
 
         if self.ctx.deploy_mode:
-            total += req.inst + opt.inst
+            total += esn.inst + core.inst + opt.inst
 
         return total
 

@@ -93,11 +93,9 @@ WITH packages AS (
         p.Z_PK                  AS id,
         p.ZDISPLAYNAME          AS name,
         p.ZIDENTIFIER           AS package_id,
-        CASE
-            WHEN p.ZIDENTIFIER LIKE 'ccp%' THEN 1
-            WHEN p.ZIDENTIFIER LIKE 'ecp%' THEN 1
-            ELSE                                 0
-        END                     AS mandatory,
+        CASE WHEN p.ZIDENTIFIER LIKE 'ecp%' THEN 1 ELSE 0 END AS is_essential,
+        CASE WHEN p.ZIDENTIFIER LIKE 'ccp%' THEN 1 ELSE 0 END AS is_core,
+        CASE WHEN p.ZIDENTIFIER NOT LIKE 'ecp%' AND p.ZIDENTIFIER NOT LIKE 'ccp%' THEN 1 ELSE 0 END AS is_optional,
         p.ZDOWNLOADSIZE         AS download_size,
         p.ZINSTALLEDSIZE        AS installed_size,
         p.ZINSTALLEDVERSION     AS installed_local_version,
@@ -132,23 +130,23 @@ WITH packages AS (
 )
 SELECT *
 FROM packages
-WHERE minimum_app_version LIKE '%' || ? || '%'
 ORDER BY category, name;
     """
 
-    def all_content(self, app: str) -> dict[str, dict[str, Any]]:
-        """Get all packages for Logic Pro and MainStage for macOS.
-        :param app: app name; either 'logic' or 'mainstage'"""
+    def all_content(self) -> dict[str, dict[str, Any]]:
+        """Get all packages for Logic Pro and MainStage for macOS."""
+        # not all rows have a minimum app version, so presume if absent they're valid packs for macOS use
         out: dict[str, dict[str, Any]] = {}
 
         with self.db as db:
-            records = db.select(self.cte_query, params=(app,)).all()
+            records = db.select(self.cte_query).all()
 
             for _ in records:
                 row = dict(_)
-                row["minimum_app_version"] = parse_macos_versions(row["minimum_app_version"])
 
-                if app in row["minimum_app_version"]:
-                    out[row["package_id"]] = row
+                if row.get("minimum_app_version"):
+                    row["minimum_app_version"] = parse_macos_versions(row["minimum_app_version"])
+
+                out[row["package_id"]] = row
 
         return out

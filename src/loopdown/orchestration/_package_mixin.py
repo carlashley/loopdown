@@ -26,12 +26,14 @@ def max_workers(*, max_cap: int = 16, def_cpu_count: int = 4, def_max_threads: i
     return min(max_cap, (cpu_count() or def_cpu_count) * def_max_threads)
 
 
-def prefer_mandatory_pkg(existing: _AudioContentPackage, candidate: _AudioContentPackage) -> AudioContentPackage:
+def prefer_essential_or_core_pkg(
+    existing: _AudioContentPackage, candidate: _AudioContentPackage
+) -> AudioContentPackage:
     """Prefer the AudioContentPackage that is mandatory over optional when two objects are identical.
     Returns the existing package if it is mandatory when either existing or candidate are mandatory otherwise
     return the candidate, otherwise falls back to returning the existing package."""
-    if existing.mandatory or candidate.mandatory:
-        return existing if existing.mandatory else candidate
+    if not existing.is_optional or not candidate.is_optional:
+        return existing if not existing.is_optional else candidate
 
     return existing
 
@@ -45,7 +47,7 @@ def merge_packages_by_id(merged: dict[str, AudioContentPackage], incoming: set[A
             merged[pkg.package_id] = pkg
             continue
 
-        merged[pkg.package_id] = prefer_mandatory_pkg(merged[pkg.package_id], pkg)
+        merged[pkg.package_id] = prefer_essential_or_core_pkg(merged[pkg.package_id], pkg)
 
 
 class PackageProcessingMixin:
@@ -54,10 +56,11 @@ class PackageProcessingMixin:
     def add_package_for_processing(self, pkg: _AudioContentPackage) -> bool:
         """Determine if the package should be added for processing.
         :param pkg: _AudioContentPackage object"""
-        reqd = pkg.mandatory and self.ctx.args.required
-        optn = not pkg.mandatory and self.ctx.args.optional
+        essn = pkg.is_essential and self.ctx.args.essential
+        core = pkg.is_core and self.ctx.args.core
+        optn = pkg.is_optional and self.ctx.args.optional
 
-        return reqd or optn
+        return essn or core or optn
 
     def gather_packages(self) -> list[AudioContentPackage]:
         """Gather all packages that will be processed, merges them so any mandatory packages win over any identical
@@ -67,7 +70,10 @@ class PackageProcessingMixin:
         for _, pkgs in self.iter_packages_concurrently():
             merge_packages_by_id(merged_by_id, pkgs)
 
-        return sorted(list(merged_by_id.values()), key=lambda pkg: (not pkg.mandatory, pkg.download_size, pkg.name))
+        return sorted(
+            list(merged_by_id.values()),
+            key=lambda pkg: (not pkg.is_essential, not pkg.is_core, pkg.download_size, pkg.name),
+        )
 
     def iter_packages_of_app(self, app: Application) -> set[_AudioContentPackage]:
         """Iterate over packages for an application and return a set of AudioContentPackage objects.
@@ -100,7 +106,7 @@ class PackageProcessingMixin:
             if existing is None:
                 pkgs_by_id[pkg.package_id] = pkg
             else:
-                pkgs_by_id[pkg.package_id] = prefer_mandatory_pkg(existing, pkg)
+                pkgs_by_id[pkg.package_id] = prefer_essential_or_core_pkg(existing, pkg)
 
         return set(pkgs_by_id.values())
 
