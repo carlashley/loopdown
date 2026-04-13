@@ -95,7 +95,7 @@ Options:
 # Usage
 ## Primary help
 ```
-python3 -m loopdown -h
+./loopdown -h
 Warning: this Python implementation of loopdown has been deprecated and will move to a Swift based implementation in the future.
 usage: loopdown [-h] [-v] [-l [level]] [-q] [--no-proxy] [--skip-signature-check] [deploy,download] ...
 
@@ -117,16 +117,16 @@ options:
                         skip the signature check after downloads (this is off by default in 'deploy' mode and in dry-runs)
 
 package selection:
-  at least one of -r/--req or -o/--opt is required
+  at least one of -e/--esn, -r/--core, or -o/--opt is required
 
-loopdown v2.0.3. Copyright © 2026 Carl Ashley. All rights reserved. Apache License Version 2.0 - http://www.apache.org/licenses/
+loopdown v2.0.3.b2. Copyright © 2026 Carl Ashley. All rights reserved. Apache License Version 2.0 - http://www.apache.org/licenses/
 ```
 
 ## Download help
 ```
-python3 -m loopdown download -h
+./loopdown download -h
 Warning: this Python implementation of loopdown has been deprecated and will move to a Swift based implementation in the future.
-usage: loopdown download [-h] [-n] [-a [app ...]] [-f] [-r] [-o] [-d [dir]]
+usage: loopdown download [-h] [-n] [-a [app ...]] [-f] [-e] [-r] [-o] [-d [dir]]
 
 Download audio content packages locally
 
@@ -139,17 +139,18 @@ options:
   -d, --dest [dir]      override the download directory path when '--download-only' used; default is '/tmp/loopdown'
 
 package selection:
-  at least one of -r/--req or -o/--opt is required
+  at least one of -e/--esn, -r/--core, or -o/--opt is required
 
-  -r, --req             include the required audio packages
+  -e, --esn             include the essential audio packages (Logic Pro 12+ and MainStage 4+ only)
+  -r, --core            include the core audio packages (equivalent to '-r/--req' for legacy audio applications)
   -o, --opt             include the optional audio packages
 ```
 
 ## Deploy help
 ```
-python3 -m loopdown deploy -h  
+./loopdown deploy -h  
 Warning: this Python implementation of loopdown has been deprecated and will move to a Swift based implementation in the future.
-usage: loopdown deploy [-h] [-b LIBRARY_PATH] [-n] [-a [app ...]] [-f] [-r] [-o] [-c [url]] [-m [url]]
+usage: loopdown deploy [-h] [-b [dir]] [-n] [-a [app ...]] [-f] [-e] [-r] [-o] [-c [url]] [-m [url]]
 
 Deploy audio content packages locally (requires elevated permission when not performing dry-run)
 
@@ -167,8 +168,9 @@ options:
                         local mirror server to use; expected format is 'https://example.org'
 
 package selection:
-  at least one of -r/--req or -o/--opt is required
+  at least one of -e/--esn, -r/--core, or -o/--opt is required
 
-  -r, --req             include the required audio packages
+  -e, --esn             include the essential audio packages (Logic Pro 12+ and MainStage 4+ only)
+  -r, --core            include the core audio packages (equivalent to '-r/--req' for legacy audio applications)
   -o, --opt             include the optional audio packages
 ```
