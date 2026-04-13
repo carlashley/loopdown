@@ -285,6 +285,12 @@ class ModernAudioContentPackage(_AudioContentPackage):
 
     @classmethod
     def get_receipt(cls, fn: str | None, *, args: argparse.Namespace) -> ModernContentReceipt | None:
+        """Get package receipt information when deploying content.
+        :param fn: package filename
+        :param args: argparse.Namespace"""
+        if args.action == "download":
+            return None
+
         if fn is None:
             return None
 

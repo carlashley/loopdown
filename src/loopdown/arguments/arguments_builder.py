@@ -229,10 +229,10 @@ def build_arguments() -> argparse.Namespace:
     # bypassing our overridden parse_args on the subparser instances, so validation of args must live
     # here
 
-    # registering at least one of -r/--req or -o/--opt is required
+    # registering at least one of -e/--esn, -r/--core or -o/--opt is required
     p.add_any_required_group(
         "package selection",
-        description="at least one of -r/--req or -o/--opt is required",
+        description="at least one of -e/--esn, -r/--core, or -o/--opt is required",
     )
     p.any_required_groups[-1].actions = [esn_arg, core_arg, opt_arg]
 
