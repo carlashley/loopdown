@@ -37,13 +37,13 @@ class BucketStatsMixin:
         :param pkgs: sequence of _AudioContentPackage object"""
         esn, core, opt = self.generate_bucket_stats(pkgs)
 
-        if bool(self.ctx.args.essential):
+        if bool(self.ctx.args.essential) and esn.count != 0:
             emit_bucket_log_msg("Essential", stats=esn, deploy_mode=self.ctx.deploy_mode)
 
-        if bool(self.ctx.args.core):
+        if bool(self.ctx.args.core) and core.count != 0:
             emit_bucket_log_msg("Core", stats=core, deploy_mode=self.ctx.deploy_mode)
 
-        if bool(self.ctx.args.optional):
+        if bool(self.ctx.args.optional) and opt.count != 0:
             emit_bucket_log_msg("Optional", stats=opt, deploy_mode=self.ctx.deploy_mode)
 
         emit_bucket_log_msg("Total", stats=esn + core + opt, deploy_mode=self.ctx.deploy_mode)
