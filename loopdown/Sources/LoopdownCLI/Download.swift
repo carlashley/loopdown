@@ -36,7 +36,8 @@ struct Download: AsyncParsableCommand {
     @OptionGroup var quiet: QuietRunOption
     @OptionGroup var logging: LoggingOptions
     @OptionGroup var apps: AppOptions
-    @OptionGroup var required: RequiredContentOption
+    @OptionGroup var essential: EssentialContentOption
+    @OptionGroup var core: CoreContentOption
     @OptionGroup var optional: OptionalContentOption
     @OptionGroup var destination: DestinationOption
     @OptionGroup var servers: ServerOptions
@@ -44,13 +45,15 @@ struct Download: AsyncParsableCommand {
     @OptionGroup var signatureCheck: SkipSignatureCheckOption
 
     func validate() throws {
-        try validateContentSelection(required: required.required, optional: optional.optional)
+        try validateContentSelection(
+            essential: essential.essential,
+            core: core.core,
+            optional: optional.optional
+        )
     }
 
     func run() async throws {
         try await ExecutionLock.withLockAsync {
-            /// Emit a message to file sinks only — never console, regardless of console sink state.
-            /// Used for run UID open/close lines that must not appear in terminal output.
             let run = CLILogging.startRun(
                 category: "Download",
                 minLevel: logging.logLevel,
@@ -66,7 +69,7 @@ struct Download: AsyncParsableCommand {
                 logger: logger
             )
 
-            let mirrorServerURL  = servers.mirrorServer?.url
+            let mirrorServerURL = servers.mirrorServer?.url
             // Download mode does not install content, but libraryDestURL is needed for
             // AudioApplication init to read the modern content database and receipt plists
             // (which determine package metadata). Use the default path; the value has no
@@ -79,7 +82,8 @@ struct Download: AsyncParsableCommand {
             try await ContentCoordinator.run(
                 mode: .download,
                 selectedApps: apps.app,
-                includeRequired: required.required,
+                includeEssential: essential.essential,
+                includeCore: core.core,
                 includeOptional: optional.optional,
                 libraryDestURL: libraryDestURL,
                 destDir: destination.dest,

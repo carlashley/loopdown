@@ -29,10 +29,13 @@ public final class AudioApplication: Hashable, Sendable {
     public let path: URL
     public let shortName: String?
 
-    /// Mandatory packages decoded from the metadata source.
-    public let mandatory: [AudioContentPackage]
+    /// Essential packages (ecp* — modern only).
+    public let essential: [AudioContentPackage]
 
-    /// Optional (non-mandatory) packages decoded from the metadata source.
+    /// Core packages (ccp* — modern; IsMandatory — legacy).
+    public let core: [AudioContentPackage]
+
+    /// Optional packages (everything else).
     public let optional: [AudioContentPackage]
 
     // MARK: - Logger
@@ -49,29 +52,29 @@ public final class AudioApplication: Hashable, Sendable {
         libraryDestURL: URL,
         logger: CoreLogger = NullLogger()
     ) {
-        self.name = name
-        self.version = version
-        self.path = path
+        self.name      = name
+        self.version   = version
+        self.path      = path
         self.shortName = LoopdownConstants.Applications.shortName(for: name)
-        self.logger = logger
+        self.logger    = logger
 
         // Eagerly read and decode metadata so all stored properties are immutable
         // and the type can conform to Sendable without @unchecked.
-        let decoded: (mandatory: [AudioContentPackage], optional: [AudioContentPackage])
+        let decoded: (essential: [AudioContentPackage], core: [AudioContentPackage], optional: [AudioContentPackage])
 
         if AudioApplication.isModernised(shortName: shortName, version: version) {
             decoded = AudioApplication.loadModernPackages(
                 path: path,
-                shortName: shortName!,          // isModernised guarantees shortName is non-nil
                 libraryDestURL: libraryDestURL,
                 logger: logger
             )
         } else {
             let raw = AudioApplication.readMetadataSourceFile(path: path, logger: logger)
-            decoded = AudioApplication.decodePackagesByMandatoriness(raw: raw, logger: logger)
+            decoded = AudioApplication.decodePackagesByCategory(raw: raw, logger: logger)
         }
 
-        self.mandatory = decoded.mandatory
+        self.essential = decoded.essential
+        self.core      = decoded.core
         self.optional  = decoded.optional
     }
 
@@ -118,10 +121,9 @@ public final class AudioApplication: Hashable, Sendable {
 
     private static func loadModernPackages(
         path: URL,
-        shortName: String,
         libraryDestURL: URL,
         logger: CoreLogger
-    ) -> (mandatory: [AudioContentPackage], optional: [AudioContentPackage]) {
+    ) -> (essential: [AudioContentPackage], core: [AudioContentPackage], optional: [AudioContentPackage]) {
         let dbURL = path.appendingPathComponent(
             LoopdownConstants.ModernApps.contentDatabaseRelativePath
         )
@@ -130,16 +132,16 @@ public final class AudioApplication: Hashable, Sendable {
 
         let rows = ModernContentDatabase.allContent(
             databaseURL: dbURL,
-            appShortName: shortName,
             logger: logger
         )
 
         if rows.isEmpty {
-            logger.debug("No modern packages found for '\(shortName)' in '\(dbURL.path)'")
+            logger.debug("No modern packages found in '\(dbURL.path)'")
         }
 
-        var mandatoryPkgs: [AudioContentPackage] = []
-        var optionalPkgs: [AudioContentPackage]  = []
+        var essentialPkgs: [AudioContentPackage] = []
+        var corePkgs:      [AudioContentPackage] = []
+        var optionalPkgs:  [AudioContentPackage] = []
 
         for row in rows {
             guard let pkg = AudioContentPackage.fromModernRow(
@@ -148,33 +150,38 @@ public final class AudioApplication: Hashable, Sendable {
                 logger: logger
             ) else { continue }
 
-            if pkg.mandatory {
-                mandatoryPkgs.append(pkg)
+            if pkg.isEssential {
+                essentialPkgs.append(pkg)
+            } else if pkg.isCore {
+                corePkgs.append(pkg)
             } else {
                 optionalPkgs.append(pkg)
             }
         }
 
-        mandatoryPkgs.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        essentialPkgs.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        corePkgs.sort      { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
         optionalPkgs.sort  { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
 
-        return (mandatory: mandatoryPkgs, optional: optionalPkgs)
+        return (essential: essentialPkgs, core: corePkgs, optional: optionalPkgs)
     }
 
 
     // MARK: - Legacy package loading (plist)
 
-    /// Decode the raw `Packages` dictionary into `AudioContentPackage` and split by mandatoriness.
-    private static func decodePackagesByMandatoriness(
+    /// Decode the raw `Packages` dictionary and split by category.
+    ///
+    /// Legacy packages have no `isEssential` concept; `IsMandatory` maps to `isCore`.
+    private static func decodePackagesByCategory(
         raw: [String: Any]?,
         logger: CoreLogger
-    ) -> (mandatory: [AudioContentPackage], optional: [AudioContentPackage]) {
+    ) -> (essential: [AudioContentPackage], core: [AudioContentPackage], optional: [AudioContentPackage]) {
         guard let raw else {
-            return (mandatory: [], optional: [])
+            return (essential: [], core: [], optional: [])
         }
 
-        var mandatoryPkgs: [AudioContentPackage] = []
-        var optionalPkgs: [AudioContentPackage]  = []
+        var corePkgs:     [AudioContentPackage] = []
+        var optionalPkgs: [AudioContentPackage] = []
 
         for (outerKey, value) in raw {
             guard let pkgDict = value as? [String: Any] else {
@@ -186,24 +193,22 @@ public final class AudioApplication: Hashable, Sendable {
                 continue
             }
 
-            if pkg.mandatory {
-                mandatoryPkgs.append(pkg)
+            if pkg.isCore {
+                corePkgs.append(pkg)
             } else {
                 optionalPkgs.append(pkg)
             }
         }
 
-        mandatoryPkgs.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-        optionalPkgs.sort  { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        corePkgs.sort    { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        optionalPkgs.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
 
-        return (mandatory: mandatoryPkgs, optional: optionalPkgs)
+        return (essential: [], core: corePkgs, optional: optionalPkgs)
     }
 
 
     // MARK: - Find resource file (legacy path)
 
-    /// Find the relevant property list file containing package metadata.
-    /// Looks under `<Application.app>/Contents/Resources/`.
     private static func findResourceFile(path: URL, logger: CoreLogger) -> URL? {
         let resourcesURL = path.appendingPathComponent(
             LoopdownConstants.Applications.resourceFilePath,
@@ -271,7 +276,6 @@ public final class AudioApplication: Hashable, Sendable {
 
     // MARK: - Read property list (legacy path)
 
-    /// Read the metadata source file and return the 'Packages' value.
     private static func readMetadataSourceFile(path: URL, logger: CoreLogger) -> [String: Any]? {
         guard let resourceFile = findResourceFile(path: path, logger: logger) else {
             return nil
@@ -279,12 +283,7 @@ public final class AudioApplication: Hashable, Sendable {
 
         do {
             let data = try Data(contentsOf: resourceFile)
-
-            let plist = try PropertyListSerialization.propertyList(
-                from: data,
-                options: [],
-                format: nil
-            )
+            let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
 
             guard let dict = plist as? [String: Any] else {
                 logger.error("Property List root is not a dictionary: '\(resourceFile.path)'")

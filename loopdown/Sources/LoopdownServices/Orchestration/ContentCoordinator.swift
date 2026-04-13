@@ -21,26 +21,16 @@ public enum ContentCoordinator {
     ///
     /// - Note:
     ///   - `selectedApps`: empty means "all installed apps that loopdown supports".
-    ///   - `includeRequired` / `includeOptional` are already validated by the CLI.
-    ///   - `appPolicies`: per-app overrides for `includeRequired`/`includeOptional` under
-    ///     `--managed`. Empty (the default) means use the global flags for every app.
+    ///   - `includeEssential` / `includeCore` / `includeOptional` are already validated by the CLI.
+    ///   - `appPolicies`: per-app overrides under `--managed`. Empty means use the global flags.
     ///   - `libraryDestURL`: destination root for modern Logic Pro 12+ / MainStage 4+ content.
-    ///     Used for receipt plist lookup (install-state detection) and as the `aa extract -d`
-    ///     target. Also passed to `InstalledApplicationResolver` so `AudioApplication` can
-    ///     read receipt plists at init time.
-    ///   - `destDir` is used for `download` mode output placement.
-    ///   - `deploy` downloads into a managed staging directory and installs from there.
-    ///   - `skipSignatureCheck`: when false (default), legacy `.pkg` packages are verified as
-    ///     signed Apple software before being saved/installed. Modern `.aar` packages are
-    ///     never `.pkg` files and the signature check is always skipped for them regardless
-    ///     of this flag.
+    ///   - `skipSignatureCheck`: applies to legacy `.pkg` only; modern `.aar` always skips.
     ///   - `cacheServer` and `mirrorServer` apply to both legacy and modern packages.
-    ///     For modern packages, the cache/mirror server replaces the Apple CDN base URL;
-    ///     when neither is configured, `modernContentBaseURL` is used directly.
     public static func run(
         mode: Mode,
         selectedApps: [ConcreteApp],
-        includeRequired: Bool,
+        includeEssential: Bool,
+        includeCore: Bool,
         includeOptional: Bool,
         appPolicies: [AppContentPolicy] = [],
         libraryDestURL: URL,
@@ -77,12 +67,12 @@ public enum ContentCoordinator {
 
         let downloader = DownloadClient(maxRedirects: 5)
 
-        // 2) Select packages based on mode.
         switch mode {
         case .download:
             try await runDownload(
                 apps: targetApps,
-                includeRequired: includeRequired,
+                includeEssential: includeEssential,
+                includeCore: includeCore,
                 includeOptional: includeOptional,
                 destDir: destDir,
                 skipSignatureCheck: skipSignatureCheck,
@@ -96,7 +86,8 @@ public enum ContentCoordinator {
         case .deploy:
             try await runDeploy(
                 apps: targetApps,
-                includeRequired: includeRequired,
+                includeEssential: includeEssential,
+                includeCore: includeCore,
                 includeOptional: includeOptional,
                 appPolicies: appPolicies,
                 libraryDestURL: libraryDestURL,
@@ -118,7 +109,8 @@ private extension ContentCoordinator {
 
     static func runDownload(
         apps: [AudioApplication],
-        includeRequired: Bool,
+        includeEssential: Bool,
+        includeCore: Bool,
         includeOptional: Bool,
         destDir: String,
         skipSignatureCheck: Bool,
@@ -129,15 +121,13 @@ private extension ContentCoordinator {
         downloader: DownloadClient
     ) async throws {
 
-        // For logging, use the legacy base URL as the representative server.
-        // The actual per-package URL is determined in packageRemoteURL.
         let baseURL = effectiveBaseURL(cacheServer: cacheServer, mirrorServer: mirrorServer)
         logger.notice("Downloading from \(baseURL.absoluteString) and saving content to \(destDir)")
 
-        // Merge packages across all selected apps (no per-app policy in download mode).
         let pkgs = mergePackagesAcrossApps(
             apps: apps,
-            includeRequired: includeRequired,
+            includeEssential: includeEssential,
+            includeCore: includeCore,
             includeOptional: includeOptional,
             forceDeploy: false,
             debugLog: nil
@@ -148,7 +138,6 @@ private extension ContentCoordinator {
             return
         }
 
-        // Disk space check: download sizes only.
         let requiredBytes = pkgs.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
         let checkPath = FileManager.default.temporaryDirectory.path
         let freeBytes = try filesystemFreeBytes(atPath: checkPath)
@@ -178,12 +167,8 @@ private extension ContentCoordinator {
         for (idx, pkg) in pkgs.enumerated() {
             let n = idx + 1
 
-            let remoteURL = packageRemoteURL(
-                pkg: pkg,
-                cacheServer: cacheServer,
-                mirrorServer: mirrorServer
-            )
-            let destURL = destinationFileURL(destDir: destDir, pkg: pkg)
+            let remoteURL = packageRemoteURL(pkg: pkg, cacheServer: cacheServer, mirrorServer: mirrorServer)
+            let destURL   = destinationFileURL(destDir: destDir, pkg: pkg)
 
             logger.info("\(counter(n, of: total)) - downloading: \(pkg.name) (\(pkg.downloadSize))")
             logger.fileOnly("\(counter(n, of: total)) - url: \(remoteURL.absoluteString)")
@@ -194,7 +179,6 @@ private extension ContentCoordinator {
             }
 
             // Signature check applies to legacy (.pkg) packages only.
-            // Modern (.aar) packages are never Apple-signed packages; skip unconditionally.
             if pkg.isLegacy && !skipSignatureCheck {
                 guard PackageSignatureChecker.isSignedAppleSoftware(
                     pkgURL: tempURL,
@@ -217,7 +201,8 @@ private extension ContentCoordinator {
 
     static func runDeploy(
         apps: [AudioApplication],
-        includeRequired: Bool,
+        includeEssential: Bool,
+        includeCore: Bool,
         includeOptional: Bool,
         appPolicies: [AppContentPolicy],
         libraryDestURL: URL,
@@ -239,10 +224,10 @@ private extension ContentCoordinator {
         let baseURL = effectiveBaseURL(cacheServer: cacheServer, mirrorServer: mirrorServer)
         logger.notice("Downloading from \(baseURL.absoluteString) and installing content")
 
-        // 1) Merge packages across apps, filtering by install state.
         let pending = mergePackagesAcrossApps(
             apps: apps,
-            includeRequired: includeRequired,
+            includeEssential: includeEssential,
+            includeCore: includeCore,
             includeOptional: includeOptional,
             appPolicies: appPolicies,
             forceDeploy: forceDeploy,
@@ -254,7 +239,6 @@ private extension ContentCoordinator {
             return
         }
 
-        // 2) Free space check against pending packages only.
         let totalDownload  = pending.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
         let totalInstalled = pending.reduce(Int64(0)) { $0 + $1.installedSize.raw }
         let requiredBytes  = totalDownload + totalInstalled
@@ -264,7 +248,6 @@ private extension ContentCoordinator {
 
         logger.debug("Free bytes at '\(checkPath)': \(ByteSize(freeBytes))")
 
-        // 3) Dry-run: list packages then print summaries.
         if dryRun {
             listPackagesForDryRunDeploy(pending, logger: logger)
             logger.notice(dryRunDownloadSummary(for: pending))
@@ -282,12 +265,8 @@ private extension ContentCoordinator {
             )
         }
 
-        // 4) Create staging directory and install signal handlers for cleanup.
         let staging = try TemporaryDirectory()
-
-        let signalCleanup = SignalCleanup {
-            staging.cleanup()
-        }
+        let signalCleanup = SignalCleanup { staging.cleanup() }
         signalCleanup.install()
 
         defer {
@@ -295,15 +274,10 @@ private extension ContentCoordinator {
             staging.cleanup()
         }
 
-        // 5) Download into staging, verify signature (legacy only), then install.
         let total = pending.count
         for (idx, pkg) in pending.enumerated() {
             let n = idx + 1
-            let remoteURL = packageRemoteURL(
-                pkg: pkg,
-                cacheServer: cacheServer,
-                mirrorServer: mirrorServer
-            )
+            let remoteURL = packageRemoteURL(pkg: pkg, cacheServer: cacheServer, mirrorServer: mirrorServer)
 
             logger.info("\(counter(n, of: total)) - downloading: \(pkg.name)")
             logger.fileOnly("\(counter(n, of: total)) - url: \(remoteURL.absoluteString)")
@@ -316,7 +290,6 @@ private extension ContentCoordinator {
             let stagedURL = staging.url.appendingPathComponent(pkg.name)
             try FileManager.default.moveItem(at: tempURL, to: stagedURL)
 
-            // Signature check applies to legacy (.pkg) packages only.
             if pkg.isLegacy && !skipSignatureCheck {
                 guard PackageSignatureChecker.isSignedAppleSoftware(
                     pkgURL: stagedURL,
@@ -331,7 +304,6 @@ private extension ContentCoordinator {
             let indent = String(repeating: " ", count: label.count + 3)
 
             if pkg.isLegacy {
-                // Legacy: install via /usr/sbin/installer
                 do {
                     try PackageInstaller.install(
                         pkgURL: stagedURL,
@@ -345,7 +317,6 @@ private extension ContentCoordinator {
                     logger.error("\(indent)failed to install: \(pkg.name) (\(error))")
                 }
             } else {
-                // Modern: extract via /usr/bin/aa extract -d <libraryDestURL> -i <archive>
                 do {
                     try AARExtractor.extract(
                         packageURL: stagedURL,
@@ -377,42 +348,40 @@ private extension ContentCoordinator {
 private extension ContentCoordinator {
 
     static func dryRunDownloadSummary(for pkgs: [AudioContentPackage]) -> String {
-        let required = pkgs.filter { $0.mandatory }
-        let optional = pkgs.filter { !$0.mandatory }
+        let essential = pkgs.filter { $0.isEssential }
+        let core      = pkgs.filter { $0.isCore }
+        let optional  = pkgs.filter { $0.isOptional }
 
-        let reqSize = required.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
-        let optSize = optional.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
+        let esnSize  = essential.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
+        let coreSize = core.reduce(Int64(0))      { $0 + $1.downloadSize.raw }
+        let optSize  = optional.reduce(Int64(0))  { $0 + $1.downloadSize.raw }
 
         var parts: [String] = []
-        if !required.isEmpty {
-            parts.append("\(required.count) required: \(ByteSize(reqSize).description)")
-        }
-        if !optional.isEmpty {
-            parts.append("\(optional.count) optional: \(ByteSize(optSize).description)")
-        }
+        if !essential.isEmpty { parts.append("\(essential.count) essential: \(ByteSize(esnSize))") }
+        if !core.isEmpty      { parts.append("\(core.count) core: \(ByteSize(coreSize))") }
+        if !optional.isEmpty  { parts.append("\(optional.count) optional: \(ByteSize(optSize))") }
 
         let breakdown = parts.isEmpty ? "" : " (\(parts.joined(separator: ", ")))"
         return "Total download \(pkgs.count) package\(pkgs.count == 1 ? "" : "s")\(breakdown)"
     }
 
     static func dryRunInstallSummary(for pkgs: [AudioContentPackage]) -> String {
-        let required = pkgs.filter { $0.mandatory }
-        let optional = pkgs.filter { !$0.mandatory }
+        let essential = pkgs.filter { $0.isEssential }
+        let core      = pkgs.filter { $0.isCore }
+        let optional  = pkgs.filter { $0.isOptional }
 
-        let reqSize   = required.reduce(Int64(0)) { $0 + $1.installedSize.raw }
-        let optSize   = optional.reduce(Int64(0)) { $0 + $1.installedSize.raw }
-        let totalSize = reqSize + optSize
+        let esnSize  = essential.reduce(Int64(0)) { $0 + $1.installedSize.raw }
+        let coreSize = core.reduce(Int64(0))      { $0 + $1.installedSize.raw }
+        let optSize  = optional.reduce(Int64(0))  { $0 + $1.installedSize.raw }
+        let total    = esnSize + coreSize + optSize
 
         var parts: [String] = []
-        if !required.isEmpty {
-            parts.append("\(required.count) required: \(ByteSize(reqSize).description)")
-        }
-        if !optional.isEmpty {
-            parts.append("\(optional.count) optional: \(ByteSize(optSize).description)")
-        }
+        if !essential.isEmpty { parts.append("\(essential.count) essential: \(ByteSize(esnSize))") }
+        if !core.isEmpty      { parts.append("\(core.count) core: \(ByteSize(coreSize))") }
+        if !optional.isEmpty  { parts.append("\(optional.count) optional: \(ByteSize(optSize))") }
 
         let breakdown = parts.isEmpty ? "" : " (\(parts.joined(separator: ", ")))"
-        return "Total install size \(ByteSize(totalSize).description)\(breakdown)"
+        return "Total install size \(ByteSize(total))\(breakdown)"
     }
 
     static func dryRunDiskSpaceSummary(required: Int64, available: Int64, passed: Bool) -> String {
@@ -424,20 +393,6 @@ private extension ContentCoordinator {
 // MARK: - Package selection/merge helpers
 private extension ContentCoordinator {
 
-    /// Determine whether a package needs to be downloaded and installed.
-    ///
-    /// **Legacy packages** — same logic as before:
-    ///   1. No `fileCheck` paths → assume needs install.
-    ///   2. No `fileCheck` path exists on disk → not installed.
-    ///   3. Paths exist, no remote version → treat as current.
-    ///   4. Paths exist, remote version known → pkgutil receipt comparison.
-    ///
-    /// **Modern packages** — install state is determined solely by `fileCheck` paths:
-    ///   - `fileCheck` paths come from the receipt plist; absence of a receipt means
-    ///     the package is not installed (fileCheck will be empty).
-    ///   - All paths must exist for the package to be considered installed (Python
-    ///     `has_sentinel_files` for modern uses `check_all=True`).
-    ///   - No `pkgutil` version comparison is performed for modern packages.
     static func packageNeedsInstall(
         _ pkg: AudioContentPackage,
         debugLog: ((String) -> Void)?
@@ -453,13 +408,10 @@ private extension ContentCoordinator {
         _ pkg: AudioContentPackage,
         debugLog: ((String) -> Void)?
     ) -> Bool {
-        // No receipt → no fileCheck paths → not installed.
         guard !pkg.fileCheck.isEmpty else {
             debugLog?("\(pkg.name): no receipt/fileCheck paths — treating as not installed")
             return true
         }
-
-        // All fileCheck paths must exist (Python modern uses check_all=True).
         let allExist = pkg.fileCheck.allSatisfy { FileManager.default.fileExists(atPath: $0) }
         debugLog?("\(pkg.name): modern install check — all fileCheck paths exist: \(allExist)")
         return !allExist
@@ -513,9 +465,14 @@ private extension ContentCoordinator {
     }
 
     /// Merge packages across all target apps, deduplicating by package ID.
+    ///
+    /// Priority when the same package ID appears in multiple apps:
+    /// non-optional (essential or core) always wins over optional, matching
+    /// Python's `prefer_essential_or_core_pkg` / `not pkg.is_optional` logic.
     static func mergePackagesAcrossApps(
         apps: [AudioApplication],
-        includeRequired: Bool,
+        includeEssential: Bool,
+        includeCore: Bool,
         includeOptional: Bool,
         appPolicies: [AppContentPolicy] = [],
         forceDeploy: Bool,
@@ -527,28 +484,41 @@ private extension ContentCoordinator {
         }
 
         var byID: [String: AudioContentPackage] = [:]
-        var mandatoryIDs = Set<String>()
+        // Track IDs that are essential or core so optional duplicates are skipped.
+        var nonOptionalIDs = Set<String>()
 
         for app in apps {
             let policy       = app.concreteApp.flatMap { policyByApp[$0] }
-            let wantRequired = policy?.required ?? includeRequired
-            let wantOptional = policy?.optional ?? includeOptional
+            let wantEssential = policy?.essential ?? includeEssential
+            let wantCore      = policy?.core      ?? includeCore
+            let wantOptional  = policy?.optional  ?? includeOptional
 
-            if wantRequired {
-                for pkg in app.mandatory {
+            // Essential packages
+            if wantEssential {
+                for pkg in app.essential {
                     if !forceDeploy && !packageNeedsInstall(pkg, debugLog: debugLog) { continue }
-                    if let existing = byID[pkg.packageID] {
-                        if !existing.mandatory { byID[pkg.packageID] = pkg }
-                    } else {
+                    if let existing = byID[pkg.packageID], !existing.isOptional { } else {
                         byID[pkg.packageID] = pkg
                     }
-                    mandatoryIDs.insert(pkg.packageID)
+                    nonOptionalIDs.insert(pkg.packageID)
                 }
             }
 
+            // Core packages
+            if wantCore {
+                for pkg in app.core {
+                    if !forceDeploy && !packageNeedsInstall(pkg, debugLog: debugLog) { continue }
+                    if let existing = byID[pkg.packageID], !existing.isOptional { } else {
+                        byID[pkg.packageID] = pkg
+                    }
+                    nonOptionalIDs.insert(pkg.packageID)
+                }
+            }
+
+            // Optional packages — skip if already claimed by essential or core
             if wantOptional {
                 for pkg in app.optional {
-                    if mandatoryIDs.contains(pkg.packageID) { continue }
+                    if nonOptionalIDs.contains(pkg.packageID) { continue }
                     if !forceDeploy && !packageNeedsInstall(pkg, debugLog: debugLog) { continue }
                     if byID[pkg.packageID] == nil {
                         byID[pkg.packageID] = pkg
@@ -557,8 +527,11 @@ private extension ContentCoordinator {
             }
         }
 
+        // Sort: essential first, then core, then optional; within each bucket by name.
         return byID.values.sorted {
-            $0.name.localizedStandardCompare($1.name) == .orderedAscending
+            if $0.isEssential != $1.isEssential { return $0.isEssential }
+            if $0.isCore != $1.isCore           { return $0.isCore }
+            return $0.name.localizedStandardCompare($1.name) == .orderedAscending
         }
     }
 }
@@ -598,21 +571,14 @@ private extension ContentCoordinator {
     /// Priority: mirrorServer > cacheServer > Apple CDN root.
     ///
     /// The path component distinguishing legacy (`lp10_ms3_content_2016/…`) from modern
-    /// (`universal/ContentPacks_3/…`) content is already baked into each package's
-    /// `downloadPath`, so the server base is always applied uniformly. This matches
-    /// the Python `ctx.server` model after the fix in `_server_mixin.py` / `_download_mixin.py`.
+    /// (`universal/ContentPacks_3/…`) content is baked into each package's `downloadPath`,
+    /// so the server base is always applied uniformly.
     static func effectiveBaseURL(cacheServer: URL?, mirrorServer: URL?) -> URL {
         mirrorServer
             ?? cacheServer
             ?? LoopdownConstants.Downloads.contentSourceBaseURL
     }
 
-    /// Build the remote download URL for a package.
-    ///
-    /// The server base is chosen uniformly for both legacy and modern packages.
-    /// `pkg.downloadPath` already contains the full relative path:
-    ///   - Legacy:  `lp10_ms3_content_2016/<filename>.pkg`
-    ///   - Modern:  `universal/ContentPacks_3/<server_path>.aar`
     static func packageRemoteURL(
         pkg: AudioContentPackage,
         cacheServer: URL?,
@@ -646,14 +612,10 @@ private extension ContentCoordinator {
 
     static func moveReplacingIfExists(from src: URL, to dst: URL) throws {
         let fm = FileManager.default
-        if fm.fileExists(atPath: dst.path) {
-            try fm.removeItem(at: dst)
-        }
+        if fm.fileExists(atPath: dst.path) { try fm.removeItem(at: dst) }
         try ensureParentDirectoryExists(for: dst)
         try fm.moveItem(at: src, to: dst)
     }
-
-    // MARK: - Counter formatting helper
 
     static func counter(_ n: Int, of total: Int) -> String {
         let width = String(total).count

@@ -20,7 +20,7 @@ struct ForceDeployOption: ParsableArguments {
 
 struct LibraryDestOption: ParsableArguments {
     @Option(
-        name: .long,
+        name: [.customShort("b"), .customLong("library-dest")],
         help: ArgumentHelp(
             "Destination directory for modern Logic Pro 12+ and MainStage 4+ content.",
             discussion: """
@@ -48,7 +48,8 @@ struct ManagedOption: ParsableArguments {
 
             Sane defaults are applied for any key absent from the domain:
               apps               all installed apps
-              required           true (when both required and optional are absent)
+              essential          true (when essential, core, and optional are all absent)
+              core               true (when essential, core, and optional are all absent)
               optional           false
               forceDeploy        false
               skipSignatureCheck false
@@ -87,7 +88,8 @@ struct Deploy: AsyncParsableCommand {
     @OptionGroup var quiet: QuietRunOption
     @OptionGroup var logging: LoggingOptions
     @OptionGroup var apps: AppOptions
-    @OptionGroup var required: RequiredContentOption
+    @OptionGroup var essential: EssentialContentOption
+    @OptionGroup var core: CoreContentOption
     @OptionGroup var optional: OptionalContentOption
     @OptionGroup var force: ForceDeployOption
     @OptionGroup var servers: ServerOptions
@@ -110,11 +112,14 @@ struct Deploy: AsyncParsableCommand {
         if !apps.app.isEmpty {
             throw ValidationError("'--app' cannot be used with '--managed'; set the 'apps' key in the preferences domain instead.")
         }
-        if required.required {
-            throw ValidationError("'--required' cannot be used with '--managed'; set the 'required' key in the preferences domain instead.")
+        if essential.essential {
+            throw ValidationError("'-e/--essential' cannot be used with '--managed'; set the 'essential' key in the preferences domain instead.")
+        }
+        if core.core {
+            throw ValidationError("'-r/--core' cannot be used with '--managed'; set the 'core' key in the preferences domain instead.")
         }
         if optional.optional {
-            throw ValidationError("'--optional' cannot be used with '--managed'; set the 'optional' key in the preferences domain instead.")
+            throw ValidationError("'-o/--optional' cannot be used with '--managed'; set the 'optional' key in the preferences domain instead.")
         }
         if force.forceDeploy {
             throw ValidationError("'--force-deploy' cannot be used with '--managed'; set the 'forceDeploy' key in the preferences domain instead.")
@@ -132,7 +137,7 @@ struct Deploy: AsyncParsableCommand {
             throw ValidationError("'--quiet' cannot be used with '--managed'; set the 'quietRun' key in the preferences domain instead.")
         }
         if libraryDestOption.libraryDest != LoopdownConstants.ModernApps.defaultLibraryDestPath {
-            throw ValidationError("'--library-dest' cannot be used with '--managed'; set the 'libraryDest' key in the preferences domain instead.")
+            throw ValidationError("'-b/--library-dest' cannot be used with '--managed'; set the 'libraryDest' key in the preferences domain instead.")
         }
 
         if !dry.dryRun && !PrivilegeCheck.isRoot {
@@ -141,7 +146,11 @@ struct Deploy: AsyncParsableCommand {
     }
 
     private func validateStandardMode() throws {
-        try validateContentSelection(required: required.required, optional: optional.optional)
+        try validateContentSelection(
+            essential: essential.essential,
+            core: core.core,
+            optional: optional.optional
+        )
 
         if !dry.dryRun && !PrivilegeCheck.isRoot {
             throw ValidationError("You must be root to use this command; re-run with sudo or use '-n/--dry-run'.")
@@ -190,7 +199,8 @@ struct Deploy: AsyncParsableCommand {
             try await ContentCoordinator.run(
                 mode: .deploy,
                 selectedApps: apps.app,
-                includeRequired: required.required,
+                includeEssential: essential.essential,
+                includeCore: core.core,
                 includeOptional: optional.optional,
                 libraryDestURL: libraryDestURL,
                 destDir: LoopdownConstants.Paths.defaultDest,
@@ -235,8 +245,8 @@ struct Deploy: AsyncParsableCommand {
 
             logger.debug("--managed: reading from domain '\(ManagedPreferencesReader.domain)'")
             logger.debug("--managed: apps=\(prefs.apps.map { $0.rawValue })")
-            logger.debug("--managed: required=\(prefs.required) optional=\(prefs.optional)")
-            logger.debug("--managed: appPolicies=\(prefs.appPolicies.map { "\($0.app.rawValue)(r:\($0.required) o:\($0.optional))" })")
+            logger.debug("--managed: essential=\(prefs.essential) core=\(prefs.core) optional=\(prefs.optional)")
+            logger.debug("--managed: appPolicies=\(prefs.appPolicies.map { "\($0.app.rawValue)(e:\($0.essential) c:\($0.core) o:\($0.optional))" })")
             logger.debug("--managed: forceDeploy=\(prefs.forceDeploy) skipSignatureCheck=\(prefs.skipSignatureCheck)")
             logger.debug("--managed: dryRun=\(effectiveDryRun) (prefs=\(prefs.dryRun) cli=\(dry.dryRun))")
             logger.debug("--managed: libraryDest=\(prefs.libraryDest)")
@@ -257,7 +267,8 @@ struct Deploy: AsyncParsableCommand {
             try await ContentCoordinator.run(
                 mode: .deploy,
                 selectedApps: prefs.apps,
-                includeRequired: prefs.required,
+                includeEssential: prefs.essential,
+                includeCore: prefs.core,
                 includeOptional: prefs.optional,
                 appPolicies: prefs.appPolicies,
                 libraryDestURL: libraryDestURL,

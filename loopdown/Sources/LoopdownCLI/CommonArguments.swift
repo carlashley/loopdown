@@ -38,17 +38,28 @@ struct LoggingOptions: ParsableArguments {
     var logLevel: AppLogLevel = .info
 }
 
-struct RequiredContentOption: ParsableArguments {
-    @Flag(name: [.short, .long], help: "Select required content.")
-    var required: Bool = false
+struct EssentialContentOption: ParsableArguments {
+    @Flag(
+        name: [.customShort("e"), .customLong("essential")],
+        help: "Include essential audio packages (Logic Pro 12+ and MainStage 4+ only)."
+    )
+    var essential: Bool = false
+}
+
+struct CoreContentOption: ParsableArguments {
+    @Flag(
+        name: [.customShort("r"), .customLong("core")],
+        help: "Include core audio packages (equivalent to -r, --req for legacy applications)."
+    )
+    var core: Bool = false
 }
 
 struct OptionalContentOption: ParsableArguments {
-    @Flag(name: [.short, .long], help: "Select optional content.")
+    @Flag(name: [.customShort("o"), .customLong("optional")], help: "Include optional content.")
     var optional: Bool = false
 }
 
 struct SkipSignatureCheckOption: ParsableArguments {
-    @Flag(name: .long, help: "Skip the pkgutil signature check on downloaded packages.")
+    @Flag(name: .long, help: "Skip the pkgutil signature check on downloaded packages (legacy content only).")
     var skipSignatureCheck: Bool = false
 }
