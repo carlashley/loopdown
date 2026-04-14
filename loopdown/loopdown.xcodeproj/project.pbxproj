@@ -1215,7 +1215,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = staticlib;
-				MARKETING_VERSION = 2.0.3.b2;
+				MARKETING_VERSION = 2.0.3.b3;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				"OTHER_LDFLAGS[arch=*]" = "-lsqlite3";
@@ -1252,7 +1252,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = staticlib;
-				MARKETING_VERSION = 2.0.3.b2;
+				MARKETING_VERSION = 2.0.3.b3;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				"OTHER_LDFLAGS[arch=*]" = "-lsqlite3";
