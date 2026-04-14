@@ -53,7 +53,7 @@ public func writeBookmarkFile(
     let bookmarkURL  = libraryDestURL.appendingPathComponent(bookmarkName)
 
     if dryRun {
-        logger.info("dry run: would write bookmark '\(bookmarkURL.path)'")
+        logger.debug("dry run: would write bookmark '\(bookmarkURL.path)'")
         return
     }
 

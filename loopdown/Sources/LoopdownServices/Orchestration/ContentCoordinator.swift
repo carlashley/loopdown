@@ -12,9 +12,16 @@ import LoopdownInfrastructure
 // MARK: - Coordinator
 public enum ContentCoordinator {
 
-    public enum Mode: Sendable {
+    public enum Mode: Sendable, CustomStringConvertible {
         case download
         case deploy
+
+        public var description: String {
+            switch self {
+            case .download: return "download"
+            case .deploy:   return "deploy"
+            }
+        }
     }
 
     /// Common entry point used by both `download` and `deploy` CLI commands.
@@ -42,7 +49,7 @@ public enum ContentCoordinator {
         dryRun: Bool,
         verboseInstall: Bool = false,
         logger: CoreLogger
-    ) async throws {
+    ) async throws -> Bool {
 
         // 1) Resolve installed apps and filter by CLI selection (if any).
         let installed = Array(
@@ -62,18 +69,19 @@ public enum ContentCoordinator {
 
         if targetApps.isEmpty {
             logger.notice("No supported installed applications found (or none matched the requested selection).")
-            return
+            return false
         }
 
         let downloader = DownloadClient(maxRedirects: 5)
 
         switch mode {
         case .download:
-            try await runDownload(
+            return try await runDownload(
                 apps: targetApps,
                 includeEssential: includeEssential,
                 includeCore: includeCore,
                 includeOptional: includeOptional,
+                mode: mode,
                 destDir: destDir,
                 skipSignatureCheck: skipSignatureCheck,
                 cacheServer: cacheServer,
@@ -84,13 +92,14 @@ public enum ContentCoordinator {
             )
 
         case .deploy:
-            try await runDeploy(
+            return try await runDeploy(
                 apps: targetApps,
                 includeEssential: includeEssential,
                 includeCore: includeCore,
                 includeOptional: includeOptional,
                 appPolicies: appPolicies,
                 libraryDestURL: libraryDestURL,
+                mode: mode,
                 forceDeploy: forceDeploy,
                 skipSignatureCheck: skipSignatureCheck,
                 cacheServer: cacheServer,
@@ -107,11 +116,13 @@ public enum ContentCoordinator {
 // MARK: - Download mode
 private extension ContentCoordinator {
 
+    @discardableResult
     static func runDownload(
         apps: [AudioApplication],
         includeEssential: Bool,
         includeCore: Bool,
         includeOptional: Bool,
+        mode: Mode,
         destDir: String,
         skipSignatureCheck: Bool,
         cacheServer: URL?,
@@ -119,7 +130,7 @@ private extension ContentCoordinator {
         dryRun: Bool,
         logger: CoreLogger,
         downloader: DownloadClient
-    ) async throws {
+    ) async throws -> Bool {
 
         let baseURL = effectiveBaseURL(cacheServer: cacheServer, mirrorServer: mirrorServer)
         logger.notice("Downloading from \(baseURL.absoluteString) and saving content to \(destDir)")
@@ -134,8 +145,8 @@ private extension ContentCoordinator {
         )
 
         if pkgs.isEmpty {
-            logger.notice("No packages selected.")
-            return
+            logger.notice("No packages selected for \(mode).")
+            return false
         }
 
         let requiredBytes = pkgs.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
@@ -153,7 +164,7 @@ private extension ContentCoordinator {
             logger.notice(dryRunDownloadSummary(for: pkgs))
             let passed = freeBytes >= requiredBytes
             logger.notice(dryRunDiskSpaceSummary(required: requiredBytes, available: freeBytes, passed: passed))
-            return
+            return true
         }
 
         if freeBytes < requiredBytes {
@@ -193,6 +204,7 @@ private extension ContentCoordinator {
             try moveReplacingIfExists(from: tempURL, to: destURL)
             logger.info("\(counter(n, of: total)) - saved: \(pkg.name)")
         }
+        return true
     }
 }
 
@@ -206,6 +218,7 @@ private extension ContentCoordinator {
         includeOptional: Bool,
         appPolicies: [AppContentPolicy],
         libraryDestURL: URL,
+        mode: Mode,
         forceDeploy: Bool,
         skipSignatureCheck: Bool,
         cacheServer: URL?,
@@ -214,7 +227,7 @@ private extension ContentCoordinator {
         verboseInstall: Bool,
         logger: CoreLogger,
         downloader: DownloadClient
-    ) async throws {
+    ) async throws -> Bool {
 
         logger.debug("forceDeploy: \(forceDeploy)")
         logger.debug("libraryDestURL: \(libraryDestURL.path)")
@@ -235,8 +248,8 @@ private extension ContentCoordinator {
         )
 
         if pending.isEmpty {
-            logger.notice("No packages selected for deploy.")
-            return
+            logger.notice("No packages selected for \(mode).")
+            return false
         }
 
         let totalDownload  = pending.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
@@ -254,7 +267,7 @@ private extension ContentCoordinator {
             logger.notice(dryRunInstallSummary(for: pending))
             let passed = freeBytes >= requiredBytes
             logger.notice(dryRunDiskSpaceSummary(required: requiredBytes, available: freeBytes, passed: passed))
-            return
+            return true
         }
 
         if freeBytes < requiredBytes {
@@ -331,6 +344,7 @@ private extension ContentCoordinator {
                 }
             }
         }
+        return true
     }
 
     static func listPackagesForDryRunDeploy(

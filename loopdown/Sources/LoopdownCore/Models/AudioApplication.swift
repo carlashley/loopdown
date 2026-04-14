@@ -15,9 +15,9 @@ import Foundation
 ///   Packages are decoded from a `.plist` resource file inside the application bundle.
 ///
 /// **Modern apps** (Logic Pro >= 12; MainStage >= 4):
-///   Packages are decoded from a SQLite database at
-///   `Contents/Resources/Library.bundle/ContentDatabaseV01.db/index.db`
-///   inside the application bundle. The receipt plist for each package is read from
+///   Packages are decoded from a SQLite database located by scanning
+///   `Contents/Resources/Library.bundle` for a `ContentDatabaseV*.db` directory
+///   and reading `index.db` inside it. The receipt plist for each package is read from
 ///   `<libraryDestURL>/Application Support/Package Definitions/<stem>.plist` to determine
 ///   install state and file-check paths.
 ///
@@ -124,9 +124,10 @@ public final class AudioApplication: Hashable, Sendable {
         libraryDestURL: URL,
         logger: CoreLogger
     ) -> (essential: [AudioContentPackage], core: [AudioContentPackage], optional: [AudioContentPackage]) {
-        let dbURL = path.appendingPathComponent(
-            LoopdownConstants.ModernApps.contentDatabaseRelativePath
-        )
+        guard let dbURL = findContentDatabase(path: path, logger: logger) else {
+            logger.debug("No content database found in '\(path.path)'")
+            return (essential: [], core: [], optional: [])
+        }
 
         logger.debug("Loading modern content database: '\(dbURL.path)'")
 
@@ -164,6 +165,66 @@ public final class AudioApplication: Hashable, Sendable {
         optionalPkgs.sort  { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
 
         return (essential: essentialPkgs, core: corePkgs, optional: optionalPkgs)
+    }
+
+
+    // MARK: - Find content database (modern path)
+
+    /// Locate the SQLite content database inside an app bundle.
+    ///
+    /// Scans `Contents/Resources/Library.bundle` for directories whose name matches
+    /// `ContentDatabaseV*.db`, picks the highest name (so `V02` beats `V01` if both
+    /// exist), and returns a URL to `index.db` inside it.
+    ///
+    /// Returns `nil` if the container directory does not exist or contains no matching
+    /// database bundle.
+    private static func findContentDatabase(path: URL, logger: CoreLogger) -> URL? {
+        let containerURL = path.appendingPathComponent(
+            LoopdownConstants.ModernApps.contentDatabaseContainerPath,
+            isDirectory: true
+        )
+
+        var isDir: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: containerURL.path, isDirectory: &isDir),
+              isDir.boolValue
+        else {
+            logger.debug("Content database container not found at '\(containerURL.path)'")
+            return nil
+        }
+
+        let prefix = LoopdownConstants.ModernApps.contentDatabaseDirPrefix
+        let suffix = LoopdownConstants.ModernApps.contentDatabaseDirSuffix
+        let filename = LoopdownConstants.ModernApps.contentDatabaseFilename
+
+        guard let entries = try? FileManager.default.contentsOfDirectory(
+            at: containerURL,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            logger.debug("Unable to enumerate '\(containerURL.path)'")
+            return nil
+        }
+
+        // Keep only directories whose name matches ContentDatabaseV*.db.
+        let candidates = entries.filter { url in
+            guard let vals = try? url.resourceValues(forKeys: [.isDirectoryKey]),
+                  vals.isDirectory == true
+            else { return false }
+            let name = url.lastPathComponent
+            return name.hasPrefix(prefix) && name.hasSuffix(suffix)
+        }
+
+        // Pick the highest name so a future V02 (or beyond) wins over V01.
+        guard let best = candidates.max(by: {
+            $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
+        }) else {
+            logger.debug("No content database bundle found under '\(containerURL.path)'")
+            return nil
+        }
+
+        let dbURL = best.appendingPathComponent(filename)
+        logger.debug("Found content database bundle '\(best.lastPathComponent)' at '\(dbURL.path)'")
+        return dbURL
     }
 
 

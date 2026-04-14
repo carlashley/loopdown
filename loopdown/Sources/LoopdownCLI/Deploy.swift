@@ -189,7 +189,7 @@ struct Deploy: AsyncParsableCommand {
                 isDirectory: true
             )
 
-            try await ContentCoordinator.run(
+            let packagesWereProcessed = try await ContentCoordinator.run(
                 mode: .deploy,
                 selectedApps: apps.app,
                 includeEssential: essential.essential,
@@ -206,11 +206,13 @@ struct Deploy: AsyncParsableCommand {
                 logger: logger
             )
 
-            writeBookmarkFile(
-                libraryDestURL: libraryDestURL,
-                dryRun: dry.dryRun,
-                logger: logger
-            )
+            if packagesWereProcessed {
+                writeBookmarkFile(
+                    libraryDestURL: libraryDestURL,
+                    dryRun: dry.dryRun,
+                    logger: logger
+                )
+            }
         }
     }
 
@@ -263,7 +265,7 @@ struct Deploy: AsyncParsableCommand {
                 isDirectory: true
             )
 
-            try await ContentCoordinator.run(
+            let packagesWereProcessed = try await ContentCoordinator.run(
                 mode: .deploy,
                 selectedApps: prefs.apps,
                 includeEssential: prefs.essential,
@@ -281,11 +283,13 @@ struct Deploy: AsyncParsableCommand {
                 logger: logger
             )
 
-            writeBookmarkFile(
-                libraryDestURL: libraryDestURL,
-                dryRun: effectiveDryRun,
-                logger: logger
-            )
+            if packagesWereProcessed {
+                writeBookmarkFile(
+                    libraryDestURL: libraryDestURL,
+                    dryRun: effectiveDryRun,
+                    logger: logger
+                )
+            }
         }
     }
 }

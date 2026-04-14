@@ -84,9 +84,17 @@ public enum LoopdownConstants {
             "mainstage":  4,
         ]
 
-        /// Relative path inside the `.app` bundle to the SQLite content database.
-        public static let contentDatabaseRelativePath =
-            "Contents/Resources/Library.bundle/ContentDatabaseV01.db/index.db"
+        /// Stable path from the `.app` bundle root to the directory that contains
+        /// the versioned content database bundle.
+        public static let contentDatabaseContainerPath = "Contents/Resources/Library.bundle"
+
+        /// Prefix and suffix of the versioned database bundle directory name.
+        /// Used to locate `ContentDatabaseV01.db`, `ContentDatabaseV02.db`, etc.
+        public static let contentDatabaseDirPrefix = "ContentDatabaseV"
+        public static let contentDatabaseDirSuffix = ".db"
+
+        /// The SQLite filename inside the versioned database bundle directory.
+        public static let contentDatabaseFilename = "index.db"
 
         /// Fixed name of the library bundle created inside the parent directory.
         public static let libraryBundleName = "Logic Pro Library.bundle"

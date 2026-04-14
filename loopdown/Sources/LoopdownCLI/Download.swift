@@ -67,7 +67,7 @@ struct Download: AsyncParsableCommand {
                 isDirectory: true
             )
 
-            try await ContentCoordinator.run(
+            _ = try await ContentCoordinator.run(
                 mode: .download,
                 selectedApps: apps.app,
                 includeEssential: essential.essential,
