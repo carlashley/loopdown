@@ -159,7 +159,10 @@ private extension ContentCoordinator {
 
         if dryRun {
             for (idx, pkg) in pkgs.enumerated() {
-                logger.info("\(counter(idx + 1, of: total)) - download: \(pkg.name) (\(pkg.downloadSize))")
+                let n         = counter(idx + 1, of: total)
+                let remoteURL = packageRemoteURL(pkg: pkg, cacheServer: cacheServer, mirrorServer: mirrorServer)
+                logger.info("\(n) - download: \(pkg.name) (\(pkg.downloadSize))")
+                logger.debug("\(n) - url: \(remoteURL.absoluteString)")
             }
             logger.notice(dryRunDownloadSummary(for: pkgs))
             let passed = freeBytes >= requiredBytes
@@ -262,12 +265,17 @@ private extension ContentCoordinator {
         logger.debug("Free bytes at '\(checkPath)': \(ByteSize(freeBytes))")
 
         if dryRun {
-            listPackagesForDryRunDeploy(pending, logger: logger)
+            listPackagesForDryRunDeploy(
+                pending,
+                cacheServer: cacheServer,
+                mirrorServer: mirrorServer,
+                logger: logger
+            )
             logger.notice(dryRunDownloadSummary(for: pending))
             logger.notice(dryRunInstallSummary(for: pending))
             let passed = freeBytes >= requiredBytes
             logger.notice(dryRunDiskSpaceSummary(required: requiredBytes, available: freeBytes, passed: passed))
-            return true
+            return pending.contains(where: { !$0.isLegacy })
         }
 
         if freeBytes < requiredBytes {
@@ -287,6 +295,7 @@ private extension ContentCoordinator {
             staging.cleanup()
         }
 
+        var modernContentDeployed = false
         let total = pending.count
         for (idx, pkg) in pending.enumerated() {
             let n = idx + 1
@@ -339,21 +348,27 @@ private extension ContentCoordinator {
                         errorLog: logger.error
                     )
                     logger.notice("\(indent)extracted: \(pkg.name)")
+                    modernContentDeployed = true
                 } catch {
                     logger.error("\(indent)failed to extract: \(pkg.name) (\(error))")
                 }
             }
         }
-        return true
+        return modernContentDeployed
     }
 
     static func listPackagesForDryRunDeploy(
         _ pkgs: [AudioContentPackage],
+        cacheServer: URL?,
+        mirrorServer: URL?,
         logger: CoreLogger
     ) {
         let total = pkgs.count
         for (idx, pkg) in pkgs.enumerated() {
-            logger.info("\(counter(idx + 1, of: total)) - download+install: \(pkg.name) (\(pkg.downloadSize) dl, \(pkg.installedSize) installed)")
+            let n         = counter(idx + 1, of: total)
+            let remoteURL = packageRemoteURL(pkg: pkg, cacheServer: cacheServer, mirrorServer: mirrorServer)
+            logger.info("\(n) - download+install: \(pkg.name) (\(pkg.downloadSize) dl, \(pkg.installedSize) installed)")
+            logger.debug("\(n) - url: \(remoteURL.absoluteString)")
         }
     }
 }
