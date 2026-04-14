@@ -89,8 +89,8 @@ import LoopdownCore
 ///
 /// libraryDest:
 ///   type: String
-///   default: /Users/Shared/Logic Pro Library.bundle
-///   # Destination directory for modern Logic Pro 12+ and MainStage 4+ content.
+///   default: /Users/Shared
+///   # Parent directory under which Logic Pro Library.bundle is created.
 /// ```
 public struct ManagedPreferences: Equatable {
 
@@ -132,6 +132,6 @@ public struct ManagedPreferences: Equatable {
     /// Suppress all console output.
     public let quietRun: Bool
 
-    /// Destination directory for modern Logic Pro 12+ / MainStage 4+ content deployment.
+    /// Parent directory under which the library bundle is created.
     public let libraryDest: String
 }

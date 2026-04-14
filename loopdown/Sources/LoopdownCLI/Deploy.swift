@@ -22,11 +22,11 @@ struct LibraryDestOption: ParsableArguments {
     @Option(
         name: [.customShort("b"), .customLong("library-dest")],
         help: ArgumentHelp(
-            "Destination directory for modern Logic Pro 12+ and MainStage 4+ content.",
+            "Parent directory for the \(LoopdownConstants.ModernApps.libraryBundleName) bundle.",
             valueName: "dir"
         )
     )
-    var libraryDest: String = LoopdownConstants.ModernApps.defaultLibraryDestPath
+    var libraryDest: String = LoopdownConstants.ModernApps.defaultLibraryDestParent
 }
 
 struct ManagedOption: ParsableArguments {
@@ -49,7 +49,7 @@ struct ManagedOption: ParsableArguments {
               logLevel           info
               cacheServer        auto (when no server key is present)
               dryRun             false
-              libraryDest        \(LoopdownConstants.ModernApps.defaultLibraryDestPath)
+              libraryDest        \(LoopdownConstants.ModernApps.defaultLibraryDestParent)
             """
         )
     )
@@ -129,7 +129,7 @@ struct Deploy: AsyncParsableCommand {
         if quiet.quietRun {
             throw ValidationError("'--quiet' cannot be used with '--managed'; set the 'quietRun' key in the preferences domain instead.")
         }
-        if libraryDestOption.libraryDest != LoopdownConstants.ModernApps.defaultLibraryDestPath {
+        if libraryDestOption.libraryDest != LoopdownConstants.ModernApps.defaultLibraryDestParent {
             throw ValidationError("'-b/--library-dest' cannot be used with '--managed'; set the 'libraryDest' key in the preferences domain instead.")
         }
 

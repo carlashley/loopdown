@@ -4,21 +4,27 @@
 // Created on 14/4/2026
 //
 
+import Darwin
 import Foundation
+import LoopdownCore
 
 
 // MARK: - Library dest path resolution
 
-/// Returns `path` unchanged if its last path component already carries a `.bundle` extension;
-/// otherwise appends `.bundle` and returns the result.
+/// Returns the full path to the library bundle by joining `parentPath` with the
+/// fixed bundle name (`LoopdownConstants.ModernApps.libraryBundleName`).
+///
+/// The caller provides the parent directory; the bundle name is always fixed.
 ///
 /// Examples:
-///   "/Users/Shared/Logic Pro Library.bundle" → unchanged
-///   "/Users/Shared/Logic Pro Library"        → "/Users/Shared/Logic Pro Library.bundle"
-public func resolvedLibraryDestPath(_ path: String) -> String {
-    let url = URL(fileURLWithPath: path, isDirectory: true)
-    guard url.pathExtension.lowercased() != "bundle" else { return path }
-    return url.appendingPathExtension("bundle").path
+///   "/Users/Shared"  → "/Users/Shared/Logic Pro Library.bundle"
+///   "/path/foo"      → "/path/foo/Logic Pro Library.bundle"
+public func resolvedLibraryDestPath(_ parentPath: String) -> String {
+    let parent = URL(fileURLWithPath: parentPath, isDirectory: true)
+    return parent.appendingPathComponent(
+        LoopdownConstants.ModernApps.libraryBundleName,
+        isDirectory: true
+    ).path
 }
 
 
@@ -32,6 +38,8 @@ public func resolvedLibraryDestPath(_ path: String) -> String {
 ///
 /// Ownership of the bookmark file is set to match the owner of the bundle, so that
 /// a deploy run as root does not leave a root-owned file inside a user-owned bundle.
+/// The `UF_HIDDEN` BSD flag is set on the bookmark file via `chflags(2)` so that it
+/// is hidden from Finder and directory listings in the same way as `chflags hidden`.
 ///
 /// On a dry run the intended write is logged but no file is created.
 /// Errors are logged and non-fatal; a bookmark failure does not abort the deploy.
@@ -72,6 +80,12 @@ public func writeBookmarkFile(
                 [.ownerAccountID: ownerID],
                 ofItemAtPath: bookmarkURL.path
             )
+        }
+
+        // Set UF_HIDDEN via chflags(2) so the bookmark file is hidden from Finder
+        // and directory listings, equivalent to `chflags hidden <file>`.
+        bookmarkURL.path.withCString { cPath in
+            _ = chflags(cPath, UInt32(UF_HIDDEN))
         }
 
         logger.debug("Bookmark written to '\(bookmarkURL.path)'")

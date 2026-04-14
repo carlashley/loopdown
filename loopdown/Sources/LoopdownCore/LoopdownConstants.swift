@@ -88,8 +88,16 @@ public enum LoopdownConstants {
         public static let contentDatabaseRelativePath =
             "Contents/Resources/Library.bundle/ContentDatabaseV01.db/index.db"
 
-        /// Default library destination for modern content deployment.
-        public static let defaultLibraryDestPath = "/Users/Shared/Logic Pro Library.bundle"
+        /// Fixed name of the library bundle created inside the parent directory.
+        public static let libraryBundleName = "Logic Pro Library.bundle"
+
+        /// Default parent directory under which the library bundle is created.
+        public static let defaultLibraryDestParent = "/Users/Shared"
+
+        /// Full default path to the library bundle (parent + bundle name).
+        /// Retained for any callers that need the complete path directly.
+        public static let defaultLibraryDestPath =
+            defaultLibraryDestParent + "/" + libraryBundleName
     }
 
     public enum Identifiers {
