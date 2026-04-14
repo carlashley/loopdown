@@ -51,6 +51,7 @@
 		FAB47FB82F1CAC5F00CB44A1 /* CoreLogger+Infrastructure.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB47FB72F1CAC5F00CB44A1 /* CoreLogger+Infrastructure.swift */; };
 		FAB47FBA2F1CAEBF00CB44A1 /* AudioContentPackage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB47FB92F1CAEBF00CB44A1 /* AudioContentPackage.swift */; };
 		FAB47FC22F1CB78300CB44A1 /* LoggerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB47FC02F1CB78300CB44A1 /* LoggerProtocol.swift */; };
+		FAC02D052F8E2CEC0025456B /* LibraryBookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC02D042F8E2CEC0025456B /* LibraryBookmark.swift */; };
 		FAC711462F1BB88400DE79BF /* LoopdownServices.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C72F1BB85500F1FB70 /* LoopdownServices.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FAC711472F1BB88900DE79BF /* LoopdownInfrastructure.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FAC711482F1BB88E00DE79BF /* LoopdownCore.h in Headers */ = {isa = PBXBuildFile; fileRef = FA4A59C52F1BB83C00F1FB70 /* LoopdownCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -162,6 +163,7 @@
 		FAB47FB72F1CAC5F00CB44A1 /* CoreLogger+Infrastructure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CoreLogger+Infrastructure.swift"; sourceTree = "<group>"; };
 		FAB47FB92F1CAEBF00CB44A1 /* AudioContentPackage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioContentPackage.swift; sourceTree = "<group>"; };
 		FAB47FC02F1CB78300CB44A1 /* LoggerProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerProtocol.swift; sourceTree = "<group>"; };
+		FAC02D042F8E2CEC0025456B /* LibraryBookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryBookmark.swift; sourceTree = "<group>"; };
 		FAD460FB2F768770000C730D /* CacheServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheServer.swift; sourceTree = "<group>"; };
 		FAD460FD2F7687C6000C730D /* CacheServerResolution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheServerResolution.swift; sourceTree = "<group>"; };
 		FAD461062F7688F9000C730D /* CacheServer+ArgumentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CacheServer+ArgumentParser.swift"; sourceTree = "<group>"; };
@@ -293,6 +295,7 @@
 				FA0A60A72F1C4C9E0025ED20 /* Logging.swift */,
 				FA0A60AE2F1C54020025ED20 /* PrivilegeCheck.swift */,
 				FAB048C62F1C74A0000FA556 /* ExecutionLock.swift */,
+				FAC02D042F8E2CEC0025456B /* LibraryBookmark.swift */,
 			);
 			name = LoopdownInfrastructure;
 			path = Sources/LoopdownInfrastructure;
@@ -767,6 +770,7 @@
 				FA0A60A82F1C4C9E0025ED20 /* Logging.swift in Sources */,
 				FA6320F92F8BB6F600C61C9A /* AARExtractor.swift in Sources */,
 				FA9C3A862F3485140079758A /* DownloadClient.swift in Sources */,
+				FAC02D052F8E2CEC0025456B /* LibraryBookmark.swift in Sources */,
 				FA58F8ED2F1CCF81001EFB98 /* PackageInfo.swift in Sources */,
 				FAD460FE2F7687C6000C730D /* CacheServerResolution.swift in Sources */,
 				FA58F8E52F1CC9EA001EFB98 /* SystemProfiler.swift in Sources */,

@@ -35,9 +35,9 @@ struct ManagedOption: ParsableArguments {
         help: ArgumentHelp(
             "Run using managed preferences from the com.github.carlashley.loopdown preferences domain.",
             discussion: """
-            Only --dry-run and --cache-auto-retries/--cache-retry-delay may be combined with \
-            --managed; all other flags are ignored and their values must be set \
-            via the preferences domain.
+            Only --dry-run, --cache-auto-retries/--cache-retry-delay, and/or --log-level may \
+            be combined with --managed; all other flags are ignored and their values must be \
+            set via the preferences domain.
 
             Sane defaults are applied for any key absent from the domain:
               apps               all installed apps
@@ -185,7 +185,7 @@ struct Deploy: AsyncParsableCommand {
 
             let mirrorServerURL = servers.mirrorServer?.url
             let libraryDestURL  = URL(
-                fileURLWithPath: libraryDestOption.libraryDest,
+                fileURLWithPath: resolvedLibraryDestPath(libraryDestOption.libraryDest),
                 isDirectory: true
             )
 
@@ -203,6 +203,12 @@ struct Deploy: AsyncParsableCommand {
                 mirrorServer: mirrorServerURL,
                 dryRun: dry.dryRun,
                 verboseInstall: logging.logLevel <= AppLogLevel.debug,
+                logger: logger
+            )
+
+            writeBookmarkFile(
+                libraryDestURL: libraryDestURL,
+                dryRun: dry.dryRun,
                 logger: logger
             )
         }
@@ -253,7 +259,7 @@ struct Deploy: AsyncParsableCommand {
 
             let mirrorServerURL = prefs.mirrorServer?.url
             let libraryDestURL  = URL(
-                fileURLWithPath: prefs.libraryDest,
+                fileURLWithPath: resolvedLibraryDestPath(prefs.libraryDest),
                 isDirectory: true
             )
 
@@ -272,6 +278,12 @@ struct Deploy: AsyncParsableCommand {
                 mirrorServer: mirrorServerURL,
                 dryRun: effectiveDryRun,
                 verboseInstall: effectiveLogLevel <= AppLogLevel.debug,
+                logger: logger
+            )
+
+            writeBookmarkFile(
+                libraryDestURL: libraryDestURL,
+                dryRun: effectiveDryRun,
                 logger: logger
             )
         }
