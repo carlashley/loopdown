@@ -40,8 +40,6 @@ struct Download: AsyncParsableCommand {
     @OptionGroup var core: CoreContentOption
     @OptionGroup var optional: OptionalContentOption
     @OptionGroup var destination: DestinationOption
-    @OptionGroup var servers: ServerOptions
-    @OptionGroup var cacheDiscovery: CacheAutoDiscoveryOptions
     @OptionGroup var signatureCheck: SkipSignatureCheckOption
 
     func validate() throws {
@@ -62,18 +60,8 @@ struct Download: AsyncParsableCommand {
             let logger = run.logger
             defer { run.emitRunEnd() }
 
-            let resolvedCacheServerURL = CacheServerResolution.resolveCacheServerURL(
-                servers.cacheServer,
-                maxAttempts: cacheDiscovery.cacheAutoRetries,
-                retryDelay: UInt32(cacheDiscovery.cacheRetryDelay),
-                logger: logger
-            )
-
-            let mirrorServerURL = servers.mirrorServer?.url
-            // Download mode does not install content, but libraryDestURL is needed for
-            // AudioApplication init to read the modern content database and receipt plists
-            // (which determine package metadata). Use the default path; the value has no
-            // effect on where downloaded files are saved (that is controlled by destDir).
+            // Download always fetches directly from Apple CDN.
+            // Cache server and mirror server are deploy-only options.
             let libraryDestURL = URL(
                 fileURLWithPath: LoopdownConstants.ModernApps.defaultLibraryDestPath,
                 isDirectory: true
@@ -89,8 +77,8 @@ struct Download: AsyncParsableCommand {
                 destDir: destination.dest,
                 forceDeploy: false,
                 skipSignatureCheck: signatureCheck.skipSignatureCheck,
-                cacheServer: resolvedCacheServerURL,
-                mirrorServer: mirrorServerURL,
+                cacheServer: nil,
+                mirrorServer: nil,
                 dryRun: dry.dryRun,
                 logger: logger
             )

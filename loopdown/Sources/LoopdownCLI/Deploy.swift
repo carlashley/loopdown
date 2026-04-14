@@ -14,7 +14,7 @@ import LoopdownServices
 // MARK: - Deploy-only arguments
 
 struct ForceDeployOption: ParsableArguments {
-    @Flag(name: [.short, .long], help: "Force install content packages regardless of existing install state.")
+    @Flag(name: [.customShort("f"), .customLong("force")], help: "Force install content packages regardless of existing install state.")
     var forceDeploy: Bool = false
 }
 
@@ -23,11 +23,6 @@ struct LibraryDestOption: ParsableArguments {
         name: [.customShort("b"), .customLong("library-dest")],
         help: ArgumentHelp(
             "Destination directory for modern Logic Pro 12+ and MainStage 4+ content.",
-            discussion: """
-            Used as the extraction target for modern content packages (.aar archives) \
-            and as the root under which receipt plists are read to determine install \
-            state. Default: \(LoopdownConstants.ModernApps.defaultLibraryDestPath)
-            """,
             valueName: "dir"
         )
     )
@@ -40,9 +35,7 @@ struct ManagedOption: ParsableArguments {
         help: ArgumentHelp(
             "Run using managed preferences from the com.github.carlashley.loopdown preferences domain.",
             discussion: """
-            When --managed is active, all deploy arguments are read from the \
-            com.github.carlashley.loopdown CFPreferences domain. Only --dry-run \
-            and --cache-auto-retries/--cache-retry-delay may be combined with \
+            Only --dry-run and --cache-auto-retries/--cache-retry-delay may be combined with \
             --managed; all other flags are ignored and their values must be set \
             via the preferences domain.
 
@@ -88,6 +81,7 @@ struct Deploy: AsyncParsableCommand {
     @OptionGroup var quiet: QuietRunOption
     @OptionGroup var logging: LoggingOptions
     @OptionGroup var apps: AppOptions
+    @OptionGroup var libraryDestOption: LibraryDestOption
     @OptionGroup var essential: EssentialContentOption
     @OptionGroup var core: CoreContentOption
     @OptionGroup var optional: OptionalContentOption
@@ -96,7 +90,6 @@ struct Deploy: AsyncParsableCommand {
     @OptionGroup var cacheDiscovery: CacheAutoDiscoveryOptions
     @OptionGroup var signatureCheck: SkipSignatureCheckOption
     @OptionGroup var managedOption: ManagedOption
-    @OptionGroup var libraryDestOption: LibraryDestOption
 
     // MARK: Validation
 
