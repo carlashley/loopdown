@@ -29,6 +29,26 @@ struct LibraryDestOption: ParsableArguments {
     var libraryDest: String = LoopdownConstants.ModernApps.defaultLibraryDestParent
 }
 
+struct AppGenerationOption: ParsableArguments {
+    @Flag(name: .long, help: "Only deploy content for legacy apps (GarageBand; Logic Pro < 12; MainStage < 4).")
+    var legacyOnly: Bool = false
+
+    @Flag(name: .long, help: "Only deploy content for modern apps (Logic Pro >= 12; MainStage >= 4).")
+    var modernOnly: Bool = false
+
+    mutating func validate() throws {
+        if legacyOnly && modernOnly {
+            throw ValidationError("'--legacy-only' and '--modern-only' are mutually exclusive.")
+        }
+    }
+
+    var appGeneration: AppGeneration {
+        if legacyOnly { return .legacyOnly }
+        if modernOnly { return .modernOnly }
+        return .any
+    }
+}
+
 struct ManagedOption: ParsableArguments {
     @Flag(
         name: .long,
@@ -89,6 +109,7 @@ struct Deploy: AsyncParsableCommand {
     @OptionGroup var servers: ServerOptions
     @OptionGroup var cacheDiscovery: CacheAutoDiscoveryOptions
     @OptionGroup var signatureCheck: SkipSignatureCheckOption
+    @OptionGroup var appGeneration: AppGenerationOption
     @OptionGroup var managedOption: ManagedOption
 
     // MARK: Validation
@@ -195,6 +216,7 @@ struct Deploy: AsyncParsableCommand {
                 includeEssential: essential.essential,
                 includeCore: core.core,
                 includeOptional: optional.optional,
+                appGeneration: appGeneration.appGeneration,
                 libraryDestURL: libraryDestURL,
                 destDir: LoopdownConstants.Paths.defaultDest,
                 forceDeploy: force.forceDeploy,
@@ -272,6 +294,7 @@ struct Deploy: AsyncParsableCommand {
                 includeCore: prefs.core,
                 includeOptional: prefs.optional,
                 appPolicies: prefs.appPolicies,
+                appGeneration: .any,
                 libraryDestURL: libraryDestURL,
                 destDir: LoopdownConstants.Paths.defaultDest,
                 forceDeploy: prefs.forceDeploy,

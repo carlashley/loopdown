@@ -98,6 +98,11 @@ public final class AudioApplication: Hashable, Sendable {
 
     // MARK: - Modern vs legacy determination
 
+    /// Whether this instance uses the modern SQLite-based content delivery system.
+    public var isModernised: Bool {
+        AudioApplication.isModernised(shortName: shortName, version: version)
+    }
+
     /// Whether this app uses the modern SQLite-based content delivery system.
     ///
     /// Returns `true` for Logic Pro >= 12 and MainStage >= 4.

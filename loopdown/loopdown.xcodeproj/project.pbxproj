@@ -58,6 +58,7 @@
 		FAD460FC2F768770000C730D /* CacheServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD460FB2F768770000C730D /* CacheServer.swift */; };
 		FAD460FE2F7687C6000C730D /* CacheServerResolution.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD460FD2F7687C6000C730D /* CacheServerResolution.swift */; };
 		FAD461072F7688F9000C730D /* CacheServer+ArgumentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD461062F7688F9000C730D /* CacheServer+ArgumentParser.swift */; };
+		FAFBA2C62F8F6CC4001E64A8 /* AppGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAFBA2C52F8F6CC4001E64A8 /* AppGeneration.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -167,6 +168,7 @@
 		FAD460FB2F768770000C730D /* CacheServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheServer.swift; sourceTree = "<group>"; };
 		FAD460FD2F7687C6000C730D /* CacheServerResolution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheServerResolution.swift; sourceTree = "<group>"; };
 		FAD461062F7688F9000C730D /* CacheServer+ArgumentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CacheServer+ArgumentParser.swift"; sourceTree = "<group>"; };
+		FAFBA2C52F8F6CC4001E64A8 /* AppGeneration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGeneration.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -313,6 +315,7 @@
 				FA290E6B2F1BADCE0090B7F7 /* LoopdownCore.docc */,
 				FA0A60A52F1C4BAE0025ED20 /* LoopdownConstants.swift */,
 				FA0A60BC2F1C568D0025ED20 /* ConcreteApp.swift */,
+				FAFBA2C52F8F6CC4001E64A8 /* AppGeneration.swift */,
 			);
 			name = LoopdownCore;
 			path = Sources/LoopdownCore;
@@ -790,6 +793,7 @@
 			files = (
 				FAB47FAE2F1C8CE600CB44A1 /* ByteSize.swift in Sources */,
 				FAB47FC22F1CB78300CB44A1 /* LoggerProtocol.swift in Sources */,
+				FAFBA2C62F8F6CC4001E64A8 /* AppGeneration.swift in Sources */,
 				FA0A60BD2F1C568D0025ED20 /* ConcreteApp.swift in Sources */,
 				FA6320F12F8BB60200C61C9A /* ModernContentDatabase.swift in Sources */,
 				FA6320F42F8BB63A00C61C9A /* ModernContentReceipt.swift in Sources */,
@@ -1219,7 +1223,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = staticlib;
-				MARKETING_VERSION = 2.0.3.b3;
+				MARKETING_VERSION = 2.0.3.b4;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				"OTHER_LDFLAGS[arch=*]" = "-lsqlite3";
@@ -1256,7 +1260,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = staticlib;
-				MARKETING_VERSION = 2.0.3.b3;
+				MARKETING_VERSION = 2.0.3.b4;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				"OTHER_LDFLAGS[arch=*]" = "-lsqlite3";

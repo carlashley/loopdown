@@ -33,6 +33,7 @@ public enum ContentCoordinator {
     ///   - `libraryDestURL`: destination root for modern Logic Pro 12+ / MainStage 4+ content.
     ///   - `skipSignatureCheck`: applies to legacy `.pkg` only; modern `.aar` always skips.
     ///   - `cacheServer` and `mirrorServer` apply to both legacy and modern packages.
+    ///   - `appGeneration`: restricts targeting to legacy-only or modern-only apps. `.any` targets both.
     public static func run(
         mode: Mode,
         selectedApps: [ConcreteApp],
@@ -40,6 +41,7 @@ public enum ContentCoordinator {
         includeCore: Bool,
         includeOptional: Bool,
         appPolicies: [AppContentPolicy] = [],
+        appGeneration: AppGeneration = .any,
         libraryDestURL: URL,
         destDir: String,
         forceDeploy: Bool,
@@ -60,11 +62,25 @@ public enum ContentCoordinator {
         )
 
         let targetApps: [AudioApplication] = {
-            guard !selectedApps.isEmpty else { return installed }
-            return installed.filter { app in
-                guard let c = app.concreteApp else { return false }
-                return selectedApps.contains(c)
+            var apps: [AudioApplication] = installed
+
+            if !selectedApps.isEmpty {
+                apps = apps.filter { app in
+                    guard let c = app.concreteApp else { return false }
+                    return selectedApps.contains(c)
+                }
             }
+
+            switch appGeneration {
+            case .any:
+                break
+            case .legacyOnly:
+                apps = apps.filter { !$0.isModernised }
+            case .modernOnly:
+                apps = apps.filter { $0.isModernised }
+            }
+
+            return apps
         }()
 
         if targetApps.isEmpty {
