@@ -252,11 +252,26 @@ public enum Log {
         consoleSink: ConsoleLogSink(isEnabled: false)
     )
 
-    /// Where loopdown logs live (created lazily).
-    public static let logDirectoryURL = URL(fileURLWithPath: "/Users/Shared/loopdown", isDirectory: true)
+    /// Subsystem identifier used as the log directory name.
+    private static let logDirName = "com.github.carlashley.loopdown"
 
     /// Run log URL (set once startRunLogging succeeds).
     public private(set) static var runLogURL: URL? = nil
+
+    /// Resolve the log directory for a given run.
+    ///
+    /// - Actual deploy runs (root, non-dry-run) write to `/Library/Logs/<logDirName>`.
+    /// - All other runs write to `~/Library/Logs/<logDirName>`.
+    public static func logDirectoryURL(forActualDeploy isActualDeploy: Bool) -> URL {
+        if isActualDeploy {
+            return URL(fileURLWithPath: "/Library/Logs/\(logDirName)", isDirectory: true)
+        }
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        return home
+            .appendingPathComponent("Library", isDirectory: true)
+            .appendingPathComponent("Logs", isDirectory: true)
+            .appendingPathComponent(logDirName, isDirectory: true)
+    }
 
     /// Configure baseline logger settings (no file creation).
     public static func configureBase(
@@ -286,29 +301,31 @@ public enum Log {
 
     @discardableResult
     public static func startRunLogging(
+        isActualDeploy: Bool = false,
         keepLatestCopy: Bool = true,
         keepMostRecentRuns: Int = 5
     ) -> URL? {
         if let existing = runLogURL { return existing }
 
         let fm = FileManager.default
+        let logDir = logDirectoryURL(forActualDeploy: isActualDeploy)
 
         do {
-            try fm.createDirectory(at: logDirectoryURL, withIntermediateDirectories: true)
+            try fm.createDirectory(at: logDir, withIntermediateDirectories: true)
         } catch {
             return nil
         }
 
-        pruneOldRunLogs(keepingMostRecent: keepMostRecentRuns)
+        pruneOldRunLogs(in: logDir, keepingMostRecent: keepMostRecentRuns)
 
         let stamp = runStamp()
-        let runURL = logDirectoryURL.appendingPathComponent("loopdown-\(stamp).log", isDirectory: false)
+        let runURL = logDir.appendingPathComponent("loopdown-\(stamp).log", isDirectory: false)
 
         var sinks: [FileLogSink] = []
         if let runSink = try? FileLogSink(fileURL: runURL) { sinks.append(runSink) }
 
         if keepLatestCopy {
-            let latestURL = logDirectoryURL.appendingPathComponent("latest.log", isDirectory: false)
+            let latestURL = logDir.appendingPathComponent("latest.log", isDirectory: false)
             _ = try? fm.removeItem(at: latestURL)
             if let latestSink = try? FileLogSink(fileURL: latestURL) { sinks.append(latestSink) }
         }
@@ -336,9 +353,8 @@ public enum Log {
         return df.string(from: Date())
     }
 
-    private static func pruneOldRunLogs(keepingMostRecent keep: Int) {
+    private static func pruneOldRunLogs(in dir: URL, keepingMostRecent keep: Int) {
         let fm = FileManager.default
-        let dir = logDirectoryURL
 
         guard let items = try? fm.contentsOfDirectory(
             at: dir,

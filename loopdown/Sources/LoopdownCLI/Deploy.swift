@@ -192,6 +192,7 @@ struct Deploy: AsyncParsableCommand {
             let run = CLILogging.startRun(
                 category: "Deploy",
                 minLevel: logging.logLevel,
+                isActualDeploy: !dry.dryRun,
                 enableConsole: !quiet.quietRun
             )
             let logger = run.logger
@@ -259,6 +260,7 @@ struct Deploy: AsyncParsableCommand {
             let run = CLILogging.startRun(
                 category: "Deploy",
                 minLevel: effectiveLogLevel,
+                isActualDeploy: !effectiveDryRun,
                 enableConsole: !prefs.quietRun
             )
             let logger = run.logger

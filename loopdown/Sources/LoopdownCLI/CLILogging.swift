@@ -57,6 +57,7 @@ enum CLILogging {
     static func startRun(
         category: String,
         minLevel: AppLogLevel,
+        isActualDeploy: Bool = false,
         enableConsole: Bool = true,
         keepLatestLog: Bool = true,
         keepMostRecentRuns: Int = 5
@@ -65,6 +66,7 @@ enum CLILogging {
         configureBase(minLevel: minLevel)
 
         Log.startRunLogging(
+            isActualDeploy: isActualDeploy,
             keepLatestCopy: keepLatestLog,
             keepMostRecentRuns: keepMostRecentRuns
         )
