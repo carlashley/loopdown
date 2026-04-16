@@ -271,6 +271,37 @@ private extension ContentCoordinator {
             return false
         }
 
+        // Build the deploy record: attribute each pending package back to its source app.
+        // A package may appear in multiple apps' metadata; we assign it to the first app
+        // whose bucket contains it, consistent with mergePackagesAcrossApps priority.
+        let pendingIDs  = Set(pending.map { $0.packageID })
+        let runDate    = Date()
+        let runDateStr = DeployRunRecord.utcFormatter.string(from: runDate)
+
+        // Per-app checked sets, keyed by (generation, appKey).
+        // Built now; installed entries are appended after the install loop.
+        var pendingRecords: [(generation: String, appKey: String, record: DeployRunRecord.AppRecord)] = []
+
+        for app in apps {
+            guard let key = app.concreteApp?.rawValue else { continue }
+            let generation = app.isModernised ? "modern" : "legacy"
+            var appRecord  = DeployRunRecord.AppRecord(runDate: runDateStr)
+
+            for pkg in app.essential where pendingIDs.contains(pkg.packageID) {
+                appRecord.essential.checked.append(pkg.packageID)
+            }
+            for pkg in app.core where pendingIDs.contains(pkg.packageID) {
+                appRecord.core.checked.append(pkg.packageID)
+            }
+            for pkg in app.optional where pendingIDs.contains(pkg.packageID) {
+                appRecord.optional.checked.append(pkg.packageID)
+            }
+
+            if !appRecord.essential.checked.isEmpty || !appRecord.core.checked.isEmpty || !appRecord.optional.checked.isEmpty {
+                pendingRecords.append((generation: generation, appKey: key, record: appRecord))
+            }
+        }
+
         let totalDownload  = pending.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
         let totalInstalled = pending.reduce(Int64(0)) { $0 + $1.installedSize.raw }
         let requiredBytes  = totalDownload + totalInstalled
@@ -312,6 +343,8 @@ private extension ContentCoordinator {
         }
 
         var modernContentDeployed = false
+        // Maps packageID -> UTC install timestamp.
+        var installedTimestamps: [String: String] = [:]
         let total = pending.count
         for (idx, pkg) in pending.enumerated() {
             let n = idx + 1
@@ -351,6 +384,7 @@ private extension ContentCoordinator {
                         errorLog: logger.error
                     )
                     logger.notice("\(indent)installed: \(pkg.name)")
+                    installedTimestamps[pkg.packageID] = DeployRunRecord.utcFormatter.string(from: Date())
                 } catch {
                     logger.error("\(indent)failed to install: \(pkg.name) (\(error))")
                 }
@@ -364,12 +398,42 @@ private extension ContentCoordinator {
                         errorLog: logger.error
                     )
                     logger.notice("\(indent)extracted: \(pkg.name)")
+                    installedTimestamps[pkg.packageID] = DeployRunRecord.utcFormatter.string(from: Date())
                     modernContentDeployed = true
                 } catch {
                     logger.error("\(indent)failed to extract: \(pkg.name) (\(error))")
                 }
             }
         }
+
+        // Populate installed entries and collect only apps that had at least one install.
+        var updatedRecords: [(generation: String, appKey: String, record: DeployRunRecord.AppRecord)] = []
+
+        for (generation, appKey, var appRecord) in pendingRecords {
+            let makeInstalled: (String) -> DeployRunRecord.InstalledPackage? = { id in
+                guard let ts = installedTimestamps[id] else { return nil }
+                return DeployRunRecord.InstalledPackage(id: id, installedDate: ts)
+            }
+            appRecord.essential.installed = appRecord.essential.checked.compactMap { makeInstalled($0) }
+            appRecord.core.installed      = appRecord.core.checked.compactMap      { makeInstalled($0) }
+            appRecord.optional.installed  = appRecord.optional.checked.compactMap  { makeInstalled($0) }
+
+            let anyInstalled = !appRecord.essential.installed.isEmpty
+                || !appRecord.core.installed.isEmpty
+                || !appRecord.optional.installed.isEmpty
+            if anyInstalled {
+                updatedRecords.append((generation: generation, appKey: appKey, record: appRecord))
+            }
+        }
+
+        if !updatedRecords.isEmpty {
+            do {
+                try DeployRunRecord.mergeAndWrite(updatedApps: updatedRecords, runDate: runDate)
+            } catch {
+                logger.error("Failed to write deploy run record: \(error)")
+            }
+        }
+
         return modernContentDeployed
     }
 
