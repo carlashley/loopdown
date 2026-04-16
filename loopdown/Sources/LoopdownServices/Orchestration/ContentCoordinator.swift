@@ -51,6 +51,8 @@ public enum ContentCoordinator {
         dryRun: Bool,
         maxRetries: Int = 3,
         retryDelay: Int = 2,
+        minimumBandwidth: Int? = nil,
+        bandwidthWindow: Int = 60,
         verboseInstall: Bool = false,
         logger: CoreLogger
     ) async throws -> Bool {
@@ -107,6 +109,8 @@ public enum ContentCoordinator {
                 dryRun: dryRun,
                 maxRetries: maxRetries,
                 retryDelay: retryDelay,
+                minimumBandwidth: minimumBandwidth,
+                bandwidthWindow: bandwidthWindow,
                 logger: logger,
                 downloader: downloader
             )
@@ -127,6 +131,8 @@ public enum ContentCoordinator {
                 dryRun: dryRun,
                 maxRetries: maxRetries,
                 retryDelay: retryDelay,
+                minimumBandwidth: minimumBandwidth,
+                bandwidthWindow: bandwidthWindow,
                 verboseInstall: verboseInstall,
                 logger: logger,
                 downloader: downloader
@@ -152,6 +158,8 @@ private extension ContentCoordinator {
         dryRun: Bool,
         maxRetries: Int,
         retryDelay: Int,
+        minimumBandwidth: Int?,
+        bandwidthWindow: Int,
         logger: CoreLogger,
         downloader: DownloadClient
     ) async throws -> Bool {
@@ -202,6 +210,8 @@ private extension ContentCoordinator {
             )
         }
 
+        var failedPackages: [String] = []
+
         for (idx, pkg) in pkgs.enumerated() {
             let n = idx + 1
 
@@ -211,34 +221,47 @@ private extension ContentCoordinator {
             logger.info("\(counter(n, of: total)) - downloading: \(pkg.name) (\(pkg.downloadSize))")
             logger.fileOnly("\(counter(n, of: total)) - url: \(remoteURL.absoluteString)")
 
-            let tempURL = try await downloader.downloadTempFile(
-                from: remoteURL,
-                maxRetries: maxRetries,
-                retryDelay: TimeInterval(retryDelay),
-                onRetry: { attempt, max, error in
-                    logger.warning("\(counter(n, of: total)) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
-                },
-                progress: { prog in
-                    let pct = Int(prog.fractionCompleted * 100)
-                    logger.debug("progress \(pkg.name): \(pct)% (\(ByteSize(prog.bytesWritten))/\(ByteSize(prog.totalBytesExpected)))")
-                }
-            )
+            do {
+                let tempURL = try await downloader.downloadTempFile(
+                    from: remoteURL,
+                    maxRetries: maxRetries,
+                    retryDelay: TimeInterval(retryDelay),
+                    minimumBandwidth: minimumBandwidth,
+                    bandwidthWindow: bandwidthWindow,
+                    onRetry: { attempt, max, error in
+                        logger.warning("\(counter(n, of: total)) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
+                    },
+                    progress: { prog in
+                        let pct = Int(prog.fractionCompleted * 100)
+                        logger.debug("progress \(pkg.name): \(pct)% (\(ByteSize(prog.bytesWritten))/\(ByteSize(prog.totalBytesExpected)))")
+                    }
+                )
 
-            // Signature check applies to legacy (.pkg) packages only.
-            if pkg.isLegacy && !skipSignatureCheck {
-                guard PackageSignatureChecker.isSignedAppleSoftware(
-                    pkgURL: tempURL,
-                    debugLog: logger.debug
-                ) else {
-                    try? FileManager.default.removeItem(at: tempURL)
-                    logger.error("\(counter(n, of: total)) - signature check failed, discarding: \(pkg.name)")
-                    continue
+                // Signature check applies to legacy (.pkg) packages only.
+                if pkg.isLegacy && !skipSignatureCheck {
+                    guard PackageSignatureChecker.isSignedAppleSoftware(
+                        pkgURL: tempURL,
+                        debugLog: logger.debug
+                    ) else {
+                        try? FileManager.default.removeItem(at: tempURL)
+                        logger.error("\(counter(n, of: total)) - signature check failed, discarding: \(pkg.name)")
+                        failedPackages.append(pkg.name)
+                        continue
+                    }
                 }
+
+                try moveReplacingIfExists(from: tempURL, to: destURL)
+                logger.info("\(counter(n, of: total)) - saved: \(pkg.name)")
+            } catch {
+                logger.error("\(counter(n, of: total)) - failed: \(pkg.name) (\(error.localizedDescription))")
+                failedPackages.append(pkg.name)
             }
-
-            try moveReplacingIfExists(from: tempURL, to: destURL)
-            logger.info("\(counter(n, of: total)) - saved: \(pkg.name)")
         }
+
+        if !failedPackages.isEmpty {
+            logger.warning("\(failedPackages.count) package(s) failed to download: \(failedPackages.joined(separator: ", "))")
+        }
+
         return true
     }
 }
@@ -261,6 +284,8 @@ private extension ContentCoordinator {
         dryRun: Bool,
         maxRetries: Int,
         retryDelay: Int,
+        minimumBandwidth: Int?,
+        bandwidthWindow: Int,
         verboseInstall: Bool,
         logger: CoreLogger,
         downloader: DownloadClient
@@ -363,6 +388,7 @@ private extension ContentCoordinator {
         var modernContentDeployed = false
         // Maps packageID -> UTC install timestamp.
         var installedTimestamps: [String: String] = [:]
+        var failedPackages: [String] = []
         let total = pending.count
         for (idx, pkg) in pending.enumerated() {
             let n = idx + 1
@@ -371,21 +397,30 @@ private extension ContentCoordinator {
             logger.info("\(counter(n, of: total)) - downloading: \(pkg.name)")
             logger.fileOnly("\(counter(n, of: total)) - url: \(remoteURL.absoluteString)")
 
-            let tempURL = try await downloader.downloadTempFile(
-                from: remoteURL,
-                maxRetries: maxRetries,
-                retryDelay: TimeInterval(retryDelay),
-                onRetry: { attempt, max, error in
-                    logger.warning("\(counter(n, of: total)) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
-                },
-                progress: { prog in
-                    let pct = Int(prog.fractionCompleted * 100)
-                    logger.debug("progress \(pkg.name): \(pct)%")
-                }
-            )
-
-            let stagedURL = staging.url.appendingPathComponent(pkg.name)
-            try FileManager.default.moveItem(at: tempURL, to: stagedURL)
+            let stagedURL: URL
+            do {
+                let tempURL = try await downloader.downloadTempFile(
+                    from: remoteURL,
+                    maxRetries: maxRetries,
+                    retryDelay: TimeInterval(retryDelay),
+                    minimumBandwidth: minimumBandwidth,
+                    bandwidthWindow: bandwidthWindow,
+                    onRetry: { attempt, max, error in
+                        logger.warning("\(counter(n, of: total)) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
+                    },
+                    progress: { prog in
+                        let pct = Int(prog.fractionCompleted * 100)
+                        logger.debug("progress \(pkg.name): \(pct)%")
+                    }
+                )
+                let dest = staging.url.appendingPathComponent(pkg.name)
+                try FileManager.default.moveItem(at: tempURL, to: dest)
+                stagedURL = dest
+            } catch {
+                logger.error("\(counter(n, of: total)) - failed to download: \(pkg.name) (\(error.localizedDescription))")
+                failedPackages.append(pkg.name)
+                continue
+            }
 
             if pkg.isLegacy && !skipSignatureCheck {
                 guard PackageSignatureChecker.isSignedAppleSoftware(
@@ -430,6 +465,10 @@ private extension ContentCoordinator {
                     logger.error("\(indent)failed to extract: \(pkg.name) (\(error))")
                 }
             }
+        }
+
+        if !failedPackages.isEmpty {
+            logger.warning("\(failedPackages.count) package(s) failed to download: \(failedPackages.joined(separator: ", "))")
         }
 
         // Populate installed entries and collect only apps that had at least one install.

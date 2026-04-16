@@ -113,6 +113,7 @@ struct Deploy: AsyncParsableCommand {
     @OptionGroup var appGeneration: AppGenerationOption
     @OptionGroup var managedOption: ManagedOption
     @OptionGroup var retryOptions: DownloadRetryOptions
+    @OptionGroup var bandwidthOptions: DownloadBandwidthOptions
 
     // MARK: Validation
 
@@ -169,6 +170,12 @@ struct Deploy: AsyncParsableCommand {
         }
         if retryOptions.backoffSleep != nil {
             throw ValidationError("'--backoff-sleep' cannot be used with '--managed'.")
+        }
+        if bandwidthOptions.minimumBandwidth != nil {
+            throw ValidationError("'--minimum-bandwidth' cannot be used with '--managed'.")
+        }
+        if bandwidthOptions.bandwidthTimeout != nil {
+            throw ValidationError("'--bandwidth-timeout' cannot be used with '--managed'.")
         }
 
         if !dry.dryRun && !PrivilegeCheck.isRoot {
@@ -244,6 +251,8 @@ struct Deploy: AsyncParsableCommand {
                 dryRun: dry.dryRun,
                 maxRetries: retryOptions.effectiveMaxRetries,
                 retryDelay: retryOptions.effectiveBackoffSleep,
+                minimumBandwidth: bandwidthOptions.minimumBandwidthBytesPerSec,
+                bandwidthWindow: bandwidthOptions.effectiveBandwidthTimeout,
                 verboseInstall: logging.logLevel <= AppLogLevel.debug,
                 logger: logger
             )
@@ -325,6 +334,8 @@ struct Deploy: AsyncParsableCommand {
                 dryRun: effectiveDryRun,
                 maxRetries: retryOptions.effectiveMaxRetries,
                 retryDelay: retryOptions.effectiveBackoffSleep,
+                minimumBandwidth: bandwidthOptions.minimumBandwidthBytesPerSec,
+                bandwidthWindow: bandwidthOptions.effectiveBandwidthTimeout,
                 verboseInstall: effectiveLogLevel <= AppLogLevel.debug,
                 logger: logger
             )

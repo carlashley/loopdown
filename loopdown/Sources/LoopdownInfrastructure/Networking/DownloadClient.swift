@@ -23,6 +23,7 @@ public enum DownloadClientError: Error, CustomStringConvertible {
     case invalidHTTPStatus(code: Int)
     case failedToPreserveTempFile(Error)
     case cancelled
+    case belowMinimumBandwidth(threshold: Int, window: Int)
 
     public var description: String {
         switch self {
@@ -34,9 +35,62 @@ public enum DownloadClientError: Error, CustomStringConvertible {
             return "Failed to preserve downloaded temp file: \(error)"
         case .cancelled:
             return "Download cancelled."
+        case .belowMinimumBandwidth(let threshold, let window):
+            let kb = threshold / 1024
+            return "Download aborted: average speed remained below \(kb)KB/s for \(window)s."
         }
     }
 }
+
+// MARK: - BandwidthMonitor
+
+/// Tracks rolling average download speed over a fixed time window.
+/// Not thread-safe — must be accessed under the TaskState lock.
+private struct BandwidthMonitor {
+    struct Sample {
+        let timestamp: Date
+        let totalBytesWritten: Int64
+    }
+
+    /// Minimum bytes/sec threshold; nil means monitoring is disabled.
+    let threshold: Int?
+    /// Window duration in seconds.
+    let window: TimeInterval
+
+    private var samples: [Sample] = []
+
+    init(threshold: Int?, window: Int) {
+        self.threshold = threshold
+        self.window    = TimeInterval(window)
+    }
+
+    /// Record a new progress sample. Returns true if speed has dropped below
+    /// threshold for the full window duration and the download should be aborted.
+    mutating func record(totalBytesWritten: Int64) -> Bool {
+        guard let threshold else { return false }
+
+        let now = Date()
+        samples.append(Sample(timestamp: now, totalBytesWritten: totalBytesWritten))
+
+        // Drop samples older than the window.
+        let cutoff = now.addingTimeInterval(-window)
+        samples.removeAll { $0.timestamp < cutoff }
+
+        // Need at least two samples spanning the full window to make a judgement.
+        guard samples.count >= 2,
+              let oldest = samples.first,
+              now.timeIntervalSince(oldest.timestamp) >= window
+        else { return false }
+
+        let bytesDelta = totalBytesWritten - oldest.totalBytesWritten
+        let timeDelta  = now.timeIntervalSince(oldest.timestamp)
+        guard timeDelta > 0 else { return false }
+
+        let avgBytesPerSec = Double(bytesDelta) / timeDelta
+        return avgBytesPerSec < Double(threshold)
+    }
+}
+
 
 // MARK: - DownloadClient
 
@@ -51,10 +105,16 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
     // partially-deallocated self. Using Optional lets deinit guard safely.
     private var session: URLSession?
 
+    private enum CancellationReason {
+        case bandwidthThreshold
+    }
+
     private struct TaskState {
         var redirects: Int
         var progress: ProgressHandler?
         var continuation: CheckedContinuation<URL, Error>?
+        var bandwidthMonitor: BandwidthMonitor
+        var cancellationReason: CancellationReason?
     }
 
     private let lock = NSLock()
@@ -121,6 +181,8 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
         from url: URL,
         maxRetries: Int = 3,
         retryDelay: TimeInterval = 2,
+        minimumBandwidth: Int? = nil,
+        bandwidthWindow: Int = 60,
         onRetry: (@Sendable (Int, Int, Error) -> Void)? = nil,
         progress: ProgressHandler? = nil
     ) async throws -> URL {
@@ -130,7 +192,12 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
 
         while true {
             do {
-                return try await attemptDownload(from: url, progress: progress)
+                return try await attemptDownload(
+                    from: url,
+                    minimumBandwidth: minimumBandwidth,
+                    bandwidthWindow: bandwidthWindow,
+                    progress: progress
+                )
             } catch {
                 let code = (error as NSError).code
                 guard attempt < maxRetries,
@@ -148,6 +215,8 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
     /// Single download attempt — no retry logic.
     private func attemptDownload(
         from url: URL,
+        minimumBandwidth: Int? = nil,
+        bandwidthWindow: Int = 60,
         progress: ProgressHandler? = nil
     ) async throws -> URL {
 
@@ -159,7 +228,8 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
             states[task.taskIdentifier] = TaskState(
                 redirects: 0,
                 progress: progress,
-                continuation: cont
+                continuation: cont,
+                bandwidthMonitor: BandwidthMonitor(threshold: minimumBandwidth, window: bandwidthWindow)
             )
             lock.unlock()
 
@@ -223,7 +293,15 @@ extension DownloadClient: URLSessionTaskDelegate, URLSessionDownloadDelegate {
         guard let state = popState(task.taskIdentifier) else { return }
 
         if (error as NSError).code == NSURLErrorCancelled {
-            state.continuation?.resume(throwing: DownloadClientError.cancelled)
+            if case .bandwidthThreshold = state.cancellationReason,
+               let threshold = state.bandwidthMonitor.threshold {
+                state.continuation?.resume(throwing: DownloadClientError.belowMinimumBandwidth(
+                    threshold: threshold,
+                    window: Int(state.bandwidthMonitor.window)
+                ))
+            } else {
+                state.continuation?.resume(throwing: DownloadClientError.cancelled)
+            }
         } else {
             state.continuation?.resume(throwing: error)
         }
@@ -236,6 +314,8 @@ extension DownloadClient: URLSessionTaskDelegate, URLSessionDownloadDelegate {
         totalBytesWritten: Int64,
         totalBytesExpectedToWrite: Int64
     ) {
+        var shouldCancel = false
+
         _ = withState(downloadTask.taskIdentifier) { state in
             state.progress?(
                 DownloadProgress(
@@ -243,6 +323,14 @@ extension DownloadClient: URLSessionTaskDelegate, URLSessionDownloadDelegate {
                     totalBytesExpected: totalBytesExpectedToWrite
                 )
             )
+            if state.bandwidthMonitor.record(totalBytesWritten: totalBytesWritten) {
+                state.cancellationReason = .bandwidthThreshold
+                shouldCancel = true
+            }
+        }
+
+        if shouldCancel {
+            downloadTask.cancel()
         }
     }
 

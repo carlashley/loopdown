@@ -95,3 +95,59 @@ struct DownloadRetryOptions: ParsableArguments {
         }
     }
 }
+
+struct DownloadBandwidthOptions: ParsableArguments {
+    @Option(
+        name: .long,
+        help: ArgumentHelp(
+            "Abort download if rolling average speed stays below this threshold (e.g. 300KB or 2MB).",
+            valueName: "speed"
+        )
+    )
+    var minimumBandwidth: String? = nil
+
+    @Option(
+        name: .long,
+        help: ArgumentHelp(
+            "Rolling average window in seconds for bandwidth measurement (30-120, default: 60).",
+            valueName: "seconds"
+        )
+    )
+    var bandwidthTimeout: Int? = nil
+
+    /// Parsed minimum bandwidth in bytes/sec, or nil if not specified.
+    var minimumBandwidthBytesPerSec: Int? {
+        guard let raw = minimumBandwidth else { return nil }
+        return DownloadBandwidthOptions.parseBytesPerSec(raw)
+    }
+
+    var effectiveBandwidthTimeout: Int { bandwidthTimeout ?? 60 }
+
+    mutating func validate() throws {
+        if let raw = minimumBandwidth {
+            guard let bps = DownloadBandwidthOptions.parseBytesPerSec(raw) else {
+                throw ValidationError("'--minimum-bandwidth' must be in the form <N>KB or <N>MB (e.g. 300KB or 2MB).")
+            }
+            let min = 300 * 1024           // 300 KB/s
+            let max = 5 * 1024 * 1024      // 5 MB/s
+            guard (min...max).contains(bps) else {
+                throw ValidationError("'--minimum-bandwidth' must be between 300KB/s and 5MB/s.")
+            }
+        }
+        if let v = bandwidthTimeout, !(30...120).contains(v) {
+            throw ValidationError("'--bandwidth-timeout' must be between 30 and 120 seconds.")
+        }
+    }
+
+    /// Parse a string like "300KB" or "2MB" into bytes/sec.
+    static func parseBytesPerSec(_ raw: String) -> Int? {
+        let s = raw.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        if s.hasSuffix("MB"), let n = Int(s.dropLast(2).trimmingCharacters(in: .whitespaces)) {
+            return n * 1024 * 1024
+        }
+        if s.hasSuffix("KB"), let n = Int(s.dropLast(2).trimmingCharacters(in: .whitespaces)) {
+            return n * 1024
+        }
+        return nil
+    }
+}

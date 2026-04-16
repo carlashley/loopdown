@@ -42,6 +42,7 @@ struct Download: AsyncParsableCommand {
     @OptionGroup var destination: DestinationOption
     @OptionGroup var signatureCheck: SkipSignatureCheckOption
     @OptionGroup var retryOptions: DownloadRetryOptions
+    @OptionGroup var bandwidthOptions: DownloadBandwidthOptions
 
     func validate() throws {
         try validateContentSelection(
@@ -83,6 +84,8 @@ struct Download: AsyncParsableCommand {
                 dryRun: dry.dryRun,
                 maxRetries: retryOptions.effectiveMaxRetries,
                 retryDelay: retryOptions.effectiveBackoffSleep,
+                minimumBandwidth: bandwidthOptions.minimumBandwidthBytesPerSec,
+                bandwidthWindow: bandwidthOptions.effectiveBandwidthTimeout,
                 logger: logger
             )
         }
