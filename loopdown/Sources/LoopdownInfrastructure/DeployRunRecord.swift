@@ -52,23 +52,27 @@ public struct DeployRunRecord: Codable {
     public struct AppRecord: Codable {
         /// UTC timestamp of when this app's content was last deployed.
         public var runDate: String
+        /// Version of the app at the time of this deploy run.
+        public var appVersion: String
         public var essential: CategoryRecord
         public var core: CategoryRecord
         public var optional: CategoryRecord
 
-        public init(runDate: String) {
-            self.runDate   = runDate
-            self.essential = CategoryRecord()
-            self.core      = CategoryRecord()
-            self.optional  = CategoryRecord()
+        public init(runDate: String, appVersion: String) {
+            self.runDate    = runDate
+            self.appVersion = appVersion
+            self.essential  = CategoryRecord()
+            self.core       = CategoryRecord()
+            self.optional   = CategoryRecord()
         }
 
         // Omit categories whose checked and installed arrays are both empty.
-        enum CodingKeys: String, CodingKey { case runDate, essential, core, optional }
+        enum CodingKeys: String, CodingKey { case runDate, appVersion, essential, core, optional }
 
         public func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
-            try container.encode(runDate, forKey: .runDate)
+            try container.encode(runDate,    forKey: .runDate)
+            try container.encode(appVersion, forKey: .appVersion)
             if !essential.checked.isEmpty || !essential.installed.isEmpty { try container.encode(essential, forKey: .essential) }
             if !core.checked.isEmpty      || !core.installed.isEmpty      { try container.encode(core,      forKey: .core)      }
             if !optional.checked.isEmpty  || !optional.installed.isEmpty  { try container.encode(optional,  forKey: .optional)  }

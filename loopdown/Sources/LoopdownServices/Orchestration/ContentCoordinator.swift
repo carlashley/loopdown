@@ -285,7 +285,7 @@ private extension ContentCoordinator {
         for app in apps {
             guard let key = app.concreteApp?.rawValue else { continue }
             let generation = app.isModernised ? "modern" : "legacy"
-            var appRecord  = DeployRunRecord.AppRecord(runDate: runDateStr)
+            var appRecord  = DeployRunRecord.AppRecord(runDate: runDateStr, appVersion: app.version)
 
             for pkg in app.essential where pendingIDs.contains(pkg.packageID) {
                 appRecord.essential.checked.append(pkg.packageID)
