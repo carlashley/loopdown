@@ -91,7 +91,26 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
         return s
     }
 
+    /// NSURLError codes that indicate a transient network condition worth retrying.
+    private static let retryableURLErrorCodes: Set<Int> = [
+        // Connection state
+        NSURLErrorNetworkConnectionLost,
+        NSURLErrorNotConnectedToInternet,
+        NSURLErrorBackgroundSessionWasDisconnected,
+        // Host/DNS resolution
+        NSURLErrorCannotConnectToHost,
+        NSURLErrorCannotFindHost,
+        NSURLErrorDNSLookupFailed,
+        // Timeouts
+        NSURLErrorTimedOut,
+        // TLS — can be transient under load or during cert rotation
+        NSURLErrorSecureConnectionFailed,
+    ]
+
     /// Downloads a file and returns a stable URL the caller owns.
+    ///
+    /// Retries on transient network errors up to `maxRetries` times, with an
+    /// exponential backoff starting at `retryDelay` seconds.
     ///
     /// URLSession's `didFinishDownloadingTo` location is temporary and is deleted
     /// as soon as that delegate method returns. To hand back a durable URL, the
@@ -99,6 +118,35 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
     /// continuation is resumed. The caller is responsible for deleting the file
     /// when done.
     public func downloadTempFile(
+        from url: URL,
+        maxRetries: Int = 3,
+        retryDelay: TimeInterval = 2,
+        onRetry: (@Sendable (Int, Int, Error) -> Void)? = nil,
+        progress: ProgressHandler? = nil
+    ) async throws -> URL {
+
+        var attempt = 0
+        var delay   = retryDelay
+
+        while true {
+            do {
+                return try await attemptDownload(from: url, progress: progress)
+            } catch {
+                let code = (error as NSError).code
+                guard attempt < maxRetries,
+                      Self.retryableURLErrorCodes.contains(code)
+                else { throw error }
+
+                attempt += 1
+                onRetry?(attempt, maxRetries, error)
+                try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                delay *= 2
+            }
+        }
+    }
+
+    /// Single download attempt — no retry logic.
+    private func attemptDownload(
         from url: URL,
         progress: ProgressHandler? = nil
     ) async throws -> URL {

@@ -49,6 +49,8 @@ public enum ContentCoordinator {
         cacheServer: URL?,
         mirrorServer: URL?,
         dryRun: Bool,
+        maxRetries: Int = 3,
+        retryDelay: Int = 2,
         verboseInstall: Bool = false,
         logger: CoreLogger
     ) async throws -> Bool {
@@ -103,6 +105,8 @@ public enum ContentCoordinator {
                 cacheServer: cacheServer,
                 mirrorServer: mirrorServer,
                 dryRun: dryRun,
+                maxRetries: maxRetries,
+                retryDelay: retryDelay,
                 logger: logger,
                 downloader: downloader
             )
@@ -121,6 +125,8 @@ public enum ContentCoordinator {
                 cacheServer: cacheServer,
                 mirrorServer: mirrorServer,
                 dryRun: dryRun,
+                maxRetries: maxRetries,
+                retryDelay: retryDelay,
                 verboseInstall: verboseInstall,
                 logger: logger,
                 downloader: downloader
@@ -144,6 +150,8 @@ private extension ContentCoordinator {
         cacheServer: URL?,
         mirrorServer: URL?,
         dryRun: Bool,
+        maxRetries: Int,
+        retryDelay: Int,
         logger: CoreLogger,
         downloader: DownloadClient
     ) async throws -> Bool {
@@ -203,10 +211,18 @@ private extension ContentCoordinator {
             logger.info("\(counter(n, of: total)) - downloading: \(pkg.name) (\(pkg.downloadSize))")
             logger.fileOnly("\(counter(n, of: total)) - url: \(remoteURL.absoluteString)")
 
-            let tempURL = try await downloader.downloadTempFile(from: remoteURL) { prog in
-                let pct = Int(prog.fractionCompleted * 100)
-                logger.debug("progress \(pkg.name): \(pct)% (\(ByteSize(prog.bytesWritten))/\(ByteSize(prog.totalBytesExpected)))")
-            }
+            let tempURL = try await downloader.downloadTempFile(
+                from: remoteURL,
+                maxRetries: maxRetries,
+                retryDelay: TimeInterval(retryDelay),
+                onRetry: { attempt, max, error in
+                    logger.warning("\(counter(n, of: total)) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
+                },
+                progress: { prog in
+                    let pct = Int(prog.fractionCompleted * 100)
+                    logger.debug("progress \(pkg.name): \(pct)% (\(ByteSize(prog.bytesWritten))/\(ByteSize(prog.totalBytesExpected)))")
+                }
+            )
 
             // Signature check applies to legacy (.pkg) packages only.
             if pkg.isLegacy && !skipSignatureCheck {
@@ -243,6 +259,8 @@ private extension ContentCoordinator {
         cacheServer: URL?,
         mirrorServer: URL?,
         dryRun: Bool,
+        maxRetries: Int,
+        retryDelay: Int,
         verboseInstall: Bool,
         logger: CoreLogger,
         downloader: DownloadClient
@@ -353,10 +371,18 @@ private extension ContentCoordinator {
             logger.info("\(counter(n, of: total)) - downloading: \(pkg.name)")
             logger.fileOnly("\(counter(n, of: total)) - url: \(remoteURL.absoluteString)")
 
-            let tempURL = try await downloader.downloadTempFile(from: remoteURL) { prog in
-                let pct = Int(prog.fractionCompleted * 100)
-                logger.debug("progress \(pkg.name): \(pct)%")
-            }
+            let tempURL = try await downloader.downloadTempFile(
+                from: remoteURL,
+                maxRetries: maxRetries,
+                retryDelay: TimeInterval(retryDelay),
+                onRetry: { attempt, max, error in
+                    logger.warning("\(counter(n, of: total)) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
+                },
+                progress: { prog in
+                    let pct = Int(prog.fractionCompleted * 100)
+                    logger.debug("progress \(pkg.name): \(pct)%")
+                }
+            )
 
             let stagedURL = staging.url.appendingPathComponent(pkg.name)
             try FileManager.default.moveItem(at: tempURL, to: stagedURL)

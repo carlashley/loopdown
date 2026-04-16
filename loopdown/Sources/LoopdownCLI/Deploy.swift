@@ -112,6 +112,7 @@ struct Deploy: AsyncParsableCommand {
     @OptionGroup var signatureCheck: SkipSignatureCheckOption
     @OptionGroup var appGeneration: AppGenerationOption
     @OptionGroup var managedOption: ManagedOption
+    @OptionGroup var retryOptions: DownloadRetryOptions
 
     // MARK: Validation
 
@@ -162,6 +163,12 @@ struct Deploy: AsyncParsableCommand {
         }
         if appGeneration.wasSet {
             throw ValidationError("'--legacy-only' and '--modern-only' cannot be used with '--managed'.")
+        }
+        if retryOptions.maxRetries != nil {
+            throw ValidationError("'--max-retries' cannot be used with '--managed'.")
+        }
+        if retryOptions.backoffSleep != nil {
+            throw ValidationError("'--backoff-sleep' cannot be used with '--managed'.")
         }
 
         if !dry.dryRun && !PrivilegeCheck.isRoot {
@@ -235,6 +242,8 @@ struct Deploy: AsyncParsableCommand {
                 cacheServer: resolvedCacheServerURL,
                 mirrorServer: mirrorServerURL,
                 dryRun: dry.dryRun,
+                maxRetries: retryOptions.effectiveMaxRetries,
+                retryDelay: retryOptions.effectiveBackoffSleep,
                 verboseInstall: logging.logLevel <= AppLogLevel.debug,
                 logger: logger
             )
@@ -314,6 +323,8 @@ struct Deploy: AsyncParsableCommand {
                 cacheServer: resolvedCacheServerURL,
                 mirrorServer: mirrorServerURL,
                 dryRun: effectiveDryRun,
+                maxRetries: retryOptions.effectiveMaxRetries,
+                retryDelay: retryOptions.effectiveBackoffSleep,
                 verboseInstall: effectiveLogLevel <= AppLogLevel.debug,
                 logger: logger
             )
