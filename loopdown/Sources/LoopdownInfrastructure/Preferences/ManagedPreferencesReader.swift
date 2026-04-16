@@ -36,6 +36,11 @@ import LoopdownCore
 /// - `dryRun`                                             → false  (also overridable by --dry-run)
 /// - `quietRun`                                           → false
 /// - `libraryDest`                                        → /Users/Shared
+/// - `maxRetries`                                         → 3
+/// - `retryDelay`                                         → 2
+/// - `minimumBandwidth`                                   → nil (no threshold)
+/// - `bandwidthWindow`                                    → 60
+/// - `abortAfter`                                         → 3
 public enum ManagedPreferencesReader {
 
     public static let domain   = BuildInfo.identifier
@@ -146,6 +151,39 @@ public enum ManagedPreferencesReader {
         let libraryDest        = string(forKey: "libraryDest",       source: source)
                                     ?? LoopdownConstants.ModernApps.defaultLibraryDestParent
 
+        let maxRetries = {
+            let v = int(forKey: "maxRetries", source: source) ?? 3
+            return (1...10).contains(v) ? v : 3
+        }()
+        let retryDelay = {
+            let v = int(forKey: "retryDelay", source: source) ?? 2
+            return (1...5).contains(v) ? v : 2
+        }()
+        let minimumBandwidth: Int? = {
+            guard let raw = string(forKey: "minimumBandwidth", source: source), !raw.isEmpty else { return nil }
+            let s = raw.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+            let bps: Int?
+            if s.hasSuffix("MB"), let n = Int(s.dropLast(2).trimmingCharacters(in: .whitespaces)) {
+                bps = n * 1024 * 1024
+            } else if s.hasSuffix("KB"), let n = Int(s.dropLast(2).trimmingCharacters(in: .whitespaces)) {
+                bps = n * 1024
+            } else {
+                bps = nil
+            }
+            guard let v = bps else { return nil }
+            let minBps = 300 * 1024
+            let maxBps = 5 * 1024 * 1024
+            return (minBps...maxBps).contains(v) ? v : nil
+        }()
+        let bandwidthWindow = {
+            let v = int(forKey: "bandwidthWindow", source: source) ?? 60
+            return (30...120).contains(v) ? v : 60
+        }()
+        let abortAfter = {
+            let v = int(forKey: "abortAfter", source: source) ?? 3
+            return (2...5).contains(v) ? v : 3
+        }()
+
         return ManagedPreferences(
             apps:                apps,
             essential:           essential,
@@ -159,7 +197,12 @@ public enum ManagedPreferencesReader {
             mirrorServer:        mirrorServer,
             dryRun:              dryRun,
             quietRun:            quietRun,
-            libraryDest:         libraryDest
+            libraryDest:         libraryDest,
+            maxRetries:          maxRetries,
+            retryDelay:          retryDelay,
+            minimumBandwidth:    minimumBandwidth,
+            bandwidthWindow:     bandwidthWindow,
+            abortAfter:          abortAfter
         )
     }
 
@@ -231,6 +274,16 @@ public enum ManagedPreferencesReader {
             return dict[key] as? Bool
         case .cfPreferences:
             return CFPreferencesCopyAppValue(key as CFString, domain as CFString) as? Bool
+        }
+    }
+
+    /// Read an Int value. Returns nil if the key is absent.
+    private static func int(forKey key: String, source: Source) -> Int? {
+        switch source {
+        case .plist(let dict):
+            return dict[key] as? Int
+        case .cfPreferences:
+            return CFPreferencesCopyAppValue(key as CFString, domain as CFString) as? Int
         }
     }
 }

@@ -115,6 +115,15 @@ struct DownloadBandwidthOptions: ParsableArguments {
     )
     var bandwidthTimeout: Int? = nil
 
+    @Option(
+        name: .long,
+        help: ArgumentHelp(
+            "Abort the run after this many consecutive bandwidth-threshold failures (2-5, default: 3). Requires --minimum-bandwidth.",
+            valueName: "n"
+        )
+    )
+    var abortAfter: Int? = nil
+
     /// Parsed minimum bandwidth in bytes/sec, or nil if not specified.
     var minimumBandwidthBytesPerSec: Int? {
         guard let raw = minimumBandwidth else { return nil }
@@ -122,6 +131,7 @@ struct DownloadBandwidthOptions: ParsableArguments {
     }
 
     var effectiveBandwidthTimeout: Int { bandwidthTimeout ?? 60 }
+    var effectiveAbortAfter: Int       { abortAfter       ?? 3  }
 
     mutating func validate() throws {
         if let raw = minimumBandwidth {
@@ -136,6 +146,14 @@ struct DownloadBandwidthOptions: ParsableArguments {
         }
         if let v = bandwidthTimeout, !(30...120).contains(v) {
             throw ValidationError("'--bandwidth-timeout' must be between 30 and 120 seconds.")
+        }
+        if let v = abortAfter {
+            if minimumBandwidth == nil {
+                throw ValidationError("'--abort-after' requires '--minimum-bandwidth'.")
+            }
+            if !(2...5).contains(v) {
+                throw ValidationError("'--abort-after' must be between 2 and 5.")
+            }
         }
     }
 

@@ -91,6 +91,38 @@ import LoopdownCore
 ///   type: String
 ///   default: /Users/Shared
 ///   # Parent directory under which Logic Pro Library.bundle is created.
+///
+/// maxRetries:
+///   type: Int
+///   default: 3
+///   range: 1-10
+///   # Maximum download retry attempts on transient network errors.
+///
+/// retryDelay:
+///   type: Int
+///   default: 2
+///   range: 1-5
+///   # Initial backoff delay in seconds between download retry attempts.
+///
+/// minimumBandwidth:
+///   type: String
+///   default: ~        # absent = no threshold enforced
+///   values: e.g. 300KB, 2MB
+///   range: 300KB-5MB/s
+///   # Abort a download if rolling average speed stays below this threshold.
+///
+/// bandwidthWindow:
+///   type: Int
+///   default: 60
+///   range: 30-120
+///   # Rolling average window in seconds for bandwidth measurement.
+///
+/// abortAfter:
+///   type: Int
+///   default: 3
+///   range: 2-5
+///   # Abort the run after this many consecutive bandwidth-threshold failures.
+///   # Only meaningful when minimumBandwidth is set.
 /// ```
 public struct ManagedPreferences: Equatable {
 
@@ -134,4 +166,20 @@ public struct ManagedPreferences: Equatable {
 
     /// Parent directory under which the library bundle is created.
     public let libraryDest: String
+
+    /// Maximum download retry attempts on transient network errors (1-10).
+    public let maxRetries: Int
+
+    /// Initial backoff delay in seconds between download retry attempts (1-5).
+    public let retryDelay: Int
+
+    /// Minimum bandwidth threshold in bytes/sec. nil means no threshold enforced.
+    public let minimumBandwidth: Int?
+
+    /// Rolling average window in seconds for bandwidth measurement (30-120).
+    public let bandwidthWindow: Int
+
+    /// Abort the run after this many consecutive bandwidth-threshold failures (2-5).
+    /// Only applied when minimumBandwidth is non-nil.
+    public let abortAfter: Int
 }

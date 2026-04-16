@@ -86,6 +86,7 @@ struct Download: AsyncParsableCommand {
                 retryDelay: retryOptions.effectiveBackoffSleep,
                 minimumBandwidth: bandwidthOptions.minimumBandwidthBytesPerSec,
                 bandwidthWindow: bandwidthOptions.effectiveBandwidthTimeout,
+                bandwidthAbortAfter: bandwidthOptions.minimumBandwidth != nil ? bandwidthOptions.effectiveAbortAfter : nil,
                 logger: logger
             )
         }

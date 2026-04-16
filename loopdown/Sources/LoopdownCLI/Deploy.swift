@@ -166,16 +166,19 @@ struct Deploy: AsyncParsableCommand {
             throw ValidationError("'--legacy-only' and '--modern-only' cannot be used with '--managed'.")
         }
         if retryOptions.maxRetries != nil {
-            throw ValidationError("'--max-retries' cannot be used with '--managed'.")
+            throw ValidationError("'--max-retries' cannot be used with '--managed'; set the 'maxRetries' key in the preferences domain instead.")
         }
         if retryOptions.backoffSleep != nil {
-            throw ValidationError("'--backoff-sleep' cannot be used with '--managed'.")
+            throw ValidationError("'--backoff-sleep' cannot be used with '--managed'; set the 'retryDelay' key in the preferences domain instead.")
         }
         if bandwidthOptions.minimumBandwidth != nil {
-            throw ValidationError("'--minimum-bandwidth' cannot be used with '--managed'.")
+            throw ValidationError("'--minimum-bandwidth' cannot be used with '--managed'; set the 'minimumBandwidth' key in the preferences domain instead.")
         }
         if bandwidthOptions.bandwidthTimeout != nil {
-            throw ValidationError("'--bandwidth-timeout' cannot be used with '--managed'.")
+            throw ValidationError("'--bandwidth-timeout' cannot be used with '--managed'; set the 'bandwidthWindow' key in the preferences domain instead.")
+        }
+        if bandwidthOptions.abortAfter != nil {
+            throw ValidationError("'--abort-after' cannot be used with '--managed'; set the 'abortAfter' key in the preferences domain instead.")
         }
 
         if !dry.dryRun && !PrivilegeCheck.isRoot {
@@ -253,6 +256,7 @@ struct Deploy: AsyncParsableCommand {
                 retryDelay: retryOptions.effectiveBackoffSleep,
                 minimumBandwidth: bandwidthOptions.minimumBandwidthBytesPerSec,
                 bandwidthWindow: bandwidthOptions.effectiveBandwidthTimeout,
+                bandwidthAbortAfter: bandwidthOptions.minimumBandwidth != nil ? bandwidthOptions.effectiveAbortAfter : nil,
                 verboseInstall: logging.logLevel <= AppLogLevel.debug,
                 logger: logger
             )
@@ -303,6 +307,8 @@ struct Deploy: AsyncParsableCommand {
             logger.debug("--managed: forceDeploy=\(prefs.forceDeploy) skipSignatureCheck=\(prefs.skipSignatureCheck)")
             logger.debug("--managed: dryRun=\(effectiveDryRun) (prefs=\(prefs.dryRun) cli=\(dry.dryRun))")
             logger.debug("--managed: libraryDest=\(prefs.libraryDest)")
+            logger.debug("--managed: maxRetries=\(prefs.maxRetries) retryDelay=\(prefs.retryDelay)")
+            logger.debug("--managed: minimumBandwidth=\(prefs.minimumBandwidth.map { "\($0 / 1024)KB/s" } ?? "none") bandwidthWindow=\(prefs.bandwidthWindow) abortAfter=\(prefs.abortAfter)")
 
             let resolvedCacheServerURL = CacheServerResolution.resolveCacheServerURL(
                 prefs.cacheServer,
@@ -332,10 +338,11 @@ struct Deploy: AsyncParsableCommand {
                 cacheServer: resolvedCacheServerURL,
                 mirrorServer: mirrorServerURL,
                 dryRun: effectiveDryRun,
-                maxRetries: retryOptions.effectiveMaxRetries,
-                retryDelay: retryOptions.effectiveBackoffSleep,
-                minimumBandwidth: bandwidthOptions.minimumBandwidthBytesPerSec,
-                bandwidthWindow: bandwidthOptions.effectiveBandwidthTimeout,
+                maxRetries: prefs.maxRetries,
+                retryDelay: prefs.retryDelay,
+                minimumBandwidth: prefs.minimumBandwidth,
+                bandwidthWindow: prefs.bandwidthWindow,
+                bandwidthAbortAfter: prefs.minimumBandwidth != nil ? prefs.abortAfter : nil,
                 verboseInstall: effectiveLogLevel <= AppLogLevel.debug,
                 logger: logger
             )

@@ -53,6 +53,7 @@ public enum ContentCoordinator {
         retryDelay: Int = 2,
         minimumBandwidth: Int? = nil,
         bandwidthWindow: Int = 60,
+        bandwidthAbortAfter: Int? = nil,
         verboseInstall: Bool = false,
         logger: CoreLogger
     ) async throws -> Bool {
@@ -111,6 +112,7 @@ public enum ContentCoordinator {
                 retryDelay: retryDelay,
                 minimumBandwidth: minimumBandwidth,
                 bandwidthWindow: bandwidthWindow,
+                bandwidthAbortAfter: bandwidthAbortAfter,
                 logger: logger,
                 downloader: downloader
             )
@@ -133,6 +135,7 @@ public enum ContentCoordinator {
                 retryDelay: retryDelay,
                 minimumBandwidth: minimumBandwidth,
                 bandwidthWindow: bandwidthWindow,
+                bandwidthAbortAfter: bandwidthAbortAfter,
                 verboseInstall: verboseInstall,
                 logger: logger,
                 downloader: downloader
@@ -160,6 +163,7 @@ private extension ContentCoordinator {
         retryDelay: Int,
         minimumBandwidth: Int?,
         bandwidthWindow: Int,
+        bandwidthAbortAfter: Int?,
         logger: CoreLogger,
         downloader: DownloadClient
     ) async throws -> Bool {
@@ -211,7 +215,8 @@ private extension ContentCoordinator {
         }
 
         // Helper: attempt a single package download. Returns true on success.
-        func attemptDownloadPackage(_ pkg: AudioContentPackage, label: String) async -> Bool {
+        enum DownloadPackageResult { case success; case bandwidthFailure; case otherFailure }
+        func attemptDownloadPackage(_ pkg: AudioContentPackage, label: String) async -> DownloadPackageResult {
             let remoteURL = packageRemoteURL(pkg: pkg, cacheServer: cacheServer, mirrorServer: mirrorServer)
             let destURL   = destinationFileURL(destDir: destDir, pkg: pkg)
 
@@ -241,24 +246,41 @@ private extension ContentCoordinator {
                     ) else {
                         try? FileManager.default.removeItem(at: tempURL)
                         logger.error("\(label) - signature check failed, discarding: \(pkg.name)")
-                        return false
+                        return .otherFailure
                     }
                 }
 
                 try moveReplacingIfExists(from: tempURL, to: destURL)
                 logger.info("\(label) - saved: \(pkg.name)")
-                return true
+                return .success
+            } catch let error as DownloadClientError {
+                logger.error("\(label) - failed: \(pkg.name) (\(error.localizedDescription))")
+                if case .belowMinimumBandwidth = error { return .bandwidthFailure }
+                return .otherFailure
             } catch {
                 logger.error("\(label) - failed: \(pkg.name) (\(error.localizedDescription))")
-                return false
+                return .otherFailure
             }
         }
 
         // Main pass.
         var failedPkgs: [AudioContentPackage] = []
+        var consecutiveBandwidthFailures = 0
         for (idx, pkg) in pkgs.enumerated() {
-            let succeeded = await attemptDownloadPackage(pkg, label: counter(idx + 1, of: total))
-            if !succeeded { failedPkgs.append(pkg) }
+            let result = await attemptDownloadPackage(pkg, label: counter(idx + 1, of: total))
+            switch result {
+            case .success:
+                consecutiveBandwidthFailures = 0
+            case .bandwidthFailure:
+                failedPkgs.append(pkg)
+                consecutiveBandwidthFailures += 1
+                if let limit = bandwidthAbortAfter, consecutiveBandwidthFailures >= limit {
+                    throw ContentCoordinatorError.bandwidthAbortThresholdReached(consecutive: consecutiveBandwidthFailures)
+                }
+            case .otherFailure:
+                consecutiveBandwidthFailures = 0
+                failedPkgs.append(pkg)
+            }
         }
 
         // Single retry pass for any failures.
@@ -267,8 +289,8 @@ private extension ContentCoordinator {
             var stillFailed: [AudioContentPackage] = []
             for (idx, pkg) in failedPkgs.enumerated() {
                 let label = "retry \(counter(idx + 1, of: failedPkgs.count))"
-                let succeeded = await attemptDownloadPackage(pkg, label: label)
-                if !succeeded { stillFailed.append(pkg) }
+                let result = await attemptDownloadPackage(pkg, label: label)
+                if case .success = result { } else { stillFailed.append(pkg) }
             }
             if !stillFailed.isEmpty {
                 logger.warning("\(stillFailed.count) package(s) failed after retry: \(stillFailed.map { $0.name }.joined(separator: ", "))")
@@ -299,6 +321,7 @@ private extension ContentCoordinator {
         retryDelay: Int,
         minimumBandwidth: Int?,
         bandwidthWindow: Int,
+        bandwidthAbortAfter: Int?,
         verboseInstall: Bool,
         logger: CoreLogger,
         downloader: DownloadClient
@@ -401,6 +424,7 @@ private extension ContentCoordinator {
         // Result returned from the per-package helper.
         enum DeployPackageResult {
             case success(packageID: String, installedDate: String, deployedModern: Bool)
+            case bandwidthFailure
             case failure
         }
 
@@ -430,6 +454,10 @@ private extension ContentCoordinator {
                 let dest = staging.url.appendingPathComponent(pkg.name)
                 try FileManager.default.moveItem(at: tempURL, to: dest)
                 stagedURL = dest
+            } catch let error as DownloadClientError {
+                logger.error("\(label) - failed to download: \(pkg.name) (\(error.localizedDescription))")
+                if case .belowMinimumBandwidth = error { return .bandwidthFailure }
+                return .failure
             } catch {
                 logger.error("\(label) - failed to download: \(pkg.name) (\(error.localizedDescription))")
                 return .failure
@@ -502,12 +530,22 @@ private extension ContentCoordinator {
         // Main pass.
         let total = pending.count
         var failedPkgs: [AudioContentPackage] = []
+        var consecutiveBandwidthFailures = 0
         for (idx, pkg) in pending.enumerated() {
             let result = await attemptDeployPackage(pkg, label: counter(idx + 1, of: total))
-            if case .failure = result {
-                failedPkgs.append(pkg)
-            } else {
+            switch result {
+            case .success:
+                consecutiveBandwidthFailures = 0
                 applyResult(result)
+            case .bandwidthFailure:
+                failedPkgs.append(pkg)
+                consecutiveBandwidthFailures += 1
+                if let limit = bandwidthAbortAfter, consecutiveBandwidthFailures >= limit {
+                    throw ContentCoordinatorError.bandwidthAbortThresholdReached(consecutive: consecutiveBandwidthFailures)
+                }
+            case .failure:
+                consecutiveBandwidthFailures = 0
+                failedPkgs.append(pkg)
             }
         }
 
@@ -784,6 +822,7 @@ private extension ContentCoordinator {
 public enum ContentCoordinatorError: Error, CustomStringConvertible {
     case insufficientDiskSpace(required: Int64, available: Int64, path: String)
     case unableToReadDiskSpace(path: String)
+    case bandwidthAbortThresholdReached(consecutive: Int)
 
     public var description: String {
         switch self {
@@ -791,6 +830,8 @@ public enum ContentCoordinatorError: Error, CustomStringConvertible {
             return "Insufficient disk space at '\(path)'. Required=\(ByteSize(required)), Available=\(ByteSize(available))"
         case .unableToReadDiskSpace(let path):
             return "Unable to read disk space information for '\(path)'."
+        case .bandwidthAbortThresholdReached(let consecutive):
+            return "Run aborted: \(consecutive) consecutive package(s) failed due to bandwidth threshold."
         }
     }
 }
