@@ -210,16 +210,13 @@ private extension ContentCoordinator {
             )
         }
 
-        var failedPackages: [String] = []
-
-        for (idx, pkg) in pkgs.enumerated() {
-            let n = idx + 1
-
+        // Helper: attempt a single package download. Returns true on success.
+        func attemptDownloadPackage(_ pkg: AudioContentPackage, label: String) async -> Bool {
             let remoteURL = packageRemoteURL(pkg: pkg, cacheServer: cacheServer, mirrorServer: mirrorServer)
             let destURL   = destinationFileURL(destDir: destDir, pkg: pkg)
 
-            logger.info("\(counter(n, of: total)) - downloading: \(pkg.name) (\(pkg.downloadSize))")
-            logger.fileOnly("\(counter(n, of: total)) - url: \(remoteURL.absoluteString)")
+            logger.info("\(label) - downloading: \(pkg.name) (\(pkg.downloadSize))")
+            logger.fileOnly("\(label) - url: \(remoteURL.absoluteString)")
 
             do {
                 let tempURL = try await downloader.downloadTempFile(
@@ -229,7 +226,7 @@ private extension ContentCoordinator {
                     minimumBandwidth: minimumBandwidth,
                     bandwidthWindow: bandwidthWindow,
                     onRetry: { attempt, max, error in
-                        logger.warning("\(counter(n, of: total)) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
+                        logger.warning("\(label) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
                     },
                     progress: { prog in
                         let pct = Int(prog.fractionCompleted * 100)
@@ -237,29 +234,45 @@ private extension ContentCoordinator {
                     }
                 )
 
-                // Signature check applies to legacy (.pkg) packages only.
                 if pkg.isLegacy && !skipSignatureCheck {
                     guard PackageSignatureChecker.isSignedAppleSoftware(
                         pkgURL: tempURL,
                         debugLog: logger.debug
                     ) else {
                         try? FileManager.default.removeItem(at: tempURL)
-                        logger.error("\(counter(n, of: total)) - signature check failed, discarding: \(pkg.name)")
-                        failedPackages.append(pkg.name)
-                        continue
+                        logger.error("\(label) - signature check failed, discarding: \(pkg.name)")
+                        return false
                     }
                 }
 
                 try moveReplacingIfExists(from: tempURL, to: destURL)
-                logger.info("\(counter(n, of: total)) - saved: \(pkg.name)")
+                logger.info("\(label) - saved: \(pkg.name)")
+                return true
             } catch {
-                logger.error("\(counter(n, of: total)) - failed: \(pkg.name) (\(error.localizedDescription))")
-                failedPackages.append(pkg.name)
+                logger.error("\(label) - failed: \(pkg.name) (\(error.localizedDescription))")
+                return false
             }
         }
 
-        if !failedPackages.isEmpty {
-            logger.warning("\(failedPackages.count) package(s) failed to download: \(failedPackages.joined(separator: ", "))")
+        // Main pass.
+        var failedPkgs: [AudioContentPackage] = []
+        for (idx, pkg) in pkgs.enumerated() {
+            let succeeded = await attemptDownloadPackage(pkg, label: counter(idx + 1, of: total))
+            if !succeeded { failedPkgs.append(pkg) }
+        }
+
+        // Single retry pass for any failures.
+        if !failedPkgs.isEmpty {
+            logger.notice("Retrying \(failedPkgs.count) failed package(s)...")
+            var stillFailed: [AudioContentPackage] = []
+            for (idx, pkg) in failedPkgs.enumerated() {
+                let label = "retry \(counter(idx + 1, of: failedPkgs.count))"
+                let succeeded = await attemptDownloadPackage(pkg, label: label)
+                if !succeeded { stillFailed.append(pkg) }
+            }
+            if !stillFailed.isEmpty {
+                logger.warning("\(stillFailed.count) package(s) failed after retry: \(stillFailed.map { $0.name }.joined(separator: ", "))")
+            }
         }
 
         return true
@@ -385,17 +398,18 @@ private extension ContentCoordinator {
             staging.cleanup()
         }
 
-        var modernContentDeployed = false
-        // Maps packageID -> UTC install timestamp.
-        var installedTimestamps: [String: String] = [:]
-        var failedPackages: [String] = []
-        let total = pending.count
-        for (idx, pkg) in pending.enumerated() {
-            let n = idx + 1
+        // Result returned from the per-package helper.
+        enum DeployPackageResult {
+            case success(packageID: String, installedDate: String, deployedModern: Bool)
+            case failure
+        }
+
+        // Helper: attempt download + install for a single package.
+        func attemptDeployPackage(_ pkg: AudioContentPackage, label: String) async -> DeployPackageResult {
             let remoteURL = packageRemoteURL(pkg: pkg, cacheServer: cacheServer, mirrorServer: mirrorServer)
 
-            logger.info("\(counter(n, of: total)) - downloading: \(pkg.name)")
-            logger.fileOnly("\(counter(n, of: total)) - url: \(remoteURL.absoluteString)")
+            logger.info("\(label) - downloading: \(pkg.name)")
+            logger.fileOnly("\(label) - url: \(remoteURL.absoluteString)")
 
             let stagedURL: URL
             do {
@@ -406,7 +420,7 @@ private extension ContentCoordinator {
                     minimumBandwidth: minimumBandwidth,
                     bandwidthWindow: bandwidthWindow,
                     onRetry: { attempt, max, error in
-                        logger.warning("\(counter(n, of: total)) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
+                        logger.warning("\(label) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
                     },
                     progress: { prog in
                         let pct = Int(prog.fractionCompleted * 100)
@@ -417,9 +431,8 @@ private extension ContentCoordinator {
                 try FileManager.default.moveItem(at: tempURL, to: dest)
                 stagedURL = dest
             } catch {
-                logger.error("\(counter(n, of: total)) - failed to download: \(pkg.name) (\(error.localizedDescription))")
-                failedPackages.append(pkg.name)
-                continue
+                logger.error("\(label) - failed to download: \(pkg.name) (\(error.localizedDescription))")
+                return .failure
             }
 
             if pkg.isLegacy && !skipSignatureCheck {
@@ -427,12 +440,11 @@ private extension ContentCoordinator {
                     pkgURL: stagedURL,
                     debugLog: logger.debug
                 ) else {
-                    logger.error("\(counter(n, of: total)) - signature check failed, skipping install: \(pkg.name)")
-                    continue
+                    logger.error("\(label) - signature check failed, skipping install: \(pkg.name)")
+                    return .failure
                 }
             }
 
-            let label  = counter(n, of: total)
             let indent = String(repeating: " ", count: label.count + 3)
 
             if pkg.isLegacy {
@@ -445,9 +457,14 @@ private extension ContentCoordinator {
                         errorLog: logger.error
                     )
                     logger.notice("\(indent)installed: \(pkg.name)")
-                    installedTimestamps[pkg.packageID] = DeployRunRecord.utcFormatter.string(from: Date())
+                    return .success(
+                        packageID: pkg.packageID,
+                        installedDate: DeployRunRecord.utcFormatter.string(from: Date()),
+                        deployedModern: false
+                    )
                 } catch {
                     logger.error("\(indent)failed to install: \(pkg.name) (\(error))")
+                    return .failure
                 }
             } else {
                 do {
@@ -459,16 +476,57 @@ private extension ContentCoordinator {
                         errorLog: logger.error
                     )
                     logger.notice("\(indent)extracted: \(pkg.name)")
-                    installedTimestamps[pkg.packageID] = DeployRunRecord.utcFormatter.string(from: Date())
-                    modernContentDeployed = true
+                    return .success(
+                        packageID: pkg.packageID,
+                        installedDate: DeployRunRecord.utcFormatter.string(from: Date()),
+                        deployedModern: true
+                    )
                 } catch {
                     logger.error("\(indent)failed to extract: \(pkg.name) (\(error))")
+                    return .failure
                 }
             }
         }
 
-        if !failedPackages.isEmpty {
-            logger.warning("\(failedPackages.count) package(s) failed to download: \(failedPackages.joined(separator: ", "))")
+        func applyResult(_ result: DeployPackageResult) {
+            if case .success(let packageID, let installedDate, let deployedModern) = result {
+                installedTimestamps[packageID] = installedDate
+                if deployedModern { modernContentDeployed = true }
+            }
+        }
+
+        var modernContentDeployed = false
+        // Maps packageID -> UTC install timestamp.
+        var installedTimestamps: [String: String] = [:]
+
+        // Main pass.
+        let total = pending.count
+        var failedPkgs: [AudioContentPackage] = []
+        for (idx, pkg) in pending.enumerated() {
+            let result = await attemptDeployPackage(pkg, label: counter(idx + 1, of: total))
+            if case .failure = result {
+                failedPkgs.append(pkg)
+            } else {
+                applyResult(result)
+            }
+        }
+
+        // Single retry pass for any failures.
+        if !failedPkgs.isEmpty {
+            logger.notice("Retrying \(failedPkgs.count) failed package(s)...")
+            var stillFailed: [AudioContentPackage] = []
+            for (idx, pkg) in failedPkgs.enumerated() {
+                let label = "retry \(counter(idx + 1, of: failedPkgs.count))"
+                let result = await attemptDeployPackage(pkg, label: label)
+                if case .failure = result {
+                    stillFailed.append(pkg)
+                } else {
+                    applyResult(result)
+                }
+            }
+            if !stillFailed.isEmpty {
+                logger.warning("\(stillFailed.count) package(s) failed after retry: \(stillFailed.map { $0.name }.joined(separator: ", "))")
+            }
         }
 
         // Populate installed entries and collect only apps that had at least one install.
