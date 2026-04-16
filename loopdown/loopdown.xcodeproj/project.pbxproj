@@ -27,6 +27,7 @@
 		FA1D6C162F64FB4E00C22204 /* PackageInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA1D6C152F64FB4E00C22204 /* PackageInstaller.swift */; };
 		FA239F202F1CF222007A0E75 /* InstalledApplicationResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA239F1F2F1CF222007A0E75 /* InstalledApplicationResolver.swift */; };
 		FA239F232F1CF2CA007A0E75 /* StagingDirectoryAndSignalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA239F222F1CF2CA007A0E75 /* StagingDirectoryAndSignalling.swift */; };
+		FA4A50A12F90B76F000ED95B /* DeployRunRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4A50A02F90B76F000ED95B /* DeployRunRecord.swift */; };
 		FA58F8E52F1CC9EA001EFB98 /* SystemProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8E42F1CC9EA001EFB98 /* SystemProfiler.swift */; };
 		FA58F8EB2F1CCD38001EFB98 /* SubprocessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8E92F1CCD38001EFB98 /* SubprocessRunner.swift */; };
 		FA58F8ED2F1CCF81001EFB98 /* PackageInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA58F8EC2F1CCF81001EFB98 /* PackageInfo.swift */; };
@@ -136,6 +137,7 @@
 		FA290E632F1BADCE0090B7F7 /* LoopdownServices.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = LoopdownServices.docc; sourceTree = "<group>"; };
 		FA290E682F1BADCE0090B7F7 /* LoopdownInfrastructure.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = LoopdownInfrastructure.docc; sourceTree = "<group>"; };
 		FA290E6B2F1BADCE0090B7F7 /* LoopdownCore.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = LoopdownCore.docc; sourceTree = "<group>"; };
+		FA4A50A02F90B76F000ED95B /* DeployRunRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeployRunRecord.swift; sourceTree = "<group>"; };
 		FA4A59C52F1BB83C00F1FB70 /* LoopdownCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoopdownCore.h; sourceTree = "<group>"; };
 		FA4A59C62F1BB84800F1FB70 /* LoopdownInfrastructure.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoopdownInfrastructure.h; sourceTree = "<group>"; };
 		FA4A59C72F1BB85500F1FB70 /* LoopdownServices.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoopdownServices.h; sourceTree = "<group>"; };
@@ -298,6 +300,7 @@
 				FA0A60AE2F1C54020025ED20 /* PrivilegeCheck.swift */,
 				FAB048C62F1C74A0000FA556 /* ExecutionLock.swift */,
 				FAC02D042F8E2CEC0025456B /* LibraryBookmark.swift */,
+				FA4A50A02F90B76F000ED95B /* DeployRunRecord.swift */,
 			);
 			name = LoopdownInfrastructure;
 			path = Sources/LoopdownInfrastructure;
@@ -765,6 +768,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FA1D6C162F64FB4E00C22204 /* PackageInstaller.swift in Sources */,
+				FA4A50A12F90B76F000ED95B /* DeployRunRecord.swift in Sources */,
 				FA58F8EB2F1CCD38001EFB98 /* SubprocessRunner.swift in Sources */,
 				FAB048C72F1C74A0000FA556 /* ExecutionLock.swift in Sources */,
 				FA0A60AF2F1C54020025ED20 /* PrivilegeCheck.swift in Sources */,
@@ -951,7 +955,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
+				COPY_PHASE_STRIP = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -1029,6 +1033,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownServices;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				STRIP_STYLE = all;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1065,6 +1070,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownServices;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				STRIP_STYLE = all;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_VERSION = 5.0;
@@ -1129,6 +1135,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownInfrastructure;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				STRIP_STYLE = all;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1166,6 +1173,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownInfrastructure;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				STRIP_STYLE = all;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_VERSION = 5.0;
@@ -1230,6 +1238,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownCore;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				STRIP_STYLE = all;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1267,6 +1276,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.carlashley.loopdown.LoopdownCore;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				STRIP_STYLE = all;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_VERSION = 5.0;
