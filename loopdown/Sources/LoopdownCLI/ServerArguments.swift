@@ -65,7 +65,7 @@ struct CacheAutoDiscoveryOptions: ParsableArguments {
             valueName: "n"
         )
     )
-    var cacheAutoRetries: Int = 3
+    var cacheAutoRetries: Int? = nil
 
     @Option(
         name: .long,
@@ -74,13 +74,17 @@ struct CacheAutoDiscoveryOptions: ParsableArguments {
             valueName: "seconds"
         )
     )
-    var cacheRetryDelay: Int = 1
+    var cacheRetryDelay: Int? = nil
+
+    /// Effective value used at call sites; falls back to default when flag was not supplied.
+    var effectiveCacheAutoRetries: Int { cacheAutoRetries ?? 3 }
+    var effectiveCacheRetryDelay: Int  { cacheRetryDelay  ?? 1 }
 
     mutating func validate() throws {
-        if cacheAutoRetries < 1 {
+        if let v = cacheAutoRetries, v < 1 {
             throw ValidationError("'--cache-auto-retries' must be at least 1.")
         }
-        if cacheRetryDelay < 0 {
+        if let v = cacheRetryDelay, v < 0 {
             throw ValidationError("'--cache-retry-delay' must be 0 or greater.")
         }
     }

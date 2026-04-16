@@ -36,6 +36,9 @@ struct AppGenerationOption: ParsableArguments {
     @Flag(name: .long, help: "Only deploy content for modern apps (Logic Pro >= 12; MainStage >= 4).")
     var modernOnly: Bool = false
 
+    /// True if either flag was explicitly passed on the command line.
+    var wasSet: Bool { legacyOnly || modernOnly }
+
     mutating func validate() throws {
         if legacyOnly && modernOnly {
             throw ValidationError("'--legacy-only' and '--modern-only' are mutually exclusive.")
@@ -55,9 +58,8 @@ struct ManagedOption: ParsableArguments {
         help: ArgumentHelp(
             "Run using managed preferences from the com.github.carlashley.loopdown preferences domain.",
             discussion: """
-            Only --dry-run, --cache-auto-retries/--cache-retry-delay, and/or --log-level may \
-            be combined with --managed; all other flags are ignored and their values must be \
-            set via the preferences domain.
+            Only --dry-run and/or --log-level may be combined with --managed; \
+            all other flags are ignored and their values must be set via the preferences domain.
 
             Sane defaults are applied for any key absent from the domain:
               apps               all installed apps
@@ -89,8 +91,7 @@ struct Deploy: AsyncParsableCommand {
         Root privileges are required unless '-n/--dry-run' is specified.
 
         Use '--managed' to drive all arguments from the com.github.carlashley.loopdown \
-        preferences domain (e.g. via MDM). Only '--dry-run' and cache discovery options \
-        may be combined with '--managed'.
+        preferences domain (e.g. via MDM). Only '--dry-run' and '--log-level' may be combined with '--managed'.
 
         If you need to download content for a local mirror, use the 'download' command instead.
         See 'loopdown download --help' for more information.
@@ -153,6 +154,15 @@ struct Deploy: AsyncParsableCommand {
         if libraryDestOption.libraryDest != LoopdownConstants.ModernApps.defaultLibraryDestParent {
             throw ValidationError("'-b/--library-dest' cannot be used with '--managed'; set the 'libraryDest' key in the preferences domain instead.")
         }
+        if cacheDiscovery.cacheAutoRetries != nil {
+            throw ValidationError("'--cache-auto-retries' cannot be used with '--managed'.")
+        }
+        if cacheDiscovery.cacheRetryDelay != nil {
+            throw ValidationError("'--cache-retry-delay' cannot be used with '--managed'.")
+        }
+        if appGeneration.wasSet {
+            throw ValidationError("'--legacy-only' and '--modern-only' cannot be used with '--managed'.")
+        }
 
         if !dry.dryRun && !PrivilegeCheck.isRoot {
             throw ValidationError("You must be root to use this command; re-run with sudo or use '-n/--dry-run'.")
@@ -200,8 +210,8 @@ struct Deploy: AsyncParsableCommand {
 
             let resolvedCacheServerURL = CacheServerResolution.resolveCacheServerURL(
                 servers.cacheServer,
-                maxAttempts: cacheDiscovery.cacheAutoRetries,
-                retryDelay: UInt32(cacheDiscovery.cacheRetryDelay),
+                maxAttempts: cacheDiscovery.effectiveCacheAutoRetries,
+                retryDelay: UInt32(cacheDiscovery.effectiveCacheRetryDelay),
                 logger: logger
             )
 
@@ -278,8 +288,8 @@ struct Deploy: AsyncParsableCommand {
 
             let resolvedCacheServerURL = CacheServerResolution.resolveCacheServerURL(
                 prefs.cacheServer,
-                maxAttempts: cacheDiscovery.cacheAutoRetries,
-                retryDelay: UInt32(cacheDiscovery.cacheRetryDelay),
+                maxAttempts: cacheDiscovery.effectiveCacheAutoRetries,
+                retryDelay: UInt32(cacheDiscovery.effectiveCacheRetryDelay),
                 logger: logger
             )
 
