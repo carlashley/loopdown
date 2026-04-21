@@ -26,7 +26,13 @@ struct LibraryDestOption: ParsableArguments {
             valueName: "dir"
         )
     )
-    var libraryDest: String = LoopdownConstants.ModernApps.defaultLibraryDestParent
+    var libraryDest: String? = nil
+
+    /// True only when the flag was explicitly provided on the command line.
+    var wasSet: Bool { libraryDest != nil }
+
+    /// Resolved value — explicit flag value, or the compiled-in default.
+    var resolvedPath: String { libraryDest ?? LoopdownConstants.ModernApps.defaultLibraryDestParent }
 }
 
 struct AppGenerationOption: ParsableArguments {
@@ -153,7 +159,7 @@ struct Deploy: AsyncParsableCommand {
         if quiet.quietRun {
             throw ValidationError("'--quiet' cannot be used with '--managed'; set the 'quietRun' key in the preferences domain instead.")
         }
-        if libraryDestOption.libraryDest != LoopdownConstants.ModernApps.defaultLibraryDestParent {
+        if libraryDestOption.wasSet {
             throw ValidationError("'-b/--library-dest' cannot be used with '--managed'; set the 'libraryDest' key in the preferences domain instead.")
         }
         if cacheDiscovery.cacheAutoRetries != nil {
@@ -201,10 +207,6 @@ struct Deploy: AsyncParsableCommand {
     // MARK: Run
 
     func run() async throws {
-        try? FileManager.default.removeItem(
-            atPath: "/Library/Application Support/com.github.carlashley.loopdown/run.trigger"
-        )
-
         if managedOption.managed {
             try await runManaged()
         } else {
@@ -234,7 +236,7 @@ struct Deploy: AsyncParsableCommand {
 
             let mirrorServerURL = servers.mirrorServer?.url
             let libraryDestURL  = URL(
-                fileURLWithPath: resolvedLibraryDestPath(libraryDestOption.libraryDest),
+                fileURLWithPath: resolvedLibraryDestPath(libraryDestOption.resolvedPath),
                 isDirectory: true
             )
 
@@ -256,7 +258,7 @@ struct Deploy: AsyncParsableCommand {
                 retryDelay: retryOptions.effectiveBackoffSleep,
                 minimumBandwidth: bandwidthOptions.minimumBandwidthBytesPerSec,
                 bandwidthWindow: bandwidthOptions.effectiveBandwidthTimeout,
-                bandwidthAbortAfter: bandwidthOptions.minimumBandwidth != nil ? bandwidthOptions.effectiveAbortAfter : nil,
+                bandwidthAbortAfter: bandwidthOptions.effectiveBandwidthAbortAfter,
                 verboseInstall: logging.logLevel <= AppLogLevel.debug,
                 logger: logger
             )
@@ -310,6 +312,7 @@ struct Deploy: AsyncParsableCommand {
             logger.debug("--managed: maxRetries=\(prefs.maxRetries) retryDelay=\(prefs.retryDelay)")
             logger.debug("--managed: minimumBandwidth=\(prefs.minimumBandwidth.map { "\($0 / 1024)KB/s" } ?? "none") bandwidthWindow=\(prefs.bandwidthWindow) abortAfter=\(prefs.abortAfter)")
 
+            // maxAttempts and retryDelay are not directly managed by profiles/DDM
             let resolvedCacheServerURL = CacheServerResolution.resolveCacheServerURL(
                 prefs.cacheServer,
                 maxAttempts: cacheDiscovery.effectiveCacheAutoRetries,
