@@ -4,7 +4,6 @@
 // Created on 18/1/2026
 //
 
-import Darwin
 import Foundation
 import LoopdownInfrastructure
 import LoopdownCore
@@ -32,7 +31,7 @@ enum CLILogging {
     /// Configure baseline logging (no file creation).
     ///
     /// Call this early only when you know you're about to do real work.
-    static func configureBase(minLevel: AppLogLevel) {
+    private static func configureBase(minLevel: AppLogLevel) {
         let subsystem = BuildInfo.identifier.isEmpty
             ? LoopdownConstants.Identifiers.defaultSubsystem
             : BuildInfo.identifier
@@ -51,7 +50,8 @@ enum CLILogging {
     /// This bundles the common command boilerplate:
     /// - configure base
     /// - start run logging
-    /// - enable console output
+    /// - enable console output; this is set to true by default, and exists purely for future possible use even though current
+    ///   callsites all pass !quiet.quietRun
     /// - emit startup diagnostics (version, macOS version, arguments)
     /// - emit opening run UID (file log only)
     static func startRun(
@@ -91,6 +91,7 @@ enum CLILogging {
         logger.debug(BuildInfo.versionLine)
 
         // macOS version and kernel build number from ProcessInfo and sysctl.
+        // This calls sysctlbyname twice, which is a bit verbose, but we need the info
         let osv = ProcessInfo.processInfo.operatingSystemVersion
         var buildNumber = "unknown"
         var size = 0
