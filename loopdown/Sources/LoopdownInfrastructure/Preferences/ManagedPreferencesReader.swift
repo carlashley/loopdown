@@ -36,8 +36,8 @@ import LoopdownCore
 /// - `dryRun`                                             → false  (also overridable by --dry-run)
 /// - `quietRun`                                           → false
 /// - `libraryDest`                                        → /Users/Shared
-/// - `maxRetries`                                         → 3
-/// - `retryDelay`                                         → 2
+/// - `maxRetries`                                         → 3 (download retries)
+/// - `retryDelay`                                         → 2 (delay between download retries)
 /// - `minimumBandwidth`                                   → nil (no threshold)
 /// - `bandwidthWindow`                                    → 60
 /// - `abortAfter`                                         → 3
