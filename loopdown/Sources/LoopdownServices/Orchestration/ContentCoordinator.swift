@@ -523,8 +523,12 @@ private extension ContentCoordinator {
             }
         }
 
+        // Xcode will randomly spuriously indicate these two vars are never mutated; this is wrong, they are mutated elsewhere but Xcode doesn't
+        // see this
+        // swiftlint:disable:next prefer_let
         var modernContentDeployed = false
         // Maps packageID -> UTC install timestamp.
+        // swiftlint:disable:next prefer_let
         var installedTimestamps: [String: String] = [:]
 
         // Main pass.
