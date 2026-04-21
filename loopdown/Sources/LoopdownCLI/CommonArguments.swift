@@ -133,6 +133,11 @@ struct DownloadBandwidthOptions: ParsableArguments {
     var effectiveBandwidthTimeout: Int { bandwidthTimeout ?? 60 }
     var effectiveAbortAfter: Int       { abortAfter       ?? 3  }
 
+    /// Effective abort-after value; nil when no minimum bandwidth threshold is set.
+    var effectiveBandwidthAbortAfter: Int? {
+        minimumBandwidth != nil ? effectiveAbortAfter : nil
+    }
+
     mutating func validate() throws {
         if let raw = minimumBandwidth {
             guard let bps = DownloadBandwidthOptions.parseBytesPerSec(raw) else {
