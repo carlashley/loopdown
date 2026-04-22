@@ -15,7 +15,6 @@ public struct PackageReceipt: Hashable {
 
     public enum ReceiptError: Error, CustomStringConvertible {
         case pkgutilNotFound
-        case receiptNotFound(String)
         case invalidPlistRoot(String)
         case missingIdentifier
 
@@ -23,8 +22,6 @@ public struct PackageReceipt: Hashable {
             switch self {
             case .pkgutilNotFound:
                 return "binary not found at '/usr/sbin/pkgutil'"
-            case .receiptNotFound(let id):
-                return "No receipt found for package id '\(id)'"
             case .invalidPlistRoot(let id):
                 return "Property list root was not a dictionary for '\(id)'"
             case .missingIdentifier:
