@@ -5,12 +5,13 @@
 //
 
 import Foundation
+import LoopdownCore
 
 
 // MARK: - DeployRunRecord
 
 /// Persistent record of deploy runs, written as a property list to
-/// `/Library/Application Support/com.github.carlashley.loopdown/com.github.carlashley.loopdown.last_deploy_run.plist`.
+/// `/Library/Application Support/<bundle id>/<bundle id>.last_deploy_run.plist`.
 ///
 /// Structure: `apps > modern|legacy > <appName> > <category> > checked/installed`
 ///
@@ -167,12 +168,12 @@ public struct DeployRunRecord: Codable {
     // MARK: - Paths
 
     public static let directoryURL = URL(
-        fileURLWithPath: "/Library/Application Support/com.github.carlashley.loopdown",
+        fileURLWithPath: "/Library/Application Support/\(BuildInfo.identifier)",
         isDirectory: true
     )
 
     public static let fileURL = directoryURL
-        .appendingPathComponent("com.github.carlashley.loopdown.last_deploy_run.plist")
+        .appendingPathComponent("\(BuildInfo.identifier).last_deploy_run.plist")
 
     // MARK: - Formatter
 
