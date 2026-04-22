@@ -34,22 +34,22 @@ public struct AudioContentPackage: Hashable, Sendable, CustomStringConvertible {
 
     // MARK: - Stored properties
 
-    public var downloadName: String
-    public var packageID: String                      // Identity field
-    public var downloadSize: ByteSize
-    public var fileCheck: [String]                    // Absolute paths; may be empty
-    public var installedSize: ByteSize
+    public let downloadName: String
+    public let packageID: String                      // Identity field
+    public let downloadSize: ByteSize
+    public let fileCheck: [String]                    // Absolute paths; may be empty
+    public let installedSize: ByteSize
 
     /// Essential content package (`ecp*` identifier). Modern packages only.
-    public var isEssential: Bool
+    public let isEssential: Bool
 
     /// Core content package (`ccp*` identifier), equivalent to legacy mandatory/required.
-    public var isCore: Bool
+    public let isCore: Bool
 
     /// Optional content package (neither `ecp*` nor `ccp*`).
-    public var isOptional: Bool
+    public let isOptional: Bool
 
-    public var version: String?
+    public let version: String?
 
     /// `false` for modern Logic Pro 12+ / MainStage 4+ packages.
     public let isLegacy: Bool
