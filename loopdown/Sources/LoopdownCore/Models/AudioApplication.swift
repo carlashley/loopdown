@@ -319,8 +319,7 @@ public final class AudioApplication: Hashable, Sendable {
                     continue
                 }
 
-                if best == nil ||
-                    filename.localizedStandardCompare(best!.lastPathComponent) == .orderedDescending {
+                if best.map({ filename.localizedStandardCompare($0.lastPathComponent) == .orderedDescending}) ?? true {
                     best = url
                 }
             }
