@@ -313,7 +313,7 @@ private extension ContentCoordinator {
         includeCore: Bool,
         includeOptional: Bool,
         appPolicies: [AppContentPolicy],
-        libraryDestURL: URL?,
+        libraryDestURL: URL?, // nil only in download mode; guarded inside attemptDeployPackage for modern packages
         mode: Mode,
         forceDeploy: Bool,
         skipSignatureCheck: Bool,
@@ -779,7 +779,7 @@ private extension ContentCoordinator {
             if wantEssential {
                 for pkg in app.essential {
                     if !forceDeploy && !packageNeedsInstall(pkg, debugLog: debugLog) { continue }
-                    if let existing = byID[pkg.packageID], !existing.isOptional { } else {
+                    if byID[pkg.packageID].map({ $0.isOptional }) ?? true {
                         byID[pkg.packageID] = pkg
                     }
                     nonOptionalIDs.insert(pkg.packageID)
@@ -790,7 +790,7 @@ private extension ContentCoordinator {
             if wantCore {
                 for pkg in app.core {
                     if !forceDeploy && !packageNeedsInstall(pkg, debugLog: debugLog) { continue }
-                    if let existing = byID[pkg.packageID], !existing.isOptional { } else {
+                    if byID[pkg.packageID].map({ $0.isOptional }) ?? true {
                         byID[pkg.packageID] = pkg
                     }
                     nonOptionalIDs.insert(pkg.packageID)
