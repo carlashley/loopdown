@@ -28,6 +28,8 @@ public enum SystemProfiler {
         detailLevel: SystemProfilerDetailLevel = .full,
         debugLog: ((String) -> Void)? = nil
     ) -> [[String: Any]]? {
+        // Note: -detaillevel has no effect for SPApplicationsDataType; output is identical
+        // regardless of the value passed. The parameter is retained for potential future data types.
         let cmd = ["/usr/sbin/system_profiler", "-json", "-detaillevel", detailLevel.rawValue, type.rawValue]
 
         do {
