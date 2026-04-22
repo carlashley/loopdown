@@ -246,7 +246,7 @@ public final class AppLogger: Sendable {
 public enum Log {
     /// Shared configuration logger. Starts with NO file sinks and console disabled.
     public private(set) static var shared = AppLogger(
-        subsystem: "com.github.carlashley.loopdown",
+        subsystem: BuildInfo.identifier,
         category: "app",
         minLevel: .info,
         fileSinks: [],
@@ -254,7 +254,7 @@ public enum Log {
     )
 
     /// Subsystem identifier used as the log directory name.
-    private static let logDirName = "\(BuildInfo.identifier)"
+    private static let logDirName = BuildInfo.identifier
 
     /// Run log URL (set once startRunLogging succeeds).
     public private(set) static var runLogURL: URL? = nil
