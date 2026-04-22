@@ -55,6 +55,21 @@ public enum LoopdownConstants {
             return nil
         }
     }
+
+    public enum BandwidthParser {
+        /// Parse a string like "300KB" or "2MB" into bytes/sec.
+        /// Returns nil if the string is not in a recognised format.
+        public static func parseBytesPerSec(_ raw: String) -> Int? {
+            let s = raw.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+            if s.hasSuffix("MB"), let n = Int(s.dropLast(2).trimmingCharacters(in: .whitespaces)) {
+                return n * 1024 * 1024
+            }
+            if s.hasSuffix("KB"), let n = Int(s.dropLast(2).trimmingCharacters(in: .whitespaces)) {
+                return n * 1024
+            }
+            return nil
+        }
+    }
     
     public enum Downloads {
         public static let contentSourceBaseURL = URL(string: "https://audiocontentdownload.apple.com")!

@@ -161,16 +161,7 @@ public enum ManagedPreferencesReader {
         }()
         let minimumBandwidth: Int? = {
             guard let raw = string(forKey: "minimumBandwidth", source: source), !raw.isEmpty else { return nil }
-            let s = raw.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-            let bps: Int?
-            if s.hasSuffix("MB"), let n = Int(s.dropLast(2).trimmingCharacters(in: .whitespaces)) {
-                bps = n * 1024 * 1024
-            } else if s.hasSuffix("KB"), let n = Int(s.dropLast(2).trimmingCharacters(in: .whitespaces)) {
-                bps = n * 1024
-            } else {
-                bps = nil
-            }
-            guard let v = bps else { return nil }
+            guard let v = LoopdownConstants.BandwidthParser.parseBytesPerSec(raw) else { return nil }
             let minBps = 300 * 1024
             let maxBps = 5 * 1024 * 1024
             return (minBps...maxBps).contains(v) ? v : nil

@@ -165,15 +165,8 @@ struct DownloadBandwidthOptions: ParsableArguments {
         }
     }
 
-    /// Parse a string like "300KB" or "2MB" into bytes/sec.
+    /// Parse a string like "300KB" or "2MB" into bytes/sec. Forwards the call to LoopdownConstants.BandwidthParser.
     static func parseBytesPerSec(_ raw: String) -> Int? {
-        let s = raw.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-        if s.hasSuffix("MB"), let n = Int(s.dropLast(2).trimmingCharacters(in: .whitespaces)) {
-            return n * 1024 * 1024
-        }
-        if s.hasSuffix("KB"), let n = Int(s.dropLast(2).trimmingCharacters(in: .whitespaces)) {
-            return n * 1024
-        }
-        return nil
+        LoopdownConstants.BandwidthParser.parseBytesPerSec(raw)
     }
 }
