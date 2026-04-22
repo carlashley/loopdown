@@ -3,14 +3,6 @@
 //
 // Created on 12/4/2026
 //
-    
-
-
-//// AARExtractor.swift
-// loopdown
-//
-// Created on 12/4/2026
-//
 
 import Foundation
 
