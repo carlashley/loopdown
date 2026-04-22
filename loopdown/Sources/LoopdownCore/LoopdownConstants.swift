@@ -16,10 +16,7 @@ public enum LoopdownConstants {
         public static let resourceFilePath = "Contents/Resources"
 
         /// Matches the resource plist naming pattern like 'garageband1024.plist'.
-        public static let metaFileRegex: NSRegularExpression = {
-            let pattern = #"^[A-Za-z]+[0-9]+\.plist$"#
-            return try! NSRegularExpression(pattern: pattern)
-        }()
+        public static let metaFileRegex = /^[A-Za-z]+[0-9]+\.plist$/
         
         /// Map internal short names to acceptable application bundle display names (preference order).
         public static let nameMapping: [String: [String]] = [

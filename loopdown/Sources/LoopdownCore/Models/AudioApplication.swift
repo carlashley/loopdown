@@ -309,11 +309,7 @@ public final class AudioApplication: Hashable, Sendable {
 
                 let filename = url.lastPathComponent
 
-                guard LoopdownConstants.Applications.metaFileRegex.firstMatch(
-                    in: filename,
-                    options: [],
-                    range: NSRange(filename.startIndex..<filename.endIndex, in: filename)
-                ) != nil else {
+                guard filename.contains(LoopdownConstants.Applications.metaFileRegex) else {
                     continue
                 }
 
