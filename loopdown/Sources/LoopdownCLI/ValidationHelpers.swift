@@ -9,7 +9,7 @@ import ArgumentParser
 
 // MARK: - Validation helpers
 
-/// Ensure at least one of `-e/--esn`, `-r/--core`, or `-o/--optional` is provided.
+/// Ensure at least one of `-e/--essential`, `-r/--core`, or `-o/--optional` is provided.
 public func validateContentSelection(essential: Bool, core: Bool, optional: Bool) throws {
     guard essential || core || optional else {
         throw ValidationError(
