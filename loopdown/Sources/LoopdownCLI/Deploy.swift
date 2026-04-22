@@ -259,7 +259,7 @@ struct Deploy: AsyncParsableCommand {
                 minimumBandwidth: bandwidthOptions.minimumBandwidthBytesPerSec,
                 bandwidthWindow: bandwidthOptions.effectiveBandwidthTimeout,
                 bandwidthAbortAfter: bandwidthOptions.effectiveBandwidthAbortAfter,
-                verboseInstall: logging.logLevel <= AppLogLevel.debug,
+                verboseInstall: logging.isVerbose,
                 logger: logger
             )
 
@@ -289,7 +289,9 @@ struct Deploy: AsyncParsableCommand {
                 )
             }
 
+            // Log level can be managed/applied via CLI, so get the effective level and use that
             let effectiveLogLevel = logging.logLevel != .info ? logging.logLevel : prefs.logLevel
+            let isVerboseInstall = effectiveLogLevel <= .debug
 
             let run = CLILogging.startRun(
                 category: "Deploy",
@@ -345,8 +347,9 @@ struct Deploy: AsyncParsableCommand {
                 retryDelay: prefs.retryDelay,
                 minimumBandwidth: prefs.minimumBandwidth,
                 bandwidthWindow: prefs.bandwidthWindow,
+                // abortAfter only applies when minimumBandwidth is set; no computed property on ManagedPreferences.
                 bandwidthAbortAfter: prefs.minimumBandwidth != nil ? prefs.abortAfter : nil,
-                verboseInstall: effectiveLogLevel <= AppLogLevel.debug,
+                verboseInstall: isVerboseInstall,
                 logger: logger
             )
 

@@ -36,6 +36,9 @@ struct QuietRunOption: ParsableArguments {
 struct LoggingOptions: ParsableArguments {
     @Option(name: .long)
     var logLevel: AppLogLevel = .info
+
+    /// True when the log level is debug or below; passed to ContentCoordinator as verboseInstall
+    var isVerbose: Bool { logLevel <= .debug }
 }
 
 struct EssentialContentOption: ParsableArguments {
