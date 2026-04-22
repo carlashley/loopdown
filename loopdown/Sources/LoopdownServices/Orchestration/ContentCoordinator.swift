@@ -42,7 +42,7 @@ public enum ContentCoordinator {
         includeOptional: Bool,
         appPolicies: [AppContentPolicy] = [],
         appGeneration: AppGeneration = .any,
-        libraryDestURL: URL,
+        libraryDestURL: URL?,
         destDir: String,
         forceDeploy: Bool,
         skipSignatureCheck: Bool,
@@ -58,10 +58,13 @@ public enum ContentCoordinator {
         logger: CoreLogger
     ) async throws -> Bool {
 
+        // Resolve library dest first to handle optional value
+        let resolvedLibraryDestURL = libraryDestURL ?? URL(fileURLWithPath: LoopdownConstants.ModernApps.defaultLibraryDestPath, isDirectory: true)
+
         // 1) Resolve installed apps and filter by CLI selection (if any).
         let installed = Array(
             InstalledApplicationResolver.resolveInstalled(
-                libraryDestURL: libraryDestURL,
+                libraryDestURL: resolvedLibraryDestURL,
                 logger: logger
             )
         )
@@ -124,7 +127,7 @@ public enum ContentCoordinator {
                 includeCore: includeCore,
                 includeOptional: includeOptional,
                 appPolicies: appPolicies,
-                libraryDestURL: libraryDestURL,
+                libraryDestURL: resolvedLibraryDestURL,
                 mode: mode,
                 forceDeploy: forceDeploy,
                 skipSignatureCheck: skipSignatureCheck,
@@ -310,7 +313,7 @@ private extension ContentCoordinator {
         includeCore: Bool,
         includeOptional: Bool,
         appPolicies: [AppContentPolicy],
-        libraryDestURL: URL,
+        libraryDestURL: URL?,
         mode: Mode,
         forceDeploy: Bool,
         skipSignatureCheck: Bool,
@@ -328,7 +331,7 @@ private extension ContentCoordinator {
     ) async throws -> Bool {
 
         logger.debug("forceDeploy: \(forceDeploy)")
-        logger.debug("libraryDestURL: \(libraryDestURL.path)")
+        logger.debug("libraryDestURL: \(libraryDestURL?.path ?? "none")")
         if let cacheServer  { logger.debug("cacheServer: \(cacheServer.absoluteString)") }
         if let mirrorServer { logger.debug("mirrorServer: \(mirrorServer.absoluteString)") }
 
@@ -496,6 +499,11 @@ private extension ContentCoordinator {
                 }
             } else {
                 do {
+                    // guard against empty libraryDestURL
+                    guard let libraryDestURL else {
+                        logger.error("\(indent)libraryDestURL is nil for modern package — this is a bug")
+                        return .failure
+                    }
                     try AARExtractor.extract(
                         packageURL: stagedURL,
                         packageName: pkg.name,

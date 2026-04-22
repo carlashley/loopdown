@@ -24,7 +24,7 @@ struct Download: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Download content for selected apps.",
         discussion: """
-        By default, content for all installed applications is processed. Provide the '-a/--app` argument to only target specific applications.
+        By default, content for all installed applications is processed. Provide the '-a/--app' argument to only target specific applications.
         Downloaded content is stored in \(LoopdownConstants.Paths.defaultDest); use '-d/--dest <dir>' to override. The directory will be created if it does not exist.
 
         Note: a local mirror must be served over HTTPS and the content must be uploaded to the server with the exact folder structure that this
@@ -64,18 +64,13 @@ struct Download: AsyncParsableCommand {
 
             // Download always fetches directly from Apple CDN.
             // Cache server and mirror server are deploy-only options.
-            let libraryDestURL = URL(
-                fileURLWithPath: LoopdownConstants.ModernApps.defaultLibraryDestPath,
-                isDirectory: true
-            )
-
             _ = try await ContentCoordinator.run(
                 mode: .download,
                 selectedApps: apps.app,
                 includeEssential: essential.essential,
                 includeCore: core.core,
                 includeOptional: optional.optional,
-                libraryDestURL: libraryDestURL,
+                libraryDestURL: nil,
                 destDir: destination.dest,
                 forceDeploy: false,
                 skipSignatureCheck: signatureCheck.skipSignatureCheck,
