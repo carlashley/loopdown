@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import LoopdownCore
 
 #if canImport(os)
 import os
@@ -253,7 +254,7 @@ public enum Log {
     )
 
     /// Subsystem identifier used as the log directory name.
-    private static let logDirName = "com.github.carlashley.loopdown"
+    private static let logDirName = "\(BuildInfo.identifier)"
 
     /// Run log URL (set once startRunLogging succeeds).
     public private(set) static var runLogURL: URL? = nil
