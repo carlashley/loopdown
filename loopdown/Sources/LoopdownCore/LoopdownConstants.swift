@@ -105,6 +105,7 @@ public enum LoopdownConstants {
             defaultLibraryDestParent + "/" + libraryBundleName
     }
 
+    // This is a fallback in case BuildInfo.identifier is empty; used in CLILogging.configureBase
     public enum Identifiers {
         public static let defaultSubsystem = "com.github.carlashley.loopdown"
     }
