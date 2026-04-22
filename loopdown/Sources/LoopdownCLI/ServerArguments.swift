@@ -55,8 +55,7 @@ struct ServerOptions: ParsableArguments {
 
 /// Grouped CLI arguments controlling the behaviour of `--cache-server auto` discovery.
 ///
-/// Applies to both `download` and `deploy` commands. Has no effect unless
-/// `--cache-server auto` is in use.
+/// Applies to `deploy` command. Has no effect unless `--cache-server auto` is in use.
 struct CacheAutoDiscoveryOptions: ParsableArguments {
     @Option(
         name: .long,
