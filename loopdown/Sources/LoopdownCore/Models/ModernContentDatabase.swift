@@ -76,6 +76,8 @@ public enum ModernContentDatabase {
 
     // MARK: - ZMINIMUMAPPVERSION parsing
 
+    private static let minimumAppVersionRegex = /\[(\w+)\.(\w+):([^\]]+)\]/
+
     /// Parse the `ZMINIMUMAPPVERSION` column value into a `[shortName: majorVersion]` dictionary,
     /// keeping only macOS entries and excluding the `9999` sentinel.
     ///
@@ -85,19 +87,12 @@ public enum ModernContentDatabase {
     ///
     /// Mirrors the Python `parse_macos_versions` function.
     static func parseMinimumAppVersions(_ value: String) -> [String: Double] {
-        let pattern = #"\[(\w+)\.(\w+):([^\]]+)\]"#
-
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [:] }
-
-        let ns = value as NSString
-        let matches = regex.matches(in: value, range: NSRange(location: 0, length: ns.length))
         var result: [String: Double] = [:]
 
-        for match in matches {
-            guard match.numberOfRanges == 4 else { continue }
-            let appName  = ns.substring(with: match.range(at: 1))
-            let platform = ns.substring(with: match.range(at: 2))
-            let verStr   = ns.substring(with: match.range(at: 3))
+        for match in value.matches(of: minimumAppVersionRegex) {
+            let appName  = String(match.output.1)
+            let platform = String(match.output.2)
+            let verStr   = String(match.output.3)
             guard platform == "macOS", let version = Double(verStr), version < 9999 else { continue }
             result[appName] = version
         }
