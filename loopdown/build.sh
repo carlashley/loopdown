@@ -46,7 +46,7 @@ build_arch() {
         clean build
 }
 
-# ── Adhoc Singing helper ───────────────────────────────────────────────────────
+# ── Adhoc Signing helper ───────────────────────────────────────────────────────
 adhoc_sign_binary() {
     local path="$1"
     echo "==> Signing (ad-hoc)..."
