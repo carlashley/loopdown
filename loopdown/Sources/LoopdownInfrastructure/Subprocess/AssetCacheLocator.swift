@@ -14,8 +14,6 @@ public enum AssetCacheLocator {
     private enum Consts {
         static let toolPath             = "/usr/bin/AssetCacheLocatorUtil"
         static let defaultPreferredRank = 0
-        static let minRank              = 0
-        static let maxRank              = 1000
         static let validSources: Set<String> = ["system", "current_user"]
         static let validUntilFormat     = "yyyy-MM-dd HH:mm:ss z"
     }
