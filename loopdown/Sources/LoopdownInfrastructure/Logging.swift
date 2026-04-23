@@ -219,7 +219,7 @@ public final class AppLogger: Sendable {
         let renderedLine = "\(ts) [FILE    ] \(msg)"
         for sink in fileSinks { sink.writeLine(renderedLine) }
     }
-    
+
     public func withConsole(_ sink: ConsoleLogSink?) -> AppLogger {
         AppLogger(
             subsystem: subsystem,
@@ -259,20 +259,37 @@ public enum Log {
     /// Run log URL (set once startRunLogging succeeds).
     public private(set) static var runLogURL: URL? = nil
 
+    // MARK: - Log directory resolution
+
     /// Resolve the log directory for a given run.
     ///
     /// - Actual deploy runs (root, non-dry-run) write to `/Library/Logs/<logDirName>`.
-    /// - All other runs write to `~/Library/Logs/<logDirName>`.
+    /// - All other runs write to `~/Library/Logs/<logDirName>`, resolving the invoking
+    ///   user's home directory via `SUDO_USER` when running under sudo so that dry runs
+    ///   and download runs as root still land in the correct user's home directory.
     public static func logDirectoryURL(forActualDeploy isActualDeploy: Bool) -> URL {
         if isActualDeploy {
             return URL(fileURLWithPath: "/Library/Logs/\(logDirName)", isDirectory: true)
         }
-        let home = FileManager.default.homeDirectoryForCurrentUser
+
+        // When running under sudo, SUDO_USER holds the invoking user's login name.
+        // Use it to resolve the correct home directory rather than root's.
+        let home: URL
+        if let sudoUser = ProcessInfo.processInfo.environment["SUDO_USER"],
+           !sudoUser.isEmpty,
+           let pw = getpwnam(sudoUser) {
+            home = URL(fileURLWithPath: String(cString: pw.pointee.pw_dir), isDirectory: true)
+        } else {
+            home = FileManager.default.homeDirectoryForCurrentUser
+        }
+
         return home
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Logs", isDirectory: true)
             .appendingPathComponent(logDirName, isDirectory: true)
     }
+
+    // MARK: - Configuration
 
     /// Configure baseline logger settings (no file creation).
     public static func configureBase(
@@ -299,6 +316,8 @@ public enum Log {
         guard let sink = shared.consoleSink else { return }
         shared = shared.withConsole(sink.disabled())
     }
+
+    // MARK: - Start run logging
 
     @discardableResult
     public static func startRunLogging(
@@ -333,8 +352,18 @@ public enum Log {
 
         shared = shared.withFileSinks(sinks)
         runLogURL = runURL
+
+        // If running under sudo for a non-actual-deploy (e.g. dry run or download), the log
+        // directory and files were created as root. Fix ownership back to the invoking user
+        // so they remain accessible without sudo.
+        if !isActualDeploy {
+            fixupLogOwnership(logDir: logDir, runURL: runURL, keepLatestCopy: keepLatestCopy)
+        }
+
         return runURL
     }
+
+    // MARK: - Category
 
     public static func category(_ name: String) -> AppLogger {
         AppLogger(
@@ -345,6 +374,8 @@ public enum Log {
             consoleSink: shared.consoleSink
         )
     }
+
+    // MARK: - Private helpers
 
     private static func runStamp() -> String {
         let df = DateFormatter()
@@ -375,6 +406,28 @@ public enum Log {
 
         for url in sorted.dropFirst(keep) {
             _ = try? fm.removeItem(at: url)
+        }
+    }
+
+    /// When running under sudo for a non-actual-deploy, fix ownership of the log directory
+    /// and log files back to the invoking user so they remain accessible without sudo.
+    /// No-ops silently when not running under sudo or when not root.
+    private static func fixupLogOwnership(logDir: URL, runURL: URL, keepLatestCopy: Bool) {
+        guard let sudoUser = ProcessInfo.processInfo.environment["SUDO_USER"],
+              !sudoUser.isEmpty,
+              let pw = getpwnam(sudoUser)
+        else { return }
+
+        let uid = pw.pointee.pw_uid
+        let gid = pw.pointee.pw_gid
+
+        var paths = [logDir.path, runURL.path]
+        if keepLatestCopy {
+            paths.append(logDir.appendingPathComponent("latest.log").path)
+        }
+
+        for path in paths {
+            path.withCString { _ = chown($0, uid, gid) }
         }
     }
 }
