@@ -172,7 +172,6 @@ private extension ContentCoordinator {
     ) async throws -> Bool {
 
         let baseURL = effectiveBaseURL(cacheServer: cacheServer, mirrorServer: mirrorServer)
-        logger.notice("Downloading from \(baseURL.absoluteString) and saving content to \(destDir)")
 
         let pkgs = mergePackagesAcrossApps(
             apps: apps,
@@ -187,6 +186,8 @@ private extension ContentCoordinator {
             logger.notice("No packages selected for \(mode).")
             return false
         }
+
+        logger.notice("Downloading from \(baseURL.absoluteString) and saving content to \(destDir)")
 
         let requiredBytes = pkgs.reduce(Int64(0)) { $0 + $1.downloadSize.raw }
         let checkPath = FileManager.default.temporaryDirectory.path
@@ -332,7 +333,6 @@ private extension ContentCoordinator {
         if let mirrorServer { logger.debug("mirrorServer: \(mirrorServer.absoluteString)") }
 
         let baseURL = effectiveBaseURL(cacheServer: cacheServer, mirrorServer: mirrorServer)
-        logger.notice("Downloading from \(baseURL.absoluteString) and installing content")
 
         let pending = mergePackagesAcrossApps(
             apps: apps,
@@ -348,6 +348,8 @@ private extension ContentCoordinator {
             logger.notice("No packages selected for \(mode).")
             return false
         }
+
+        logger.notice("Downloading from \(baseURL.absoluteString) and installing content")
 
         // Build the deploy record: attribute each pending package back to its source app.
         // A package may appear in multiple apps' metadata; we assign it to the first app
