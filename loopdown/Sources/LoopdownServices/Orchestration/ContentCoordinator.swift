@@ -446,7 +446,7 @@ private extension ContentCoordinator {
                         logger.warning("\(label) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
                     }
                 )
-                let dest = staging.url.appendingPathComponent(pkg.name)
+                let dest = staging.url.appendingPathComponent(URL(fileURLWithPath: pkg.downloadName).lastPathComponent)
                 try FileManager.default.moveItem(at: tempURL, to: dest)
                 stagedURL = dest
             } catch let error as DownloadClientError {
