@@ -235,10 +235,6 @@ private extension ContentCoordinator {
                     bandwidthWindow: bandwidthWindow,
                     onRetry: { attempt, max, error in
                         logger.warning("\(label) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
-                    },
-                    progress: { prog in
-                        let pct = Int(prog.fractionCompleted * 100)
-                        logger.debug("progress \(pkg.name): \(pct)% (\(ByteSize(prog.bytesWritten))/\(ByteSize(prog.totalBytesExpected)))")
                     }
                 )
 
@@ -448,10 +444,6 @@ private extension ContentCoordinator {
                     bandwidthWindow: bandwidthWindow,
                     onRetry: { attempt, max, error in
                         logger.warning("\(label) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
-                    },
-                    progress: { prog in
-                        let pct = Int(prog.fractionCompleted * 100)
-                        logger.debug("progress \(pkg.name): \(pct)%")
                     }
                 )
                 let dest = staging.url.appendingPathComponent(pkg.name)
