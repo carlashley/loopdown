@@ -86,6 +86,33 @@ public enum LoopdownConstants {
             /// Mirrors `ServerBases.MODERN = "universal/ContentPacks_3"` in Python.
             public static let modernPrefix = "universal/ContentPacks_3"
         }
+
+        public enum IncrementalContentDB {
+            /// URL path to the content-version manifest; appended to `contentSourceBaseURL`.
+            public static let contentVersionPlistPath = "universal/contentversion.plist"
+
+            /// Full URL of the content-version manifest on the Apple CDN.
+            public static let contentVersionPlistURL = Downloads.contentSourceBaseURL
+                .appendingPathComponent(contentVersionPlistPath)
+
+            /// Prefix and suffix for incremental content DB archive names.
+            /// The version integer is zero-padded to four digits.
+            /// Combined with version 18: `universal/contentDB_v0018.aar`
+            public static let archiveRelativePathPrefix = "universal/contentDB_v"
+            public static let archiveSuffix = ".aar"
+
+            /// Prefix and suffix of the bundle directory produced when the archive is extracted.
+            /// The version integer is zero-padded to four digits: `contentDB_v0018.bundle`
+            public static let extractedBundlePrefix = "contentDB_v"
+            public static let extractedBundleSuffix = ".bundle"
+
+            /// Plain-text file inside a `ContentDatabaseV*.db` bundle that holds the
+            /// shipping content version integer.
+            public static let shippingVersionFilename = "ShippingContentVersion"
+
+            /// Prefix common to all `contentversionVX` keys in `contentversion.plist`.
+            public static let versionKeyPrefix = "contentversion"
+        }
     }
 
     public enum ModernApps {

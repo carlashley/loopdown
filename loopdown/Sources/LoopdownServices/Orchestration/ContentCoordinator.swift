@@ -98,6 +98,20 @@ public enum ContentCoordinator {
 
         let downloader = DownloadClient(maxRedirects: 5)
 
+        // Fetch incremental content DB packages once for all modern apps.
+        // Logic Pro and MainStage share the same content DB stream, so we pick the
+        // first modern app we find (highest-version wins if both are present) and
+        // resolve pending versions from its bundle. The resulting packages are merged
+        // into the pending set by runDownload / runDeploy alongside the shipped DB packages.
+        let incrementalPackages: [AudioContentPackage] = await resolveIncrementalPackages(
+            targetApps: targetApps,
+            libraryDestURL: resolvedLibraryDestURL,
+            cacheServer: cacheServer,
+            mirrorServer: mirrorServer,
+            downloader: downloader,
+            logger: logger
+        )
+
         switch mode {
         case .download:
             return try await runDownload(
@@ -105,6 +119,7 @@ public enum ContentCoordinator {
                 includeEssential: includeEssential,
                 includeCore: includeCore,
                 includeOptional: includeOptional,
+                incrementalPackages: incrementalPackages,
                 mode: mode,
                 destDir: destDir,
                 skipSignatureCheck: skipSignatureCheck,
@@ -127,6 +142,7 @@ public enum ContentCoordinator {
                 includeCore: includeCore,
                 includeOptional: includeOptional,
                 appPolicies: appPolicies,
+                incrementalPackages: incrementalPackages,
                 libraryDestURL: resolvedLibraryDestURL,
                 mode: mode,
                 forceDeploy: forceDeploy,
@@ -156,6 +172,7 @@ private extension ContentCoordinator {
         includeEssential: Bool,
         includeCore: Bool,
         includeOptional: Bool,
+        incrementalPackages: [AudioContentPackage],
         mode: Mode,
         destDir: String,
         skipSignatureCheck: Bool,
@@ -178,6 +195,7 @@ private extension ContentCoordinator {
             includeEssential: includeEssential,
             includeCore: includeCore,
             includeOptional: includeOptional,
+            incrementalPackages: incrementalPackages,
             forceDeploy: false,
             debugLog: nil
         )
@@ -310,6 +328,7 @@ private extension ContentCoordinator {
         includeCore: Bool,
         includeOptional: Bool,
         appPolicies: [AppContentPolicy],
+        incrementalPackages: [AudioContentPackage],
         libraryDestURL: URL?, // nil only in download mode; guarded inside attemptDeployPackage for modern packages
         mode: Mode,
         forceDeploy: Bool,
@@ -340,6 +359,7 @@ private extension ContentCoordinator {
             includeCore: includeCore,
             includeOptional: includeOptional,
             appPolicies: appPolicies,
+            incrementalPackages: incrementalPackages,
             forceDeploy: forceDeploy,
             debugLog: logger.debug
         )
@@ -362,6 +382,16 @@ private extension ContentCoordinator {
         // Built now; installed entries are appended after the install loop.
         var pendingRecords: [(generation: String, appKey: String, record: DeployRunRecord.AppRecord)] = []
 
+        // Incremental packages (from contentDB_vXX.aar) are not in any app's shipped bucket
+        // lists but must appear in the deploy run record. Collect those that are pending and
+        // exclusively incremental (not also present in the shipped DB) so they can be
+        // attributed to every modern app in scope — Logic Pro and MainStage share the
+        // same incremental content DB stream.
+        let shippedIDs = Set(apps.flatMap { $0.essential + $0.core + $0.optional }.map { $0.packageID })
+        let incrementalPendingPkgs = incrementalPackages.filter {
+            pendingIDs.contains($0.packageID) && !shippedIDs.contains($0.packageID)
+        }
+
         for app in apps {
             guard let key = app.concreteApp?.rawValue else { continue }
             let generation = app.isModernised ? "modern" : "legacy"
@@ -375,6 +405,19 @@ private extension ContentCoordinator {
             }
             for pkg in app.optional where pendingIDs.contains(pkg.packageID) {
                 appRecord.optional.checked.append(pkg.packageID)
+            }
+
+            // Attribute incremental-only packages to every modern app in scope.
+            if app.isModernised {
+                for pkg in incrementalPendingPkgs {
+                    if pkg.isEssential {
+                        appRecord.essential.checked.append(pkg.packageID)
+                    } else if pkg.isCore {
+                        appRecord.core.checked.append(pkg.packageID)
+                    } else {
+                        appRecord.optional.checked.append(pkg.packageID)
+                    }
+                }
             }
 
             if !appRecord.essential.checked.isEmpty || !appRecord.core.checked.isEmpty || !appRecord.optional.checked.isEmpty {
@@ -745,12 +788,18 @@ private extension ContentCoordinator {
     /// Priority when the same package ID appears in multiple apps:
     /// non-optional (essential or core) always wins over optional, matching
     /// Python's `prefer_essential_or_core_pkg` / `not pkg.is_optional` logic.
+    ///
+    /// `incrementalPackages` are packages sourced from incremental content DB archives
+    /// (contentDB_vXX.aar) that postdate the version shipped in the app bundle. They are
+    /// merged in after the per-app pass; a package already present in the shipped DB
+    /// (from `apps`) takes precedence over the same ID from `incrementalPackages`.
     static func mergePackagesAcrossApps(
         apps: [AudioApplication],
         includeEssential: Bool,
         includeCore: Bool,
         includeOptional: Bool,
         appPolicies: [AppContentPolicy] = [],
+        incrementalPackages: [AudioContentPackage] = [],
         forceDeploy: Bool,
         debugLog: ((String) -> Void)?
     ) -> [AudioContentPackage] {
@@ -801,6 +850,26 @@ private extension ContentCoordinator {
                     }
                 }
             }
+        }
+
+        // Merge incremental packages. A package already present from the shipped DB
+        // (per-app pass above) is not replaced — the DB version takes precedence.
+        // Incremental packages respect the same essential/core/optional include flags.
+        for pkg in incrementalPackages {
+            // Skip if the shipped DB already has this ID (in any category).
+            if byID[pkg.packageID] != nil { continue }
+
+            let shouldInclude: Bool = {
+                if pkg.isEssential { return includeEssential }
+                if pkg.isCore      { return includeCore }
+                return includeOptional
+            }()
+
+            guard shouldInclude else { continue }
+            if !forceDeploy && !packageNeedsInstall(pkg, debugLog: debugLog) { continue }
+
+            byID[pkg.packageID] = pkg
+            if !pkg.isOptional { nonOptionalIDs.insert(pkg.packageID) }
         }
 
         // Sort: essential first, then core, then optional; within each bucket by name.
@@ -899,5 +968,55 @@ private extension ContentCoordinator {
     static func counter(_ n: Int, of total: Int) -> String {
         let width = String(total).count
         return String(format: "%\(width)d of %d", n, total)
+    }
+
+    // MARK: - Incremental content DB resolution
+
+    /// Fetch incremental content DB packages for the first modern app found in `targetApps`.
+    ///
+    /// Logic Pro and MainStage share the same incremental content DB stream
+    /// (`universal/contentDB_vXX.aar`), so a single fetch covers both. We pick the
+    /// first modern app in `targetApps` (typically Logic Pro if both are installed),
+    /// resolve the pending version range from its bundle's `ShippingContentVersion`,
+    /// and download each archive once.
+    ///
+    /// Returns an empty array (never throws) on any failure — errors are logged at the
+    /// appropriate level and the run continues without incremental packages.
+    static func resolveIncrementalPackages(
+        targetApps: [AudioApplication],
+        libraryDestURL: URL,
+        cacheServer: URL?,
+        mirrorServer: URL?,
+        downloader: DownloadClient,
+        logger: CoreLogger
+    ) async -> [AudioContentPackage] {
+        guard let modernApp = targetApps.first(where: { $0.isModernised }) else {
+            return []
+        }
+
+        let versions: [Int]
+        do {
+            versions = try await ContentVersionResolver.pendingVersions(
+                for: modernApp.path,
+                downloader: downloader,
+                logger: logger
+            )
+        } catch {
+            logger.debug("IncrementalDB: could not resolve content versions: \(error.localizedDescription)")
+            return []
+        }
+
+        guard !versions.isEmpty else { return [] }
+
+        logger.debug("IncrementalDB: fetching \(versions.count) incremental DB archive(s): \(versions)")
+
+        return await IncrementalDBFetcher.fetch(
+            versions: versions,
+            libraryDestURL: libraryDestURL,
+            cacheServer: cacheServer,
+            mirrorServer: mirrorServer,
+            downloader: downloader,
+            logger: logger
+        )
     }
 }

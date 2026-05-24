@@ -24,6 +24,9 @@
 		FA0A60C32F1C58D50025ED20 /* ValidationHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C22F1C58D50025ED20 /* ValidationHelpers.swift */; };
 		FA0A60C52F1C5A650025ED20 /* CLILogging.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C42F1C5A650025ED20 /* CLILogging.swift */; };
 		FA0A60C82F1C62AF0025ED20 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0A60C72F1C62AF0025ED20 /* BuildInfo.swift */; };
+		FA17927A2FC289840080B5E9 /* IncrementalContentDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA1792792FC289840080B5E9 /* IncrementalContentDatabase.swift */; };
+		FA1792802FC28A990080B5E9 /* ContentVersionResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA17927F2FC28A990080B5E9 /* ContentVersionResolver.swift */; };
+		FA1792842FC28AC10080B5E9 /* IncrementalDBFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA1792832FC28AC10080B5E9 /* IncrementalDBFetcher.swift */; };
 		FA1D6C162F64FB4E00C22204 /* PackageInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA1D6C152F64FB4E00C22204 /* PackageInstaller.swift */; };
 		FA239F202F1CF222007A0E75 /* InstalledApplicationResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA239F1F2F1CF222007A0E75 /* InstalledApplicationResolver.swift */; };
 		FA239F232F1CF2CA007A0E75 /* StagingDirectoryAndSignalling.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA239F222F1CF2CA007A0E75 /* StagingDirectoryAndSignalling.swift */; };
@@ -131,6 +134,9 @@
 		FA0A60C22F1C58D50025ED20 /* ValidationHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationHelpers.swift; sourceTree = "<group>"; };
 		FA0A60C42F1C5A650025ED20 /* CLILogging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLILogging.swift; sourceTree = "<group>"; };
 		FA0A60C72F1C62AF0025ED20 /* BuildInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BuildInfo.swift; path = Sources/Generated/BuildInfo.swift; sourceTree = SOURCE_ROOT; };
+		FA1792792FC289840080B5E9 /* IncrementalContentDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncrementalContentDatabase.swift; sourceTree = "<group>"; };
+		FA17927F2FC28A990080B5E9 /* ContentVersionResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentVersionResolver.swift; sourceTree = "<group>"; };
+		FA1792832FC28AC10080B5E9 /* IncrementalDBFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncrementalDBFetcher.swift; sourceTree = "<group>"; };
 		FA1D6C152F64FB4E00C22204 /* PackageInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageInstaller.swift; sourceTree = "<group>"; };
 		FA239F1F2F1CF222007A0E75 /* InstalledApplicationResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledApplicationResolver.swift; sourceTree = "<group>"; };
 		FA239F222F1CF2CA007A0E75 /* StagingDirectoryAndSignalling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StagingDirectoryAndSignalling.swift; sourceTree = "<group>"; };
@@ -356,6 +362,8 @@
 		FA9C3A812F346F490079758A /* Networking */ = {
 			isa = PBXGroup;
 			children = (
+				FA17927F2FC28A990080B5E9 /* ContentVersionResolver.swift */,
+				FA1792832FC28AC10080B5E9 /* IncrementalDBFetcher.swift */,
 				FA9C3A852F3485140079758A /* DownloadClient.swift */,
 				FAD460FB2F768770000C730D /* CacheServer.swift */,
 				FAD460FD2F7687C6000C730D /* CacheServerResolution.swift */,
@@ -413,6 +421,7 @@
 				FAB47FB22F1CA85E00CB44A1 /* AudioApplication.swift */,
 				FAB47FB92F1CAEBF00CB44A1 /* AudioContentPackage.swift */,
 				FA059B192F776FE40095C792 /* AppContentPolicy.swift */,
+				FA1792792FC289840080B5E9 /* IncrementalContentDatabase.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -775,7 +784,9 @@
 				FA7D5B542F28BF7C0049BB47 /* AssetCacheLocator.swift in Sources */,
 				FAD460FC2F768770000C730D /* CacheServer.swift in Sources */,
 				FA0A60A82F1C4C9E0025ED20 /* Logging.swift in Sources */,
+				FA1792842FC28AC10080B5E9 /* IncrementalDBFetcher.swift in Sources */,
 				FA6320F92F8BB6F600C61C9A /* AARExtractor.swift in Sources */,
+				FA1792802FC28A990080B5E9 /* ContentVersionResolver.swift in Sources */,
 				FA9C3A862F3485140079758A /* DownloadClient.swift in Sources */,
 				FAC02D052F8E2CEC0025456B /* LibraryBookmark.swift in Sources */,
 				FA58F8ED2F1CCF81001EFB98 /* PackageInfo.swift in Sources */,
@@ -795,6 +806,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA17927A2FC289840080B5E9 /* IncrementalContentDatabase.swift in Sources */,
 				FAB47FAE2F1C8CE600CB44A1 /* ByteSize.swift in Sources */,
 				FAB47FC22F1CB78300CB44A1 /* LoggerProtocol.swift in Sources */,
 				FAFBA2C62F8F6CC4001E64A8 /* AppGeneration.swift in Sources */,
@@ -1231,7 +1243,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = staticlib;
-				MARKETING_VERSION = 2.0.3.RC1;
+				MARKETING_VERSION = 2.0.3.RC2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				"OTHER_LDFLAGS[arch=*]" = "-lsqlite3";
@@ -1269,7 +1281,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = staticlib;
-				MARKETING_VERSION = 2.0.3.RC1;
+				MARKETING_VERSION = 2.0.3.RC2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				"OTHER_LDFLAGS[arch=*]" = "-lsqlite3";
