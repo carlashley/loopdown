@@ -62,6 +62,18 @@ SUBCOMMANDS:
   See 'loopdown help <subcommand>' for detailed help.
 ```
 
+## Deployment Notes
+The basic deployment process is:
+1. Install respective audio apps (i.e. GarageBand, Logic Pro, and/or MainStage)
+1. Use the `deploy` mode of `loopdown` with applicable arguments
+1. If audio content is being installed for the modern versions of Logic Pro (v12+) and/or MainStage (v4+), then ensure the user and group ownership of the deployment target (default `/Users/Shared/Logic Pro Library.bundle` are set appropriately as some directories/files may have user and group ownership incorrectly set - this is an Apple issue); for example `sudo chown -R user:staff /Users/Shared/Logic\ Pro\ Library.bundle`.
+
+If you have already deployed some content for Logic Pro v12+ and/or MainStage 4+ and you're deploying additional content, when a user next launches either of these applications, the newly deployed content may not appear as installed (even though the files do exist); this is because there is a database maintained in `~/Music/Audio Music Apps` - this directory may need to be deleted to ensure the application re-creates it on the next launch to ensure the Sound Library in each app correctly indicates/detects which content packs are installed.
+
+This could be achieved through a post-install script (presuming appropriate access to delete these folders from user accounts exists), or can be achieved by instructing the user to delete that directory.
+
+It is beyond the scope of `loopdown` to manage this process, especially as it is a _per user_ database.
+
 ## Managed Preferences
 This is an experimental implementation of use managed preferences (or even using `defaults` to provide local preferences) for deployment modes.
 
