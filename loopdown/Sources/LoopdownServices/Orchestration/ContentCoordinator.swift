@@ -112,6 +112,33 @@ public enum ContentCoordinator {
             logger: logger
         )
 
+        // Fetch remote plist delta packages for legacy apps.
+        // Apple hosts an up-to-date copy of each app's content plist at
+        // https://audiocontentdownload.apple.com/lp10_ms3_content_2016/<plistName>
+        // which may include packages added after the app shipped. These are merged with
+        // incrementalPackages and handled identically downstream — a package ID already
+        // present in incrementalPackages takes precedence.
+        let remotePlistPackages: [AudioContentPackage] = await resolveRemotePlistPackages(
+            targetApps: targetApps,
+            cacheServer: cacheServer,
+            mirrorServer: mirrorServer,
+            downloader: downloader,
+            logger: logger
+        )
+
+        // Combine both sources into a single extraPackages list passed downstream.
+        // Packages from the incremental DB (modern) take precedence over remote plist
+        // delta packages (legacy) when the same ID appears in both.
+        let extraPackages: [AudioContentPackage] = {
+            guard !remotePlistPackages.isEmpty else { return incrementalPackages }
+            var combined = incrementalPackages
+            let incrementalIDs = Set(incrementalPackages.map { $0.packageID })
+            for pkg in remotePlistPackages where !incrementalIDs.contains(pkg.packageID) {
+                combined.append(pkg)
+            }
+            return combined
+        }()
+
         switch mode {
         case .download:
             return try await runDownload(
@@ -119,7 +146,7 @@ public enum ContentCoordinator {
                 includeEssential: includeEssential,
                 includeCore: includeCore,
                 includeOptional: includeOptional,
-                incrementalPackages: incrementalPackages,
+                extraPackages: extraPackages,
                 mode: mode,
                 destDir: destDir,
                 skipSignatureCheck: skipSignatureCheck,
@@ -142,7 +169,7 @@ public enum ContentCoordinator {
                 includeCore: includeCore,
                 includeOptional: includeOptional,
                 appPolicies: appPolicies,
-                incrementalPackages: incrementalPackages,
+                extraPackages: extraPackages,
                 libraryDestURL: resolvedLibraryDestURL,
                 mode: mode,
                 forceDeploy: forceDeploy,
@@ -172,7 +199,7 @@ private extension ContentCoordinator {
         includeEssential: Bool,
         includeCore: Bool,
         includeOptional: Bool,
-        incrementalPackages: [AudioContentPackage],
+        extraPackages: [AudioContentPackage],
         mode: Mode,
         destDir: String,
         skipSignatureCheck: Bool,
@@ -195,9 +222,9 @@ private extension ContentCoordinator {
             includeEssential: includeEssential,
             includeCore: includeCore,
             includeOptional: includeOptional,
-            incrementalPackages: incrementalPackages,
-            forceDeploy: false,
-            debugLog: nil
+            incrementalPackages: extraPackages,
+            forceDeploy: true,   // download mode never filters by install state
+            debugLog: logger.debug
         )
 
         if pkgs.isEmpty {
@@ -328,7 +355,7 @@ private extension ContentCoordinator {
         includeCore: Bool,
         includeOptional: Bool,
         appPolicies: [AppContentPolicy],
-        incrementalPackages: [AudioContentPackage],
+        extraPackages: [AudioContentPackage],
         libraryDestURL: URL?, // nil only in download mode; guarded inside attemptDeployPackage for modern packages
         mode: Mode,
         forceDeploy: Bool,
@@ -359,7 +386,7 @@ private extension ContentCoordinator {
             includeCore: includeCore,
             includeOptional: includeOptional,
             appPolicies: appPolicies,
-            incrementalPackages: incrementalPackages,
+            incrementalPackages: extraPackages,
             forceDeploy: forceDeploy,
             debugLog: logger.debug
         )
@@ -382,14 +409,16 @@ private extension ContentCoordinator {
         // Built now; installed entries are appended after the install loop.
         var pendingRecords: [(generation: String, appKey: String, record: DeployRunRecord.AppRecord)] = []
 
-        // Incremental packages (from contentDB_vXX.aar) are not in any app's shipped bucket
-        // lists but must appear in the deploy run record. Collect those that are pending and
-        // exclusively incremental (not also present in the shipped DB) so they can be
-        // attributed to every modern app in scope — Logic Pro and MainStage share the
-        // same incremental content DB stream.
+        // Modern incremental DB packages (from contentDB_vXX.aar) are not in any app's
+        // shipped bucket lists but must appear in the deploy run record. Filter extraPackages
+        // to non-legacy (i.e. incremental DB) entries that are pending and not already in the
+        // shipped DB, then attribute them to every modern app in scope — Logic Pro and
+        // MainStage share the same incremental content DB stream.
+        // Legacy remote plist delta packages are legacy (isLegacy == true) and are already
+        // attributed via each app's own core/optional loop above.
         let shippedIDs = Set(apps.flatMap { $0.essential + $0.core + $0.optional }.map { $0.packageID })
-        let incrementalPendingPkgs = incrementalPackages.filter {
-            pendingIDs.contains($0.packageID) && !shippedIDs.contains($0.packageID)
+        let incrementalPendingPkgs = extraPackages.filter {
+            !$0.isLegacy && pendingIDs.contains($0.packageID) && !shippedIDs.contains($0.packageID)
         }
 
         for app in apps {
@@ -789,10 +818,11 @@ private extension ContentCoordinator {
     /// non-optional (essential or core) always wins over optional, matching
     /// Python's `prefer_essential_or_core_pkg` / `not pkg.is_optional` logic.
     ///
-    /// `incrementalPackages` are packages sourced from incremental content DB archives
-    /// (contentDB_vXX.aar) that postdate the version shipped in the app bundle. They are
-    /// merged in after the per-app pass; a package already present in the shipped DB
-    /// (from `apps`) takes precedence over the same ID from `incrementalPackages`.
+    /// `extraPackages` are packages not present in any app's shipped metadata:
+    /// modern packages from incremental content DB archives (contentDB_vXX.aar),
+    /// and legacy delta packages from remote plists. They are merged in after the
+    /// per-app pass; a package already present in the shipped DB (from `apps`) takes
+    /// precedence over the same ID from `extraPackages`.
     static func mergePackagesAcrossApps(
         apps: [AudioApplication],
         includeEssential: Bool,
@@ -852,9 +882,10 @@ private extension ContentCoordinator {
             }
         }
 
-        // Merge incremental packages. A package already present from the shipped DB
-        // (per-app pass above) is not replaced — the DB version takes precedence.
-        // Incremental packages respect the same essential/core/optional include flags.
+        // Merge extra packages (incremental DB + remote plist delta).
+        // A package already present from the shipped DB (per-app pass above)
+        // is not replaced — shipped DB takes precedence.
+        // Extra packages respect the same essential/core/optional include flags.
         for pkg in incrementalPackages {
             // Skip if the shipped DB already has this ID (in any category).
             if byID[pkg.packageID] != nil { continue }
@@ -1013,6 +1044,37 @@ private extension ContentCoordinator {
         return await IncrementalDBFetcher.fetch(
             versions: versions,
             libraryDestURL: libraryDestURL,
+            cacheServer: cacheServer,
+            mirrorServer: mirrorServer,
+            downloader: downloader,
+            logger: logger
+        )
+    }
+
+    // MARK: - Remote plist delta resolution
+
+    /// Fetch remote plist delta packages for all legacy apps in `targetApps`.
+    ///
+    /// For each legacy app, Apple hosts an up-to-date content plist at
+    /// `https://audiocontentdownload.apple.com/lp10_ms3_content_2016/<plistName>`.
+    /// This may contain packages added after the app was released that are absent
+    /// from the bundled local copy. Only packages not already in the app's local
+    /// essential/core/optional sets are returned.
+    ///
+    /// Returns an empty array (never throws) on any failure.
+    static func resolveRemotePlistPackages(
+        targetApps: [AudioApplication],
+        cacheServer: URL?,
+        mirrorServer: URL?,
+        downloader: DownloadClient,
+        logger: CoreLogger
+    ) async -> [AudioContentPackage] {
+        guard targetApps.contains(where: { !$0.isModernised }) else {
+            return []
+        }
+
+        return await RemotePlistFetcher.fetchAll(
+            apps: targetApps,
             cacheServer: cacheServer,
             mirrorServer: mirrorServer,
             downloader: downloader,
