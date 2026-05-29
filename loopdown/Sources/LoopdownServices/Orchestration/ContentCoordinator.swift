@@ -32,7 +32,7 @@ public enum ContentCoordinator {
     ///   - `appPolicies`: per-app overrides under `--managed`. Empty means use the global flags.
     ///   - `libraryDestURL`: destination root for modern Logic Pro 12+ / MainStage 4+ content.
     ///   - `skipSignatureCheck`: applies to legacy `.pkg` only; modern `.aar` always skips.
-    ///   - `cacheServer` and `mirrorServer` apply to both legacy and modern packages.
+    ///   - `cacheServer` and `mirrorServer` apply to package downloads; remote metadata plists are always fetched directly from the Apple CDN.
     ///   - `appGeneration`: restricts targeting to legacy-only or modern-only apps. `.any` targets both.
     public static func run(
         mode: Mode,
@@ -107,8 +107,8 @@ public enum ContentCoordinator {
             targetApps: targetApps,
             libraryDestURL: resolvedLibraryDestURL,
             cacheServer: cacheServer,
-            mirrorServer: mirrorServer,
-            downloader: downloader,
+            mirrorServer: mirrorServer,  // required to actually form `.car` urls for modern content packs
+            downloader: downloader,  // required to actually form `.car` urls for modern content packs
             logger: logger
         )
 
@@ -120,8 +120,6 @@ public enum ContentCoordinator {
         // present in incrementalPackages takes precedence.
         let remotePlistPackages: [AudioContentPackage] = await resolveRemotePlistPackages(
             targetApps: targetApps,
-            cacheServer: cacheServer,
-            mirrorServer: mirrorServer,
             downloader: downloader,
             logger: logger
         )
@@ -1064,8 +1062,6 @@ private extension ContentCoordinator {
     /// Returns an empty array (never throws) on any failure.
     static func resolveRemotePlistPackages(
         targetApps: [AudioApplication],
-        cacheServer: URL?,
-        mirrorServer: URL?,
         downloader: DownloadClient,
         logger: CoreLogger
     ) async -> [AudioContentPackage] {
@@ -1075,8 +1071,6 @@ private extension ContentCoordinator {
 
         return await RemotePlistFetcher.fetchAll(
             apps: targetApps,
-            cacheServer: cacheServer,
-            mirrorServer: mirrorServer,
             downloader: downloader,
             logger: logger
         )

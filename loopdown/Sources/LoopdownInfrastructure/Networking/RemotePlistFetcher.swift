@@ -53,16 +53,12 @@ public enum RemotePlistFetcher {
     /// of a given ID wins (consistent with `mergePackagesAcrossApps` priority).
     ///
     /// - Parameters:
-    ///   - apps:         All resolved `AudioApplication` values for this run.
-    ///   - cacheServer:  Optional caching/proxy server (used in place of Apple CDN).
-    ///   - mirrorServer: Optional mirror server (highest priority).
-    ///   - downloader:   Shared `DownloadClient` instance.
-    ///   - logger:       Logger for debug and error output.
+    ///   - apps:       All resolved `AudioApplication` values for this run.
+    ///   - downloader: Shared `DownloadClient` instance.
+    ///   - logger:     Logger for debug and error output.
     /// - Returns: Deduplicated delta packages across all legacy apps. Never throws.
     public static func fetchAll(
         apps: [AudioApplication],
-        cacheServer: URL?,
-        mirrorServer: URL?,
         downloader: DownloadClient,
         logger: CoreLogger = NullLogger()
     ) async -> [AudioContentPackage] {
@@ -76,8 +72,6 @@ public enum RemotePlistFetcher {
         for app in legacyApps {
             guard let pkgs = await fetchOneApp(
                 app: app,
-                cacheServer: cacheServer,
-                mirrorServer: mirrorServer,
                 downloader: downloader,
                 logger: logger
             ) else {
@@ -105,8 +99,6 @@ public enum RemotePlistFetcher {
     /// Returns `nil` on non-fatal failure (error already logged).
     private static func fetchOneApp(
         app: AudioApplication,
-        cacheServer: URL?,
-        mirrorServer: URL?,
         downloader: DownloadClient,
         logger: CoreLogger
     ) async -> [AudioContentPackage]? {
@@ -118,8 +110,7 @@ public enum RemotePlistFetcher {
             return nil
         }
 
-        let baseURL = effectiveBaseURL(cacheServer: cacheServer, mirrorServer: mirrorServer)
-        var downloadURL = baseURL
+        var downloadURL = LoopdownConstants.Downloads.contentSourceBaseURL
         for part in "\(Consts.plistRelDir)/\(plistName)".split(separator: "/") {
             downloadURL.appendPathComponent(String(part))
         }
@@ -236,12 +227,4 @@ public enum RemotePlistFetcher {
         }?.lastPathComponent
     }
 
-
-    // MARK: - Base URL helper
-
-    private static func effectiveBaseURL(cacheServer: URL?, mirrorServer: URL?) -> URL {
-        mirrorServer
-            ?? cacheServer
-            ?? LoopdownConstants.Downloads.contentSourceBaseURL
-    }
 }
