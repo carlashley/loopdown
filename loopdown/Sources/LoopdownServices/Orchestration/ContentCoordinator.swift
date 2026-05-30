@@ -278,7 +278,7 @@ private extension ContentCoordinator {
                     minimumBandwidth: minimumBandwidth,
                     bandwidthWindow: bandwidthWindow,
                     onRetry: { attempt, max, error in
-                        logger.warning("\(label) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
+                        logger.warning("\(label) - retry \(attempt)/\(max): \(pkg.name) (\(downloadErrorReason(error))).")
                     }
                 )
 
@@ -297,11 +297,11 @@ private extension ContentCoordinator {
                 logger.info("\(label) - saved: \(pkg.name)")
                 return .success
             } catch let error as DownloadClientError {
-                logger.error("\(label) - failed: \(pkg.name) (\(error.localizedDescription))")
+                logger.error("\(label) - failed: \(pkg.name) (\(downloadErrorReason(error))).")
                 if case .belowMinimumBandwidth = error { return .bandwidthFailure }
                 return .otherFailure
             } catch {
-                logger.error("\(label) - failed: \(pkg.name) (\(error.localizedDescription))")
+                logger.error("\(label) - failed: \(pkg.name) (\(downloadErrorReason(error))).")
                 return .otherFailure
             }
         }
@@ -515,18 +515,18 @@ private extension ContentCoordinator {
                     minimumBandwidth: minimumBandwidth,
                     bandwidthWindow: bandwidthWindow,
                     onRetry: { attempt, max, error in
-                        logger.warning("\(label) - retry \(attempt)/\(max): \(pkg.name) (\(error.localizedDescription))")
+                        logger.warning("\(label) - retry \(attempt)/\(max): \(pkg.name) (\(downloadErrorReason(error))).")
                     }
                 )
                 let dest = staging.url.appendingPathComponent(URL(fileURLWithPath: pkg.downloadName).lastPathComponent)
                 try FileManager.default.moveItem(at: tempURL, to: dest)
                 stagedURL = dest
             } catch let error as DownloadClientError {
-                logger.error("\(label) - failed to download: \(pkg.name) (\(error.localizedDescription))")
+                logger.error("\(label) - failed to download: \(pkg.name) (\(downloadErrorReason(error))).")
                 if case .belowMinimumBandwidth = error { return .bandwidthFailure }
                 return .failure
             } catch {
-                logger.error("\(label) - failed to download: \(pkg.name) (\(error.localizedDescription))")
+                logger.error("\(label) - failed to download: \(pkg.name) (\(downloadErrorReason(error))).")
                 return .failure
             }
 

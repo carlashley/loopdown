@@ -42,6 +42,48 @@ public enum DownloadClientError: Error, CustomStringConvertible {
     }
 }
 
+// MARK: - Error reason formatting
+
+/// Returns a concise human-readable reason for a download error, suitable for
+/// embedding in a log line inside parentheses. The returned string carries NO
+/// surrounding parentheses and NO trailing period — callers add those — so that
+/// punctuation stays consistent across every call site (e.g. "(\(reason)).").
+///
+/// Formatting by failure type:
+///   - HTTP status failure  → "HTTP 503, service unavailable"
+///   - Network/URL failure   → "the network connection was lost, URLError -1005"
+///   - Other download errors → the error's own description, period trimmed
+///   - Anything else         → localizedDescription, period trimmed
+///
+/// A retry is always triggered by a single error, so only one of these forms is
+/// produced per call. HTTP-status failures carry no URLError code and network
+/// failures carry no HTTP status, so the two are never combined.
+public func downloadErrorReason(_ error: Error) -> String {
+    if let clientError = error as? DownloadClientError {
+        if case .invalidHTTPStatus(let code) = clientError {
+            let phrase = HTTPURLResponse.localizedString(forStatusCode: code)
+            return "HTTP \(code), \(phrase)"
+        }
+        // Other DownloadClientError cases: use their own description, trimmed of
+        // any trailing period since the caller appends one.
+        return trimTrailingPeriod(clientError.description)
+    }
+
+    let nsError = error as NSError
+    if nsError.domain == NSURLErrorDomain {
+        let message = trimTrailingPeriod(nsError.localizedDescription)
+        return "\(message), URLError \(nsError.code)"
+    }
+
+    return trimTrailingPeriod(error.localizedDescription)
+}
+
+private func trimTrailingPeriod(_ s: String) -> String {
+    var out = s.trimmingCharacters(in: .whitespacesAndNewlines)
+    if out.hasSuffix(".") { out.removeLast() }
+    return out
+}
+
 // MARK: - BandwidthMonitor
 
 /// Tracks rolling average download speed over a fixed time window.
