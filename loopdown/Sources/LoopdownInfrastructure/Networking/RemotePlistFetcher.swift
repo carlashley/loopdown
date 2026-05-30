@@ -126,8 +126,9 @@ public enum RemotePlistFetcher {
                 retryDelay: 2,
                 minimumBandwidth: nil,
                 bandwidthWindow: 60,
-                onRetry: { attempt, max, error in
-                    logger.warning("RemotePlistFetcher: retry \(attempt)/\(max) for '\(plistName)': \(error.localizedDescription)")
+                onRetry: { attempt, max, error, wait in
+                    let waitStr = wait == wait.rounded() ? String(Int(wait)) : String(format: "%.1f", wait)
+                    logger.warning("RemotePlistFetcher: retry \(attempt)/\(max) for '\(plistName)' (\(downloadErrorReason(error)); retrying in \(waitStr)s)")
                 }
             )
         } catch {

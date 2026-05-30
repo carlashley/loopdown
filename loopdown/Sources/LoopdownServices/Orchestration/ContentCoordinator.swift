@@ -277,8 +277,9 @@ private extension ContentCoordinator {
                     retryDelay: TimeInterval(retryDelay),
                     minimumBandwidth: minimumBandwidth,
                     bandwidthWindow: bandwidthWindow,
-                    onRetry: { attempt, max, error in
-                        logger.warning("\(label) - retry \(attempt)/\(max): \(pkg.name) (\(downloadErrorReason(error))).")
+                    onRetry: { attempt, max, error, wait in
+                        let waitStr = wait == wait.rounded() ? String(Int(wait)) : String(format: "%.1f", wait)
+                        logger.warning("\(label) - retry \(attempt)/\(max): \(pkg.name) (\(downloadErrorReason(error)); retrying in \(waitStr)s).")
                     }
                 )
 
@@ -514,8 +515,9 @@ private extension ContentCoordinator {
                     retryDelay: TimeInterval(retryDelay),
                     minimumBandwidth: minimumBandwidth,
                     bandwidthWindow: bandwidthWindow,
-                    onRetry: { attempt, max, error in
-                        logger.warning("\(label) - retry \(attempt)/\(max): \(pkg.name) (\(downloadErrorReason(error))).")
+                    onRetry: { attempt, max, error, wait in
+                        let waitStr = wait == wait.rounded() ? String(Int(wait)) : String(format: "%.1f", wait)
+                        logger.warning("\(label) - retry \(attempt)/\(max): \(pkg.name) (\(downloadErrorReason(error)); retrying in \(waitStr)s).")
                     }
                 )
                 let dest = staging.url.appendingPathComponent(URL(fileURLWithPath: pkg.downloadName).lastPathComponent)

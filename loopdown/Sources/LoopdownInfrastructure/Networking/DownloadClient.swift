@@ -20,7 +20,10 @@ public struct DownloadProgress: Sendable {
 
 public enum DownloadClientError: Error, CustomStringConvertible {
     case tooManyRedirects(max: Int)
-    case invalidHTTPStatus(code: Int)
+    /// A non-2xx HTTP status. `retryAfter`, when non-nil, is the server-advertised
+    /// delay (in seconds, relative to now) parsed from the `Retry-After` response
+    /// header — typically present on 429 (Too Many Requests) and sometimes 503.
+    case invalidHTTPStatus(code: Int, retryAfter: TimeInterval?)
     case failedToPreserveTempFile(Error)
     case cancelled
     case belowMinimumBandwidth(threshold: Int, window: Int)
@@ -29,7 +32,7 @@ public enum DownloadClientError: Error, CustomStringConvertible {
         switch self {
         case .tooManyRedirects(let max):
             return "Too many redirects (max \(max))."
-        case .invalidHTTPStatus(let code):
+        case .invalidHTTPStatus(let code, _):
             return "Unexpected HTTP status code: \(code)."
         case .failedToPreserveTempFile(let error):
             return "Failed to preserve downloaded temp file: \(error)"
@@ -60,7 +63,7 @@ public enum DownloadClientError: Error, CustomStringConvertible {
 /// failures carry no HTTP status, so the two are never combined.
 public func downloadErrorReason(_ error: Error) -> String {
     if let clientError = error as? DownloadClientError {
-        if case .invalidHTTPStatus(let code) = clientError {
+        if case .invalidHTTPStatus(let code, _) = clientError {
             let phrase = HTTPURLResponse.localizedString(forStatusCode: code)
             return "HTTP \(code), \(phrase)"
         }
@@ -234,7 +237,7 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
     /// other domains — are treated as terminal and are not retried.
     private static func isRetryable(_ error: Error) -> Bool {
         if let clientError = error as? DownloadClientError {
-            if case .invalidHTTPStatus(let code) = clientError {
+            if case .invalidHTTPStatus(let code, _) = clientError {
                 return retryableHTTPStatusCodes.contains(code)
             }
             return false
@@ -244,6 +247,54 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
         guard nsError.domain == NSURLErrorDomain else { return false }
         return retryableURLErrorCodes.contains(nsError.code)
     }
+
+    /// Maximum honoured `Retry-After` delay, in seconds. A server (or a malformed/
+    /// hostile response) could advertise an arbitrarily large value; this clamps it
+    /// so a single 429 cannot stall the tool indefinitely. Five minutes is well
+    /// beyond any reasonable CDN throttle window.
+    private static let maxRetryAfterDelay: TimeInterval = 300
+
+    /// Parses the `Retry-After` response header into a delay in seconds relative to
+    /// now, or `nil` if the header is absent or unparseable.
+    ///
+    /// Per RFC 9110 §10.2.3 the header has two legal forms:
+    ///   - delta-seconds: an integer count of seconds, e.g. `Retry-After: 120`
+    ///   - HTTP-date:     an absolute time, e.g. `Retry-After: Wed, 21 Oct 2025 07:28:00 GMT`
+    ///
+    /// The HTTP-date form is converted to a delay from the current time. Negative
+    /// results (a date already in the past) are clamped to 0. All results are
+    /// clamped to `maxRetryAfterDelay`.
+    private static func parseRetryAfter(from response: HTTPURLResponse) -> TimeInterval? {
+        guard let raw = response.value(forHTTPHeaderField: "Retry-After")?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty
+        else { return nil }
+
+        // Form 1: delta-seconds (a bare non-negative integer).
+        if let seconds = TimeInterval(raw) {
+            guard seconds >= 0 else { return nil }
+            return min(seconds, maxRetryAfterDelay)
+        }
+
+        // Form 2: HTTP-date. Parse with the RFC 1123 format used by HTTP headers.
+        if let date = Self.httpDateFormatter.date(from: raw) {
+            let delay = date.timeIntervalSinceNow
+            return min(max(delay, 0), maxRetryAfterDelay)
+        }
+
+        return nil
+    }
+
+    /// Formatter for the RFC 1123 (`IMF-fixdate`) date form used by HTTP headers,
+    /// e.g. "Wed, 21 Oct 2025 07:28:00 GMT". Fixed to GMT and POSIX locale so it
+    /// parses regardless of the host's region or time-zone settings.
+    private static let httpDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone(identifier: "GMT")
+        f.dateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
+        return f
+    }()
 
     /// Downloads a file and returns a stable URL the caller owns.
     ///
@@ -264,7 +315,7 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
         retryDelay: TimeInterval = 2,
         minimumBandwidth: Int? = nil,
         bandwidthWindow: Int = 60,
-        onRetry: (@Sendable (Int, Int, Error) -> Void)? = nil,
+        onRetry: (@Sendable (Int, Int, Error, TimeInterval) -> Void)? = nil,
         progress: ProgressHandler? = nil
     ) async throws -> URL {
 
@@ -285,9 +336,22 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
                 }
 
                 attempt += 1
-                onRetry?(attempt, maxRetries, error)
-                try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                delay *= 2
+
+                // If the server advertised a Retry-After delay (typically on 429),
+                // honour it instead of the exponential backoff. The exponential
+                // `delay` is left unchanged so a later failure without a Retry-After
+                // still backs off from the correct base.
+                let sleepSeconds: TimeInterval
+                if case DownloadClientError.invalidHTTPStatus(_, let retryAfter?) = error {
+                    sleepSeconds = retryAfter
+                } else {
+                    sleepSeconds = delay
+                    delay *= 2
+                }
+
+                onRetry?(attempt, maxRetries, error, sleepSeconds)
+
+                try await Task.sleep(nanoseconds: UInt64(sleepSeconds * 1_000_000_000))
             }
         }
     }
@@ -422,7 +486,8 @@ extension DownloadClient: URLSessionTaskDelegate, URLSessionDownloadDelegate {
         if let http = downloadTask.response as? HTTPURLResponse {
             if !(200...299).contains(http.statusCode) {
                 if let state = popState(downloadTask.taskIdentifier) {
-                    state.continuation?.resume(throwing: DownloadClientError.invalidHTTPStatus(code: http.statusCode))
+                    let retryAfter = Self.parseRetryAfter(from: http)
+                    state.continuation?.resume(throwing: DownloadClientError.invalidHTTPStatus(code: http.statusCode, retryAfter: retryAfter))
                 }
                 return
             }

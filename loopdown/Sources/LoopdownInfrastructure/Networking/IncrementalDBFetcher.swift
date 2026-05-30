@@ -132,8 +132,9 @@ public enum IncrementalDBFetcher {
                 retryDelay: 2,
                 minimumBandwidth: nil,
                 bandwidthWindow: 60,
-                onRetry: { attempt, max, error in
-                    logger.warning("IncrementalDBFetcher: retry \(attempt)/\(max) for \(archiveName): \(error.localizedDescription)")
+                onRetry: { attempt, max, error, wait in
+                    let waitStr = wait == wait.rounded() ? String(Int(wait)) : String(format: "%.1f", wait)
+                    logger.warning("IncrementalDBFetcher: retry \(attempt)/\(max) for \(archiveName) (\(downloadErrorReason(error)); retrying in \(waitStr)s)")
                 }
             )
         } catch {
