@@ -187,9 +187,11 @@ struct Deploy: AsyncParsableCommand {
             throw ValidationError("'--abort-after' cannot be used with '--managed'; set the 'abortAfter' key in the preferences domain instead.")
         }
 
-        if !dry.dryRun && !PrivilegeCheck.isRoot {
-            throw ValidationError("You must be root to use this command; re-run with sudo or use '-n/--dry-run'.")
-        }
+        // NOTE: The root-privilege check is intentionally NOT performed here.
+        // In managed mode the effective dry-run state can come from the preferences
+        // domain ('dryRun = true'), which is not yet readable at validate() time.
+        // runManaged() enforces the privilege requirement against the effective
+        // dry-run value (CLI flag OR managed 'dryRun' key) after the domain is read.
     }
 
     private func validateStandardMode() throws {
