@@ -64,6 +64,7 @@
 		FAD460FE2F7687C6000C730D /* CacheServerResolution.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD460FD2F7687C6000C730D /* CacheServerResolution.swift */; };
 		FAD461072F7688F9000C730D /* CacheServer+ArgumentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD461062F7688F9000C730D /* CacheServer+ArgumentParser.swift */; };
 		FAFBA2C62F8F6CC4001E64A8 /* AppGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAFBA2C52F8F6CC4001E64A8 /* AppGeneration.swift */; };
+		FAFC40992FCAB2E4005FFF55 /* LibrarySharedOwnership.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAFC40982FCAB2E4005FFF55 /* LibrarySharedOwnership.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -179,6 +180,7 @@
 		FAD460FD2F7687C6000C730D /* CacheServerResolution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheServerResolution.swift; sourceTree = "<group>"; };
 		FAD461062F7688F9000C730D /* CacheServer+ArgumentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CacheServer+ArgumentParser.swift"; sourceTree = "<group>"; };
 		FAFBA2C52F8F6CC4001E64A8 /* AppGeneration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGeneration.swift; sourceTree = "<group>"; };
+		FAFC40982FCAB2E4005FFF55 /* LibrarySharedOwnership.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySharedOwnership.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -309,6 +311,7 @@
 				FAB048C62F1C74A0000FA556 /* ExecutionLock.swift */,
 				FAC02D042F8E2CEC0025456B /* LibraryBookmark.swift */,
 				FA4A50A02F90B76F000ED95B /* DeployRunRecord.swift */,
+				FAFC40982FCAB2E4005FFF55 /* LibrarySharedOwnership.swift */,
 			);
 			name = LoopdownInfrastructure;
 			path = Sources/LoopdownInfrastructure;
@@ -781,6 +784,7 @@
 			files = (
 				FA1D6C162F64FB4E00C22204 /* PackageInstaller.swift in Sources */,
 				FA4A50A12F90B76F000ED95B /* DeployRunRecord.swift in Sources */,
+				FAFC40992FCAB2E4005FFF55 /* LibrarySharedOwnership.swift in Sources */,
 				FA58F8EB2F1CCD38001EFB98 /* SubprocessRunner.swift in Sources */,
 				FAB048C72F1C74A0000FA556 /* ExecutionLock.swift in Sources */,
 				FA0A60AF2F1C54020025ED20 /* PrivilegeCheck.swift in Sources */,

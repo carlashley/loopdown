@@ -271,6 +271,18 @@ struct Deploy: AsyncParsableCommand {
                     dryRun: dry.dryRun,
                     logger: logger
                 )
+
+                // Final step before cleanup: when the library was deployed into the
+                // default shared location (/Users/Shared), recursively set the bundle
+                // to root:wheel so it stays readable by everyone but writable only by
+                // root. Runs after the bookmark write so the bookmark is swept too.
+                if libraryDestIsDefaultShared(libraryDestURL) {
+                    enforceSharedLibraryOwnership(
+                        libraryDestURL: libraryDestURL,
+                        dryRun: dry.dryRun,
+                        logger: logger
+                    )
+                }
             }
         }
     }
@@ -361,6 +373,18 @@ struct Deploy: AsyncParsableCommand {
                     dryRun: effectiveDryRun,
                     logger: logger
                 )
+
+                // Final step before cleanup: when the library was deployed into the
+                // default shared location (/Users/Shared), recursively set the bundle
+                // to root:wheel so it stays readable by everyone but writable only by
+                // root. Runs after the bookmark write so the bookmark is swept too.
+                if libraryDestIsDefaultShared(libraryDestURL) {
+                    enforceSharedLibraryOwnership(
+                        libraryDestURL: libraryDestURL,
+                        dryRun: effectiveDryRun,
+                        logger: logger
+                    )
+                }
             }
         }
     }
