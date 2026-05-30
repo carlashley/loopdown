@@ -152,9 +152,21 @@ public enum AARExtractor {
 
         let target = "\(stem).plist"
 
+        // Parsing assumption: `aa list -i` emits one archive entry path per line,
+        // with the path as the entire (trimmed) line — no leading columns such as
+        // size, mode, or timestamp. This holds for current macOS `aa` output. If a
+        // future `aa` version prepends columns, `lastPathComponent` may no longer
+        // isolate the filename and the match below could miss.
+        //
+        // This degrades safely: a miss returns nil, the post-extraction receipt
+        // fixup is skipped, and extraction itself still succeeds — the only
+        // consequence is that a misplaced receipt plist is not relocated. So a
+        // format change here surfaces as missing receipts after an OS update, not
+        // as a crash or a failed install. That is the first place to check if such
+        // reports appear.
         for line in result.stdoutString.components(separatedBy: "\n") {
             let entry = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            // Match any path whose last component is exactly "<stem>.plist"
+            // Match any entry whose last path component is exactly "<stem>.plist".
             guard (entry as NSString).lastPathComponent == target else { continue }
             debugLog?("AARExtractor: found receipt plist at '\(entry)' in '\(packageURL.lastPathComponent)'")
             return entry
