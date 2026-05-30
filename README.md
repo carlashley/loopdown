@@ -1,3 +1,11 @@
+# IMPORTANT ALERT #
+### 2026-05-30
+For anyone using the Python version of loopdown, please note that the repo will be changing the current Python main branch to a new branch, with the swiftdev branch becoming the main; this should happen by the end of the first week of June 2026.
+
+The last RC for the Swift version before this happens has been pre-released:
+https://github.com/carlashley/loopdown/releases/tag/v2.0.3.RC4-swift
+
+
 # About
 This is the last version of the Python implementation of `loopdown`. Future releases will be Swift implementations and will only support macOS 14+.
 
