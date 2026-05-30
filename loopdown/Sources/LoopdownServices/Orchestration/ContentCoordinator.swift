@@ -840,6 +840,20 @@ private extension ContentCoordinator {
         // Track IDs that are essential or core so optional duplicates are skipped.
         var nonOptionalIDs = Set<String>()
 
+        // Memoise packageNeedsInstall results by package ID for the lifetime of this
+        // merge call. The same package ID can appear across multiple apps' metadata,
+        // and for legacy packages packageNeedsInstall shells out to pkgutil — without
+        // this cache that subprocess would run once per occurrence. The install-state
+        // result for a given ID is identical across apps (version and fileCheck paths
+        // are intrinsic to the package), so the first computed result is reused.
+        var needsInstallCache: [String: Bool] = [:]
+        func cachedNeedsInstall(_ pkg: AudioContentPackage) -> Bool {
+            if let cached = needsInstallCache[pkg.packageID] { return cached }
+            let result = packageNeedsInstall(pkg, debugLog: debugLog)
+            needsInstallCache[pkg.packageID] = result
+            return result
+        }
+
         for app in apps {
             let policy       = app.concreteApp.flatMap { policyByApp[$0] }
             let wantEssential = policy?.essential ?? includeEssential
@@ -849,7 +863,7 @@ private extension ContentCoordinator {
             // Essential packages
             if wantEssential {
                 for pkg in app.essential {
-                    if !forceDeploy && !packageNeedsInstall(pkg, debugLog: debugLog) { continue }
+                    if !forceDeploy && !cachedNeedsInstall(pkg) { continue }
                     if byID[pkg.packageID].map({ $0.isOptional }) ?? true {
                         byID[pkg.packageID] = pkg
                     }
@@ -860,7 +874,7 @@ private extension ContentCoordinator {
             // Core packages
             if wantCore {
                 for pkg in app.core {
-                    if !forceDeploy && !packageNeedsInstall(pkg, debugLog: debugLog) { continue }
+                    if !forceDeploy && !cachedNeedsInstall(pkg) { continue }
                     if byID[pkg.packageID].map({ $0.isOptional }) ?? true {
                         byID[pkg.packageID] = pkg
                     }
@@ -872,7 +886,7 @@ private extension ContentCoordinator {
             if wantOptional {
                 for pkg in app.optional {
                     if nonOptionalIDs.contains(pkg.packageID) { continue }
-                    if !forceDeploy && !packageNeedsInstall(pkg, debugLog: debugLog) { continue }
+                    if !forceDeploy && !cachedNeedsInstall(pkg) { continue }
                     if byID[pkg.packageID] == nil {
                         byID[pkg.packageID] = pkg
                     }
@@ -895,7 +909,7 @@ private extension ContentCoordinator {
             }()
 
             guard shouldInclude else { continue }
-            if !forceDeploy && !packageNeedsInstall(pkg, debugLog: debugLog) { continue }
+            if !forceDeploy && !cachedNeedsInstall(pkg) { continue }
 
             byID[pkg.packageID] = pkg
             if !pkg.isOptional { nonOptionalIDs.insert(pkg.packageID) }
