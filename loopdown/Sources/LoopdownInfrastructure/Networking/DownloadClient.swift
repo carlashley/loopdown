@@ -151,7 +151,8 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
         return s
     }
 
-    /// NSURLError codes that indicate a transient network condition worth retrying.
+    /// NSURLError codes (domain `NSURLErrorDomain`) that indicate a transient
+    /// network condition worth retrying.
     private static let retryableURLErrorCodes: Set<Int> = [
         // Connection state
         NSURLErrorNetworkConnectionLost,
@@ -167,10 +168,48 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
         NSURLErrorSecureConnectionFailed,
     ]
 
+    /// HTTP status codes that indicate a transient server-side condition worth
+    /// retrying. 429 (Too Many Requests) plus the 5xx codes a CDN or caching/
+    /// mirror server commonly emits under load or during maintenance.
+    private static let retryableHTTPStatusCodes: Set<Int> = [
+        429,    // Too Many Requests
+        500,    // Internal Server Error
+        502,    // Bad Gateway
+        503,    // Service Unavailable
+        504,    // Gateway Timeout
+    ]
+
+    /// Returns `true` if `error` represents a transient failure worth retrying.
+    ///
+    /// Two cases qualify:
+    ///   1. A `DownloadClientError.invalidHTTPStatus` whose code is in
+    ///      `retryableHTTPStatusCodes` (429 / 5xx).
+    ///   2. An `NSError` in domain `NSURLErrorDomain` whose code is in
+    ///      `retryableURLErrorCodes` (transient connectivity / DNS / TLS / timeout).
+    ///
+    /// All other failures — including `.belowMinimumBandwidth`, `.tooManyRedirects`,
+    /// `.cancelled`, non-retryable HTTP statuses (e.g. 403/404), and errors from
+    /// other domains — are treated as terminal and are not retried.
+    private static func isRetryable(_ error: Error) -> Bool {
+        if let clientError = error as? DownloadClientError {
+            if case .invalidHTTPStatus(let code) = clientError {
+                return retryableHTTPStatusCodes.contains(code)
+            }
+            return false
+        }
+
+        let nsError = error as NSError
+        guard nsError.domain == NSURLErrorDomain else { return false }
+        return retryableURLErrorCodes.contains(nsError.code)
+    }
+
     /// Downloads a file and returns a stable URL the caller owns.
     ///
-    /// Retries on transient network errors up to `maxRetries` times, with an
-    /// exponential backoff starting at `retryDelay` seconds.
+    /// Retries up to `maxRetries` times on transient failures — transient network
+    /// conditions (connectivity, DNS, TLS, timeouts) and transient HTTP statuses
+    /// (429 and 5xx) — with an exponential backoff starting at `retryDelay` seconds.
+    /// Terminal failures (e.g. 403/404, redirect overflow, bandwidth abort) are not
+    /// retried. See `isRetryable(_:)`.
     ///
     /// URLSession's `didFinishDownloadingTo` location is temporary and is deleted
     /// as soon as that delegate method returns. To hand back a durable URL, the
@@ -199,10 +238,9 @@ public final class DownloadClient: NSObject, @unchecked Sendable {
                     progress: progress
                 )
             } catch {
-                let code = (error as NSError).code
-                guard attempt < maxRetries,
-                      Self.retryableURLErrorCodes.contains(code)
-                else { throw error }
+                guard attempt < maxRetries, Self.isRetryable(error) else {
+                    throw error
+                }
 
                 attempt += 1
                 onRetry?(attempt, maxRetries, error)
