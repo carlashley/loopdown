@@ -13,12 +13,19 @@ import LoopdownCore
 /// Downloads and unpacks incremental content DB archives for modern Logic Pro / MainStage.
 ///
 /// For each pending version integer `v`, this type:
-///   1. Builds the download URL: `<baseURL>/universal/contentDB_v<v>.aar`
+///   1. Builds the download URL: `<Apple CDN>/universal/contentDB_v<v>.aar`
 ///      (e.g. `https://audiocontentdownload.apple.com/universal/contentDB_v18.aar`).
 ///   2. Downloads the `.aar` to a temporary file.
 ///   3. Extracts the archive using `/usr/bin/aa extract -d <tempDir>`.
 ///   4. Locates the `contentDB_vXXXX.bundle` directory inside `<tempDir>`.
 ///   5. Parses `Package.plist` inside that bundle via `IncrementalContentDatabase`.
+///
+/// The `contentDB_v*.aar` archives are metadata used to determine the merge set; they
+/// are ALWAYS fetched directly from Apple's `audiocontentdownload.apple.com` CDN and are
+/// NEVER served from a `-c/--cache-server` or `-m/--mirror-server`. Those server options
+/// apply only to the actual content-package downloads, not to this metadata. This matches
+/// `RemotePlistFetcher` (legacy `.plist`) and `ContentVersionResolver` (`contentversion.plist`),
+/// both of which are also pinned to the Apple CDN.
 ///
 /// Results from all versions are merged, deduplicating by `packageID`. The caller
 /// (typically `ContentCoordinator`) is responsible for deduplicating against packages
@@ -38,6 +45,10 @@ public enum IncrementalDBFetcher {
         static let bundleDirPrefix      = LoopdownConstants.Downloads.IncrementalContentDB.extractedBundlePrefix
         static let bundleDirSuffix      = LoopdownConstants.Downloads.IncrementalContentDB.extractedBundleSuffix
         static let aaPath               = "/usr/bin/aa"
+
+        /// Incremental content DB archives are metadata and must always come from
+        /// Apple's CDN — never from a cache or mirror server.
+        static let baseURL              = LoopdownConstants.Downloads.contentSourceBaseURL
     }
 
 
@@ -45,11 +56,12 @@ public enum IncrementalDBFetcher {
 
     /// Fetch and decode incremental content packages for the given version numbers.
     ///
+    /// The archives are always downloaded from the Apple CDN. Cache and mirror server
+    /// options deliberately do not apply here — see the type-level documentation.
+    ///
     /// - Parameters:
     ///   - versions:        Version integers to fetch (e.g. `[16, 17, 18]`), ascending.
     ///   - libraryDestURL:  Root of the Logic Pro Library bundle; used for receipt lookup.
-    ///   - cacheServer:     Optional caching/proxy server (used in place of Apple CDN).
-    ///   - mirrorServer:    Optional mirror server (highest priority).
     ///   - downloader:      Shared `DownloadClient` instance.
     ///   - logger:          Logger for debug and error output.
     /// - Returns: Deduplicated array of `AudioContentPackage` values (non-legacy, modern),
@@ -57,8 +69,6 @@ public enum IncrementalDBFetcher {
     public static func fetch(
         versions: [Int],
         libraryDestURL: URL,
-        cacheServer: URL?,
-        mirrorServer: URL?,
         downloader: DownloadClient,
         logger: CoreLogger = NullLogger()
     ) async -> [AudioContentPackage] {
@@ -69,7 +79,8 @@ public enum IncrementalDBFetcher {
             return []
         }
 
-        let baseURL = effectiveBaseURL(cacheServer: cacheServer, mirrorServer: mirrorServer)
+        // Always the Apple CDN — incremental DB archives are never mirrored or cached.
+        let baseURL = Consts.baseURL
 
         // Merged results: later versions overwrite earlier ones on ID conflict.
         var byID: [String: AudioContentPackage] = [:]
@@ -260,14 +271,5 @@ public enum IncrementalDBFetcher {
         }
 
         return candidate
-    }
-
-
-    // MARK: - Base URL helper
-
-    private static func effectiveBaseURL(cacheServer: URL?, mirrorServer: URL?) -> URL {
-        mirrorServer
-            ?? cacheServer
-            ?? LoopdownConstants.Downloads.contentSourceBaseURL
     }
 }

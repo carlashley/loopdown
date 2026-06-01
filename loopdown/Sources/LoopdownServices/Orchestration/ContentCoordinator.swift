@@ -103,12 +103,13 @@ public enum ContentCoordinator {
         // first modern app we find (highest-version wins if both are present) and
         // resolve pending versions from its bundle. The resulting packages are merged
         // into the pending set by runDownload / runDeploy alongside the shipped DB packages.
+        // Incremental content DB archives (contentDB_v*.aar) are metadata used to
+        // determine the merge set and are ALWAYS fetched from Apple's CDN — never from
+        // a cache or mirror server. cacheServer/mirrorServer are therefore not passed here.
         let incrementalPackages: [AudioContentPackage] = await resolveIncrementalPackages(
             targetApps: targetApps,
             libraryDestURL: resolvedLibraryDestURL,
-            cacheServer: cacheServer,
-            mirrorServer: mirrorServer,  // required to actually form `.car` urls for modern content packs
-            downloader: downloader,  // required to actually form `.car` urls for modern content packs
+            downloader: downloader,
             logger: logger
         )
 
@@ -1030,8 +1031,6 @@ private extension ContentCoordinator {
     static func resolveIncrementalPackages(
         targetApps: [AudioApplication],
         libraryDestURL: URL,
-        cacheServer: URL?,
-        mirrorServer: URL?,
         downloader: DownloadClient,
         logger: CoreLogger
     ) async -> [AudioContentPackage] {
@@ -1058,8 +1057,6 @@ private extension ContentCoordinator {
         return await IncrementalDBFetcher.fetch(
             versions: versions,
             libraryDestURL: libraryDestURL,
-            cacheServer: cacheServer,
-            mirrorServer: mirrorServer,
             downloader: downloader,
             logger: logger
         )
