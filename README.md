@@ -94,31 +94,39 @@ It is possible to configure per-app installation of required and/or optional pac
 
 ```
 # Preferences for loopdown (domain: 'com.github.carlashley.loopdown').
+```
 apps:
   type: [String]
   default: []        # empty = all installed apps
   values: garageband, logicpro, mainstage
 
-required:
+essential:
   type: Bool
-  default: true      # inferred true when both required and optional are absent
+  default: true      # inferred true when essential, core, and optional are all absent
+  # Selects essential content packages (ecp* — Logic Pro 12+ / MainStage 4+ only).
+
+core:
+  type: Bool
+  default: true      # inferred true when essential, core, and optional are all absent
+  # Selects core content packages (ccp*; equivalent to required for legacy apps).
 
 optional:
   type: Bool
   default: false
 
 appPolicies:
-  type: [{app: String, required: Bool, optional: Bool}]
-  default: []        # empty = use top-level required/optional for all apps
-  # Per-app overrides for required/optional. Apps not listed fall back to the
-  # top-level required/optional values.
+  type: [{app: String, essential: Bool, core: Bool, optional: Bool}]
+  default: []        # empty = use top-level flags for all apps
+  # Per-app overrides. Apps not listed fall back to the top-level flags.
   # Example:
-  #   - app: garageband
-  #     required: true
-  #     optional: true
   #   - app: logicpro
-  #     required: true
+  #     essential: true
+  #     core: true
   #     optional: false
+  #   - app: garageband
+  #     essential: false
+  #     core: true
+  #     optional: true
 
 forceDeploy:
   type: Bool
@@ -140,7 +148,7 @@ cacheServer:
 
 mirrorServer:
   type: String
-  default:           # absent; overrides cacheServer when present
+  default: ~         # absent; overrides cacheServer when present
   values: https://host
 
 dryRun:
@@ -150,6 +158,43 @@ dryRun:
 quietRun:
   type: Bool
   default: false
+
+libraryDest:
+  type: String
+  default: /Users/Shared
+  # Parent directory under which Logic Pro Library.bundle is created.
+
+maxRetries:
+  type: Int
+  default: 3
+  range: 1-10
+  # Maximum download retry attempts on transient network errors.
+
+retryDelay:
+  type: Int
+  default: 2
+  range: 1-5
+  # Initial backoff delay in seconds between download retry attempts.
+
+minimumBandwidth:
+  type: String
+  default: ~        # absent = no threshold enforced
+  values: e.g. 300KB, 2MB
+  range: 300KB-5MB/s
+  # Abort a download if rolling average speed stays below this threshold.
+
+bandwidthWindow:
+  type: Int
+  default: 60
+  range: 30-120
+  # Rolling average window in seconds for bandwidth measurement.
+
+abortAfter:
+  type: Int
+  default: 3
+  range: 2-5
+  # Abort the run after this many consecutive bandwidth-threshold failures.
+  # Only meaningful when minimumBandwidth is set.
 ```
 
 ## License
