@@ -96,7 +96,7 @@ It is possible to configure per-app installation of required and/or optional pac
 # Preferences for loopdown (domain: 'com.github.carlashley.loopdown').
 apps:
   type: [String]
-  default: []        # empty = all installed apps
+  default: []        # empty or not present = all installed apps
   values: garageband, logicpro, mainstage
 
 essential:
