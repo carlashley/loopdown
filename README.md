@@ -94,7 +94,6 @@ It is possible to configure per-app installation of required and/or optional pac
 
 ```
 # Preferences for loopdown (domain: 'com.github.carlashley.loopdown').
-```
 apps:
   type: [String]
   default: []        # empty = all installed apps
